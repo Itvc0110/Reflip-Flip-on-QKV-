@@ -8,3 +8,16 @@ env/
 venv/
 .env
 .claude
+
+# Large downloaded/generated experiment artifacts
+models/
+quantized_models/
+calibration_cache/
+dataset_cache/
+xspot_layer*/
+results/lm_eval/
+
+# Standalone QKV generated outputs
+attention_quantization_analysis.png
+sorted_error_comparison.png
+quantization_results.npz

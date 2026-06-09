@@ -22,6 +22,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import argparse
+import json
+from pathlib import Path
 from utils_qkv import (
     find_knee_point,
     compute_dynamic_outlier_threshold,
@@ -532,23 +534,51 @@ def main():
     # Parse command-line arguments
     parser = argparse.ArgumentParser(description='INT4 Quantization with ReFlip Strategy')
     parser.add_argument('--critical-dim-pct', type=float, default=0.1,
-                        help='Percentage of head dimensions to protect in ReFlip (default: 0.15 = 15%%)')
+                        help='Percentage of head dimensions to protect in ReFlip (default: 0.1 = 10%%)')
     parser.add_argument('--knee-tolerance', type=float, default=0.0,
                         help='Tolerance offset for Kneedle algorithm (default: 0.0)')
     parser.add_argument('--group-size', type=int, default=128,
                         help='Quantization group size (default: 128)')
     parser.add_argument('--max-flip-pct', type=float, default=0.1,
-                        help='Max flip percentage for ReFlip (default: 0.05 = 5%%)')
+                        help='Max flip percentage for ReFlip (default: 0.1 = 10%%)')
     parser.add_argument('--correction-scale', type=float, default=1.0,
                         help='Error correction scaling factor for ReFlip (default: 1.0)')
+    parser.add_argument('--data-dir', type=str, default='./xspot_layer5_group2',
+                        help='Directory containing xspot.py outputs (default: ./xspot_layer5_group2)')
+    parser.add_argument('--output-dir', type=str, default='.',
+                        help='Directory for quantization result files (default: current directory)')
+    parser.add_argument('--group-id', type=int, default=None,
+                        help='GQA group id to load. Defaults to metadata.json group_id or inferred Wq_group*.npy file.')
     parser.add_argument('--debug', action='store_true',
                         help='Print debug information')
     args = parser.parse_args()
 
+    data_dir = Path(args.data_dir)
+    output_dir = Path(args.output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    metadata = {}
+    metadata_path = data_dir / 'metadata.json'
+    if metadata_path.exists():
+        with metadata_path.open('r', encoding='utf-8') as f:
+            metadata = json.load(f)
+
+    group_id = args.group_id
+    if group_id is None:
+        group_id = metadata.get('group_id')
+    if group_id is None:
+        group_files = sorted(data_dir.glob('Wq_group*.npy'))
+        if len(group_files) == 1:
+            group_id = int(group_files[0].stem.replace('Wq_group', ''))
+    if group_id is None:
+        group_id = 2
+
     print("="*70)
-    print("INT4 Weight Quantization for GQA Attention (Group 0)")
+    print(f"INT4 Weight Quantization for GQA Attention (Group {group_id})")
     print("Comparing: Nearest | Heuristic | ReFlip")
     print("="*70)
+    print(f"  Data dir: {data_dir}")
+    print(f"  Output dir: {output_dir}")
     print(f"\nParameters:")
     print(f"  Critical dim %%: {args.critical_dim_pct*100:.1f}%% (increased from 5%% for more aggressive correction)")
     print(f"  Knee tolerance: {args.knee_tolerance}")
@@ -559,23 +589,23 @@ def main():
     # Load data
     print("\n[1] Loading data...")
     try:
-        js_means = np.load('./xspot_layer5_group2/js_means.npy')  # [4096]
-        Wq = np.load('./xspot_layer5_group2/Wq_group2.npy')  # [4, 128, 4096]
-        Wk = np.load('./xspot_layer5_group2/Wk_group2.npy')  # [128, 4096]
-        Wv = np.load('./xspot_layer5_group2/Wv_group2.npy')  # [128, 4096]
+        js_means = np.load(data_dir / 'js_means.npy')  # [4096]
+        Wq = np.load(data_dir / f'Wq_group{group_id}.npy')  # [4, 128, 4096]
+        Wk = np.load(data_dir / f'Wk_group{group_id}.npy')  # [128, 4096]
+        Wv = np.load(data_dir / f'Wv_group{group_id}.npy')  # [128, 4096]
     except FileNotFoundError as e:
         print(f"ERROR: File not found: {e}")
         print("Please ensure you've run xspot.py and have the following files:")
         print("  - js_means.npy")
-        print("  - Wq_group0.npy")
-        print("  - Wk_group0.npy")
-        print("  - Wv_group0.npy")
+        print(f"  - Wq_group{group_id}.npy")
+        print(f"  - Wk_group{group_id}.npy")
+        print(f"  - Wv_group{group_id}.npy")
         return
 
     print(f"  JS means: {js_means.shape}")
-    print(f"  Wq (group 0): {Wq.shape} [num_heads, head_dim, hidden_size]")
-    print(f"  Wk (group 0): {Wk.shape} [head_dim, hidden_size]")
-    print(f"  Wv (group 0): {Wv.shape} [head_dim, hidden_size]")
+    print(f"  Wq (group {group_id}): {Wq.shape} [num_heads, head_dim, hidden_size]")
+    print(f"  Wk (group {group_id}): {Wk.shape} [head_dim, hidden_size]")
+    print(f"  Wv (group {group_id}): {Wv.shape} [head_dim, hidden_size]")
 
     # Use JS means as input X (single activation vector)
     X = js_means  # [4096]
@@ -1036,8 +1066,9 @@ def main():
     ax12 = fig.add_subplot(gs[3, 2])
     ax12.axis('off')
 
-    plt.savefig('attention_quantization_analysis.png', dpi=300, bbox_inches='tight')
-    print(f"  Saved: attention_quantization_analysis.png")
+    attention_plot_path = output_dir / 'attention_quantization_analysis.png'
+    plt.savefig(attention_plot_path, dpi=300, bbox_inches='tight')
+    print(f"  Saved: {attention_plot_path}")
 
     # New figure: Sorted errors over 128 head dimensions for 4 heads
     # Split into two plots per head: errors (top) and magnitude (bottom)
@@ -1105,15 +1136,20 @@ def main():
         ax_mag.legend(loc='best', fontsize=9)
         ax_mag.grid(True, alpha=0.3)
 
-    plt.savefig('sorted_error_comparison.png', dpi=300, bbox_inches='tight')
-    print(f"  Saved: sorted_error_comparison.png")
+    sorted_plot_path = output_dir / 'sorted_error_comparison.png'
+    plt.savefig(sorted_plot_path, dpi=300, bbox_inches='tight')
+    print(f"  Saved: {sorted_plot_path}")
 
     # Save detailed results
     print("\n[6] Saving detailed results...")
-    np.savez('quantization_results.npz',
+    result_path = output_dir / 'quantization_results.npz'
+    np.savez(result_path,
              # Input
              X=X,
              js_means=js_means,
+             data_dir=str(data_dir),
+             output_dir=str(output_dir),
+             group_id=group_id,
              # Original weights
              Wq_orig=Wq,
              Wk_orig=Wk,
@@ -1161,7 +1197,7 @@ def main():
              K_quant_nearest=K_nearest,
              K_quant_flip=K_flip,
              K_quant_reflip=K_quant_reflip)
-    print(f"  Saved: quantization_results.npz")
+    print(f"  Saved: {result_path}")
 
     print("\n" + "="*70)
     print("✓ Analysis complete!")

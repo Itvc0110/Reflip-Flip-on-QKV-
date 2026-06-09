@@ -1,0 +1,119 @@
+{
+  "project": "Flip/ReFlip QKV and full-model quantization comparisons",
+  "reference_workbook": "Smart-Flip Quantization Results.xlsx",
+  "tracking": {
+    "human_tracker": "EXPERIMENT_TRACKER.md",
+    "ledger": "results/experiment_ledger.jsonl",
+    "standalone_runbook": "RUN_QKV_STANDALONE.md",
+    "full_model_runbook": "RUN_FULL_MODEL_EVAL.md",
+    "model_downloads": "MODEL_DOWNLOADS.md",
+    "workbook_reference": "SMART_FLIP_REFERENCE.md"
+  },
+  "models": {
+    "standalone_qkv_default": {
+      "local_path": "./models/Llama-3-8B",
+      "download_example": "huggingface-cli download meta-llama/Meta-Llama-3-8B --local-dir ./models/Llama-3-8B --local-dir-use-symlinks False",
+      "notes": "Use a Llama 3/3.1 8B compatible local directory here if the exact repo differs."
+    },
+    "awq_xl_default": {
+      "local_path": "./models/Mistral-7B-v0.3",
+      "download_example": "huggingface-cli download mistralai/Mistral-7B-v0.3 --local-dir ./models/Mistral-7B-v0.3 --local-dir-use-symlinks False"
+    },
+    "minicpm_default": {
+      "hf_id": "openbmb/MiniCPM-2B-sft-bf16",
+      "local_download_example": "huggingface-cli download openbmb/MiniCPM-2B-sft-bf16 --local-dir ./models/MiniCPM-2B-sft-bf16 --local-dir-use-symlinks False"
+    }
+  },
+  "setup": {
+    "standalone_requirements": "requirements-qkv.txt",
+    "full_eval_requirements": "requirements-full-eval.txt",
+    "status_command": "python tools/experiment_status.py",
+    "standalone_preflight": "python tools/preflight_qkv.py",
+    "full_eval_preflight": "python tools/preflight_full_eval.py"
+  },
+  "standalone_qkv": {
+    "phase": "first",
+    "export_command": "python xspot.py --model-path ./models/Llama-3-8B --layer-id 5 --group-id 2 --n-samples 128 --seqlen 512 --output-dir ./xspot_layer5_group2",
+    "smoke_export_command": "python xspot.py --model-path ./models/Llama-3-8B --layer-id 5 --group-id 2 --n-samples 8 --seqlen 128 --output-dir ./xspot_layer5_group2",
+    "run_command": "python fast_quantize_qkv.py --critical-dim-pct 0.1 --knee-tolerance 0.0 --group-size 128 --max-flip-pct 0.1 --correction-scale 1.0",
+    "summarize_command": "python tools/summarize_qkv_results.py --append-ledger",
+    "required_artifacts": [
+      "./xspot_layer5_group2/js_means.npy",
+      "./xspot_layer5_group2/Wq_group2.npy",
+      "./xspot_layer5_group2/Wk_group2.npy",
+      "./xspot_layer5_group2/Wv_group2.npy",
+      "./xspot_layer5_group2/metadata.json"
+    ],
+    "expected_outputs": [
+      "attention_quantization_analysis.png",
+      "sorted_error_comparison.png",
+      "quantization_results.npz"
+    ],
+    "methods_compared": [
+      "Nearest/RN INT4 groupwise asymmetric quantization",
+      "Heuristic Flip with Kneedle dynamic outlier masking",
+      "ReFlip attention-score correction"
+    ]
+  },
+  "full_model": {
+    "phase": "later",
+    "methods": [
+      {
+        "label": "rtn_w4g128",
+        "script": "rtn_xl.py",
+        "command": "python rtn_xl.py --model-path ./models/Llama-3-8B --output-dir ./quantized_models/llama3_rtn_w4g128 --group-size 128",
+        "output_dir": "./quantized_models/llama3_rtn_w4g128"
+      },
+      {
+        "label": "standard_awq",
+        "script": "awq_stand_xl.py",
+        "command": "python awq_stand_xl.py --model-path ./models/Llama-3-8B --output-dir ./quantized_models/llama3_awq_standard --n-calib 128 --layer-batch-size 16",
+        "output_dir": "./quantized_models/llama3_awq_standard"
+      },
+      {
+        "label": "dynamic_heuristic_awq",
+        "script": "awq_dh_xl.py",
+        "command": "python awq_dh_xl.py --model-path ./models/Llama-3-8B --output-dir ./quantized_models/llama3_awq_dh --n-calib 128 --knee-tolerance 0.0 --max-flip-percent 0.01 --layer-batch-size 16",
+        "output_dir": "./quantized_models/llama3_awq_dh"
+      },
+      {
+        "label": "james_stein_heuristic_awq",
+        "script": "awq_js_xl.py",
+        "command": "python awq_js_xl.py --model-path ./models/Llama-3-8B --output-dir ./quantized_models/llama3_awq_js --n-calib 128 --knee-tolerance 0.0 --max-flip-percent 0.05 --layer-batch-size 16",
+        "output_dir": "./quantized_models/llama3_awq_js"
+      },
+      {
+        "label": "awq_gqa_reflip",
+        "script": "awq_gqa_xl.py",
+        "command": "python awq_gqa_xl.py --model-path ./models/Llama-3-8B --output-dir ./quantized_models/llama3_awq_gqa --n-calib 128 --apply-gqa-reflip --gqa-critical-dim-pct 0.15 --gqa-max-flip-pct 0.05",
+        "output_dir": "./quantized_models/llama3_awq_gqa"
+      }
+    ],
+    "perplexity_compare_command": "python compare_awq_slicing.py --heuristic-path ./quantized_models/llama3_awq_gqa --standard-path ./quantized_models/llama3_awq_standard --n-samples 500",
+    "lm_eval_tasks_short": [
+      "arc_challenge",
+      "arc_easy",
+      "boolq",
+      "piqa",
+      "rte"
+    ],
+    "lm_eval_tasks_workbook_like": [
+      "arc_challenge",
+      "arc_easy",
+      "boolq",
+      "hellaswag",
+      "lambada_openai",
+      "openbookqa",
+      "piqa",
+      "rte",
+      "winogrande"
+    ],
+    "summarize_lm_eval_command": "python tools/summarize_lm_eval.py --path ./results/lm_eval --append-ledger"
+  },
+  "current_known_blockers": [
+    "Missing ./models/Llama-3-8B",
+    "Missing standalone QKV exported artifacts under ./xspot_layer5_group2",
+    "Missing full-model output directories under ./quantized_models",
+    "Later lm-eval phase may need python -m pip install -r requirements-full-eval.txt"
+  ]
+}

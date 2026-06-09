@@ -37,11 +37,12 @@ from calibration_utils import get_c4_calibration_data
 class JamesSteinGQAExporter:
     """Export James-Stein estimates and GQA weights for one group."""
 
-    def __init__(self, model, layer_id, group_id, device):
+    def __init__(self, model, layer_id, group_id, device, model_path=None):
         self.model = model
         self.layer_id = layer_id
         self.group_id = group_id
         self.device = device
+        self.model_path = Path(model_path) if model_path is not None else None
         self.activations = []
 
         # Get attention module
@@ -219,6 +220,39 @@ class JamesSteinGQAExporter:
             'squared_distance': sum_sq_dev
         }
 
+    def _load_weight_from_safetensors(self, weight_name):
+        """Load one weight directly from local HF safetensors shards."""
+        if self.model_path is None:
+            raise ValueError("Cannot load meta tensor fallback without model_path")
+
+        index_path = self.model_path / 'model.safetensors.index.json'
+        if not index_path.exists():
+            raise FileNotFoundError(f"Missing safetensors index: {index_path}")
+
+        with index_path.open('r', encoding='utf-8') as f:
+            index = json.load(f)
+
+        weight_map = index.get('weight_map', {})
+        if weight_name not in weight_map:
+            matches = [key for key in weight_map if weight_name.split('.')[-2] in key]
+            preview = ', '.join(matches[:5])
+            raise KeyError(f"Weight {weight_name!r} not found in {index_path}. Matches: {preview}")
+
+        try:
+            from safetensors.torch import load_file
+        except ImportError as exc:
+            raise ImportError("Install safetensors to load meta tensor fallback") from exc
+
+        shard_path = self.model_path / weight_map[weight_name]
+        print(f"  Loading {weight_name} from {shard_path.name}")
+        return load_file(str(shard_path), device='cpu')[weight_name].float()
+
+    def _weight_to_cpu_float(self, module, weight_name):
+        weight = module.weight
+        if getattr(weight, 'is_meta', False):
+            return self._load_weight_from_safetensors(weight_name)
+        return weight.data.cpu().float()
+
     def extract_group_weights(self):
         """
         Extract Q, K, V weights for the specified GQA group.
@@ -231,10 +265,14 @@ class JamesSteinGQAExporter:
         """
         print(f"\n=== Extracting Group {self.group_id} Weights ===")
 
-        # Get weights (move to CPU and convert to float32)
-        Wq = self.q_proj.weight.data.cpu().float()  # [hidden_size, hidden_size]
-        Wk = self.k_proj.weight.data.cpu().float()  # [num_kv_heads * head_dim, hidden_size]
-        Wv = self.v_proj.weight.data.cpu().float()  # [num_kv_heads * head_dim, hidden_size]
+        prefix = f"model.layers.{self.layer_id}.self_attn"
+
+        # Get weights (move to CPU and convert to float32). With device_map="auto",
+        # Transformers may leave offloaded weights as meta tensors; in that case,
+        # load only the needed Q/K/V tensors directly from local safetensors shards.
+        Wq = self._weight_to_cpu_float(self.q_proj, f"{prefix}.q_proj.weight")  # [hidden_size, hidden_size]
+        Wk = self._weight_to_cpu_float(self.k_proj, f"{prefix}.k_proj.weight")  # [num_kv_heads * head_dim, hidden_size]
+        Wv = self._weight_to_cpu_float(self.v_proj, f"{prefix}.v_proj.weight")  # [num_kv_heads * head_dim, hidden_size]
 
         print(f"Original weight shapes:")
         print(f"  Wq: {Wq.shape}")
@@ -336,12 +374,12 @@ class JamesSteinGQAExporter:
         }
 
         # Save JSON metadata
-        with open(output_dir / 'metadata.json', 'w') as f:
+        with open(output_dir / 'metadata.json', 'w', encoding='utf-8') as f:
             json.dump(metadata, f, indent=2)
         print(f"Saved metadata.json")
 
         # Save human-readable README
-        with open(output_dir / 'README.txt', 'w') as f:
+        with open(output_dir / 'README.txt', 'w', encoding='utf-8') as f:
             f.write(f"=== James-Stein Estimation + GQA Group Weights Export ===\n\n")
             f.write(f"Layer: {self.layer_id}\n")
             f.write(f"GQA Group: {self.group_id}\n\n")
@@ -456,7 +494,7 @@ def main():
     print(f"Model loaded successfully")
 
     # Create exporter
-    exporter = JamesSteinGQAExporter(model, args.layer_id, args.group_id, device)
+    exporter = JamesSteinGQAExporter(model, args.layer_id, args.group_id, device, args.model_path)
 
     # Register hooks
     exporter.register_hooks()
