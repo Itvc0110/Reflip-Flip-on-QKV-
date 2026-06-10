@@ -17,7 +17,22 @@ from tqdm import tqdm
 import random
 import numpy as np
 import pickle
+import json
+from datetime import datetime
 from pathlib import Path
+
+
+def to_jsonable(value):
+    """Convert numpy/torch-ish values into plain JSON types."""
+    if isinstance(value, dict):
+        return {str(k): to_jsonable(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [to_jsonable(v) for v in value]
+    if isinstance(value, tuple):
+        return [to_jsonable(v) for v in value]
+    if isinstance(value, np.generic):
+        return value.item()
+    return value
 
 class AWQSlidingWindowValidator:
     def __init__(self, device="cuda", seed=42, stride=512, max_length=2048, cache_dir="./dataset_cache"): # Increased to 2048 for Llama 3
@@ -455,6 +470,8 @@ def main():
                        help="Number of samples per dataset")
     parser.add_argument("--cache-dir", type=str, default="./dataset_cache",
                        help="Directory to cache downloaded datasets")
+    parser.add_argument("--save-json", type=str, default="",
+                       help="Optional path to save machine-readable PPL results")
     args = parser.parse_args()
 
     validator = AWQSlidingWindowValidator(cache_dir=args.cache_dir)
@@ -471,6 +488,23 @@ def main():
 
     # Analyze results
     analysis = validator.analyze_results(dataset_results)
+
+    if args.save_json:
+        output_path = Path(args.save_json)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        payload = {
+            "script": "compare_awq_slicing.py",
+            "timestamp": datetime.now().isoformat(timespec="seconds"),
+            "heuristic_path": args.heuristic_path,
+            "standard_path": args.standard_path if args.standard_path else None,
+            "n_samples": args.n_samples,
+            "cache_dir": args.cache_dir,
+            "raw_results": validator.results,
+            "dataset_results": dataset_results,
+            "analysis": analysis,
+        }
+        output_path.write_text(json.dumps(to_jsonable(payload), indent=2), encoding="utf-8")
+        print(f"\nSaved JSON results to: {output_path}")
 
     # Final summary
     print("\n" + "="*80)
