@@ -23,6 +23,7 @@ import torch
 import torch.nn as nn
 from safetensors.torch import load_file
 from tqdm import tqdm
+import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from utils_qkv import quantize_weight_groupwise_int4

@@ -255,6 +255,7 @@ def load_calibration_data(dataset_name, tokenizer, n_samples=128, seqlen=2048, s
 
 # Example usage
 if __name__ == "__main__":
+    import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
     from transformers import AutoTokenizer
 
     # Test with MiniCPM-2B tokenizer

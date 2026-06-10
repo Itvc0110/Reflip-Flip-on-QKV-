@@ -17,6 +17,7 @@ Usage:
 import argparse
 import torch
 import numpy as np
+import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from pathlib import Path
 import json

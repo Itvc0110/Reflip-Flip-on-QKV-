@@ -11,6 +11,7 @@ Stride: 512 tokens
 """
 
 import torch
+import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from tqdm import tqdm

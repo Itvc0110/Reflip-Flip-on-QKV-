@@ -23,6 +23,7 @@ import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from tqdm import tqdm

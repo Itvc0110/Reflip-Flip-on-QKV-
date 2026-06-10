@@ -25,6 +25,7 @@ James-Stein Estimator:
 
 import torch
 import torch.nn as nn
+import hf_runtime  # noqa: F401 - sets Transformers backend env vars before import.
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from datasets import load_dataset
 from tqdm import tqdm
