@@ -1,17 +1,30 @@
+# CUDA PyTorch stack. Keep torch/torchvision/torchaudio versions aligned;
+# mismatched torchvision can break Transformers Llama imports with
+# "operator torchvision::nms does not exist".
 --index-url https://download.pytorch.org/whl/cu121
 --extra-index-url https://pypi.org/simple
 
 torch==2.5.1+cu121
-transformers
-datasets
-accelerate
-huggingface_hub
+torchvision==0.20.1+cu121
+torchaudio==2.5.1+cu121
+
+# Core HF/runtime packages.
+transformers>=4.45,<4.53
+datasets>=2.20,<3.0
+accelerate>=0.33,<2.0
+huggingface_hub>=0.24,<1.0
+safetensors>=0.4.3
+sentencepiece>=0.2
+
+# Numeric/data stack. NumPy 2.x breaks older SciPy/sklearn/TensorFlow wheels
+# often preinstalled in notebooks, so keep this workflow on NumPy 1.26.
 numpy==1.26.4
-scipy>=1.11,<1.14
-scikit-learn>=1.3,<1.5
-matplotlib
-seaborn
-pandas
-openpyxl
-tqdm
-safetensors
+scipy==1.13.1
+scikit-learn==1.5.2
+pandas>=2.2,<3.0
+
+# Plotting/reporting.
+matplotlib>=3.8,<4.0
+seaborn>=0.13,<1.0
+openpyxl>=3.1,<4.0
+tqdm>=4.66,<5.0

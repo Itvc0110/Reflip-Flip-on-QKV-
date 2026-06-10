@@ -1,0 +1,13 @@
+# Optional constraints for notebook environments with many preinstalled packages.
+# Use with:
+#   python -m pip install --no-cache-dir --force-reinstall -r requirements-full-eval.txt -c constraints-cuda121.txt
+
+torch==2.5.1+cu121
+torchvision==0.20.1+cu121
+torchaudio==2.5.1+cu121
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.5.2
+transformers<4.53
+datasets<3.0
+lm-eval<0.5
