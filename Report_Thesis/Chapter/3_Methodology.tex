@@ -1,0 +1,628 @@
+\sloppy
+\emergencystretch=10em
+\section{Overview}
+
+This chapter presents a post-training, weight-only quantization methodology for the query, key, and value projections of transformer attention. The methodology is designed for asymmetric group-wise INT4 quantization: projection weights are stored on a four-bit integer grid with group-specific scales and zero points, whereas activations remain in their original precision. The central premise is that nearest rounding is a strong starting point but not necessarily the best final choice when the quantized weights are evaluated through the activations and interactions that determine attention.
+
+The proposed refinement has two complementary stages. The first stage, called \textbf{Flip}, treats a projection matrix independently and reduces its activation-weighted output residual. Flip is deliberately distinguished from ordinary round-to-nearest (RTN) quantization. RTN already minimizes the isolated scalar reconstruction error of each weight on a fixed quantization grid. Consequently, changing a rounded integer to a neighboring level generally cannot improve that isolated scalar objective. Flip instead accepts a neighboring level only when the resulting change reduces the aggregate projected residual. Such a change may increase the error of an individual weight while improving the output of the complete projection through cancellation among activation-weighted errors.
+
+The second stage, called \textbf{ReFlip}, addresses the coupling between query and key projections. ReFlip holds the quantized key matrix fixed and updates only the quantized query matrix. It evaluates how a legal one-step integer change affects a scalar query--key score formed from a representative activation. The resulting objective is exact for this scalar score: no Taylor approximation or full-matrix gradient surrogate is used. ReFlip can therefore compensate for a score residual jointly caused by query and key quantization, even though only the query weights are modified. This compensation is useful, but its scope must be stated precisely: preservation of one representative scalar score does not imply preservation of the full pairwise attention-score matrix over all token pairs.
+
+Both refinement stages use a representative activation row vector obtained from calibration data and stabilized by James--Stein shrinkage. This produces a compact, data-dependent signal for evaluating discrete changes without retraining. Kneedle-based selection is used in ReFlip to identify an extreme high-sensitivity region that should be protected and a moderate-sensitivity region immediately after the knee in which correction is permitted. Kneedle is an adaptive heuristic rather than an optimality guarantee.
+
+The overall procedure remains fully post-training. It requires neither gradient-based optimization nor modification of the model architecture. The refinement is performed before deployment, and the resulting matrices retain the same group-wise asymmetric INT4 representation used by the initial quantizer. Thus, the method aims to improve the functional fidelity of quantized attention projections while preserving the principal memory motivation of low-bit weight storage and without making claims about measured runtime.
+
+\section{Notation and Calibration Representative}
+
+\subsection{Projection Convention}
+
+Let a representative activation be a row vector
+\begin{equation}
+x \in \mathbb{R}^{d_{\mathrm{in}}}.
+\end{equation}
+For each attention projection, the full-precision weight matrix has shape
+\begin{equation}
+W_Q,W_K,W_V \in \mathbb{R}^{d_{\mathrm{out}} \times d_{\mathrm{in}}}.
+\end{equation}
+The corresponding projected row vectors are
+\begin{equation}
+q=xW_Q^\top,\qquad
+k=xW_K^\top,\qquad
+v=xW_V^\top,
+\end{equation}
+where $q,k,v\in\mathbb{R}^{d_{\mathrm{out}}}$. This row-vector convention is used throughout the chapter. In particular, matrix row $a$ identifies an output dimension and matrix column $b$ identifies an input dimension.
+
+The quantized and dequantized projection matrices are denoted by
+\begin{equation}
+\hat W_Q,\hat W_K,\hat W_V
+\in \mathbb{R}^{d_{\mathrm{out}} \times d_{\mathrm{in}}},
+\end{equation}
+with projected vectors
+\begin{equation}
+\hat q=x\hat W_Q^\top,\qquad
+\hat k=x\hat W_K^\top,\qquad
+\hat v=x\hat W_V^\top.
+\end{equation}
+Although the stored representation is integer-valued, the hat notation refers to the dequantized value represented by those integers, scales, and zero points.
+
+\subsection{James--Stein-Shrunk Activation}
+
+Calibration activations can be noisy when only a limited post-training sample is available. A single unregularized statistic may overemphasize accidental extremes, whereas a simple global average may suppress meaningful differences between input dimensions. To obtain a stable representative row vector, this work uses a positive-part James--Stein shrinkage estimate.
+
+Let $\tilde{x}\in\mathbb{R}^{d_{\mathrm{in}}}$ be an empirical activation statistic computed from the calibration set, and let $m\in\mathbb{R}^{d_{\mathrm{in}}}$ be a shrinkage target. A common target is a constant vector whose entries equal the grand mean of $\tilde{x}$, although another predetermined calibration target may be used. The representative activation is
+\begin{equation}
+x=m+\lambda(\tilde{x}-m),
+\end{equation}
+where the positive-part shrinkage factor has the form
+\begin{equation}
+\lambda=
+\left[
+1-\frac{(d_{\mathrm{in}}-2)\hat{\sigma}^{2}}
+{\|\tilde{x}-m\|_2^2}
+\right]_+,
+\qquad [u]_+=\max(u,0).
+\end{equation}
+Here, $\hat{\sigma}^{2}$ estimates calibration noise. If the observed dimension-wise variation is weak relative to the estimated noise, $\lambda$ moves the statistic toward $m$; if the observed variation is strong, more of the empirical structure is retained. The resulting $x$ is not claimed to represent every token or every sequence. It is a compact calibration summary used to define the exact objectives evaluated by Flip and ReFlip.
+
+This distinction is important. The refinement stages optimize behavior under the chosen representative activation. Their objectives can improve a targeted calibration criterion, but they do not provide a universal guarantee over the complete activation distribution.
+
+\section{Problem Formulation}
+
+The goal is to construct group-wise asymmetric INT4 approximations of the attention projection matrices while limiting functionally relevant quantization error. Conventional RTN quantization primarily considers each scalar weight on its own. Attention, however, is determined by projected activations and by interactions between the resulting query and key vectors.
+
+For a generic projection matrix $W$, define the dequantization error
+\begin{equation}
+E=\hat W-W.
+\end{equation}
+Under the representative activation, the corresponding projection residual is
+\begin{equation}
+r=xE^\top=x(\hat W-W)^\top
+\in\mathbb{R}^{d_{\mathrm{out}}}.
+\end{equation}
+The residual in output dimension $j$ is therefore
+\begin{equation}
+r_j=\sum_{i=1}^{d_{\mathrm{in}}}x_iE_{ji}.
+\end{equation}
+This expression makes the relevant error aggregation explicit. Individual signed weight errors are multiplied by activation coordinates and then summed. Two nonzero scalar weight errors can partially cancel in the projected output, while a small scalar error can matter substantially when multiplied by a large activation coordinate.
+
+The local functional objective used by Flip is
+\begin{equation}
+J(W,\hat W;x)=\|r\|_2^2
+=\left\|x(\hat W-W)^\top\right\|_2^2.
+\end{equation}
+This objective is applicable independently to $W_Q$, $W_K$, and $W_V$. It measures projection fidelity for the representative activation and does not claim to optimize the full attention computation.
+
+The interaction-aware objective used by ReFlip is narrower and more explicit. Define the original scalar query--key score
+\begin{equation}
+s^\star=(xW_Q^\top)\cdot(xW_K^\top)=q\cdot k,
+\end{equation}
+and the current quantized score
+\begin{equation}
+\hat{s}=(x\hat W_Q^\top)\cdot(x\hat W_K^\top)
+=\hat q\cdot\hat k.
+\end{equation}
+ReFlip minimizes
+\begin{equation}
+\mathcal{L}
+=\frac{1}{2}(\hat{s}-s^\star)^2.
+\end{equation}
+The scalar residual
+\begin{equation}
+e_s=\hat{s}-s^\star
+\end{equation}
+contains the combined effect of quantizing both query and key projections. ReFlip holds $\hat W_K$ fixed and changes only $\hat W_Q$, using the latter as the available degree of freedom for reducing this joint score residual.
+
+These two objectives establish a progression from projection-level fidelity to query--key interaction fidelity. Flip minimizes an activation-weighted residual for one matrix at a time. ReFlip then compensates the remaining scalar query--key score residual through legal integer changes to $\hat W_Q$. Neither objective is presented as an exact surrogate for all downstream model behavior.
+
+\section{Group-Wise Asymmetric INT4 Quantization}
+
+\subsection{Integer Representation}
+
+For a generic projection matrix
+\begin{equation}
+W\in\mathbb{R}^{d_{\mathrm{out}}\times d_{\mathrm{in}}},
+\end{equation}
+the input dimension is partitioned into groups. Let $g(b)$ map input column $b$ to its group. Each output row and input group has a scale
+\begin{equation}
+\alpha_{a,g(b)}>0
+\end{equation}
+and a zero point
+\begin{equation}
+\zeta_{a,g(b)}.
+\end{equation}
+The stored INT4 value at row $a$ and column $b$ is
+\begin{equation}
+z_{ab}\in\mathcal{Z}_4=\{0,1,\ldots,15\}.
+\end{equation}
+Its dequantized value is
+\begin{equation}
+\hat W_{ab}
+=\alpha_{a,g(b)}
+\left(z_{ab}-\zeta_{a,g(b)}\right).
+\end{equation}
+
+For each row-group pair, the initial asymmetric scale and zero point are derived from the local weight range. With $w_{\min}$ and $w_{\max}$ denoting the extrema in that row-group,
+\begin{equation}
+\alpha
+=\frac{w_{\max}-w_{\min}}{2^4-1},
+\end{equation}
+followed by an appropriately clipped zero point. The initial RTN integer is
+\begin{equation}
+z_{ab}^{\mathrm{RTN}}
+=\operatorname{clip}_{[0,15]}
+\left(
+\operatorname{round}
+\left(
+\frac{W_{ab}}{\alpha_{a,g(b)}}+
+\zeta_{a,g(b)}
+\right)
+\right).
+\end{equation}
+Degenerate groups with zero range require a predetermined positive scale convention, but no refinement is useful unless at least two dequantized levels are distinguishable.
+
+\subsection{What RTN Optimizes}
+
+For fixed $\alpha_{a,g(b)}$ and $\zeta_{a,g(b)}$, RTN chooses the legal quantization level closest to $W_{ab}$. Except for ties and clipping boundaries, it solves the isolated scalar problem
+\begin{equation}
+\min_{z\in\mathcal{Z}_4}
+\left|
+\alpha_{a,g(b)}
+\left(z-\zeta_{a,g(b)}\right)-W_{ab}
+\right|.
+\end{equation}
+Equivalently, it minimizes the squared scalar reconstruction error on the fixed grid. Therefore, a neighboring integer change should not be described as improving the isolated scalar weight error that RTN already minimizes.
+
+The limitation of RTN is instead an objective mismatch. The projected residual in output row $a$ depends on the signed sum
+\begin{equation}
+r_a=\sum_b x_b(\hat W_{ab}-W_{ab}),
+\end{equation}
+not on each absolute scalar error separately. A neighboring integer can increase
+\begin{equation}
+|\hat W_{ab}-W_{ab}|
+\end{equation}
+yet reduce $|r_a|$ because its signed activation-weighted contribution better cancels the contributions of other weights. Flip exploits precisely this possibility.
+
+\subsection{Memory and Inference Motivation}
+
+INT4 storage provides the theoretical basis for reducing the weight memory of QKV projections. Ignoring metadata, four-bit weights require one quarter of the storage of FP16 weights and one eighth of the storage of FP32 weights. Group-wise scales and zero points introduce overhead, so the exact compression ratio depends on group size and metadata precision. Smaller groups can improve local representational fidelity but increase this overhead.
+
+The refinement stages do not change the deployed tensor shapes or the mathematical dequantization rule. They modify legal stored integers while retaining the same scales and zero points. Consequently, the refined model remains compatible with the same class of group-wise weight-only inference procedure as its RTN initialization. Because the present methodology does not report a measured runtime study, it makes no empirical latency or throughput claim. Its inference motivation is structural: low-bit weight storage can reduce memory traffic and capacity requirements, while the offline refinement seeks to recover fidelity without introducing a new runtime objective or a new projection operator.
+
+\section{Flip: Activation-Weighted Projection Refinement}
+
+\subsection{Flip Objective}
+
+For one projection matrix $W$ and its current quantized approximation $\hat W$, Flip minimizes
+\begin{equation}
+J=\|r\|_2^2,
+\qquad
+r=xE^\top,
+\qquad
+E=\hat W-W.
+\end{equation}
+The objective separates across output rows:
+\begin{equation}
+J=\sum_{j=1}^{d_{\mathrm{out}}}r_j^2.
+\end{equation}
+Nevertheless, it does not separate across the weights within a row because all input coordinates contribute to the same scalar residual $r_j$. This within-row coupling is the source of useful error cancellation.
+
+Suppose a legal candidate changes only the dequantized weight at row $j$ and column $i$ by
+\begin{equation}
+\delta=\hat W'_{ji}-\hat W_{ji}.
+\end{equation}
+For a one-step integer move,
+\begin{equation}
+\delta=\alpha_{j,g(i)}\Delta z,
+\qquad
+\Delta z\in\{-1,+1\},
+\end{equation}
+provided that $z_{ji}+\Delta z\in\mathcal{Z}_4$. The candidate changes only residual component $r_j$:
+\begin{equation}
+r'_j=r_j+x_i\delta.
+\end{equation}
+All other residual components remain unchanged. The exact objective change is consequently
+\begin{align}
+\Delta J
+&=J'-J \\
+&=(r_j+x_i\delta)^2-r_j^2 \\
+&=2r_jx_i\delta+(x_i\delta)^2.
+\end{align}
+No approximation is required. A legal candidate is accepted only if
+\begin{equation}
+\Delta J<0.
+\end{equation}
+After acceptance, the scalar residual for that output row is updated as
+\begin{equation}
+r_j\leftarrow r_j+x_i\delta.
+\end{equation}
+This incremental update preserves exact agreement with the current quantized matrix while avoiding repeated reconstruction of the full residual.
+
+\subsection{Interpretation as Error Cancellation}
+
+The sign of the first term in $\Delta J$ determines whether a candidate initially moves against the current residual:
+\begin{equation}
+2r_jx_i\delta<0.
+\end{equation}
+The second term,
+\begin{equation}
+(x_i\delta)^2,
+\end{equation}
+penalizes an excessively large move and prevents a candidate from being accepted merely because it has the correct direction. The exact acceptance condition can also be written as
+\begin{equation}
+|r_j+x_i\delta|<|r_j|.
+\end{equation}
+Thus, Flip selects a neighboring quantization level only when its activation-weighted contribution reduces the magnitude of the aggregate row residual.
+
+This interpretation resolves an apparent contradiction between RTN and Flip. RTN is already optimal for the isolated scalar reconstruction error on the fixed grid. Flip does not overturn that fact. Instead, it changes the objective from isolated scalar error to activation-weighted projection error. Consider a row containing two signed weight errors whose activation-weighted contributions reinforce one another. Moving one weight away from its nearest level can reverse or weaken one contribution, producing greater cancellation in their sum. The modified weight can be less accurate in isolation while the projected output becomes more accurate.
+
+Accordingly, Flip must not be characterized as a second nearest-rounding search. It is a discrete coordinate refinement under the exact aggregate objective $J$. Its benefit depends on the representative activation and on the signed configuration of errors within each output row.
+
+\subsection{Candidate Evaluation and Acceptance}
+
+Flip begins from the RTN-quantized matrix and its exact residual $r$. For each eligible integer $z_{ji}$, it evaluates the legal directions in
+\begin{equation}
+\mathcal{D}_{ji}
+=\left\{
+\Delta z\in\{-1,+1\}:
+z_{ji}+\Delta z\in\mathcal{Z}_4
+\right\}.
+\end{equation}
+For each direction, it obtains $\delta=\alpha_{j,g(i)}\Delta z$ and evaluates the exact $\Delta J$. If neither direction decreases $J$, the integer remains unchanged. If both directions decrease $J$, the direction with the more negative $\Delta J$ is preferred. Once a change is accepted, both $z_{ji}$ and $r_j$ are updated before subsequent candidates are evaluated.
+
+Updating the residual after every accepted change is essential. Candidate gains are not independent: a previous change alters the cancellation needed in row $j$, and therefore alters the exact value of every later $\Delta J$ in that row. Evaluating all candidates against a stale initial residual would not implement the stated greedy objective.
+
+Candidate order is a heuristic choice. One option is to evaluate coordinates in descending order of the magnitude of their possible activation-weighted step,
+\begin{equation}
+|x_i|\alpha_{j,g(i)}.
+\end{equation}
+Another is to scan deterministically by row and column. The acceptance equation remains exact under either ordering, but the final discrete configuration can differ because accepted changes modify later residuals. A pass budget and an acceptance budget are therefore explicit hyperparameters rather than hidden assumptions.
+
+\subsection{Scope and Limitations of Flip}
+
+Flip can be applied independently to the query, key, and value projection matrices because its objective requires only a matrix, its quantized approximation, and the representative activation. For $W_Q$ and $W_K$, reducing the projection residual can indirectly improve the vectors used in query--key scoring. For $W_V$, it can improve the representative value projection. However, Flip does not directly optimize the interaction between query and key, the softmax operation, or the final attention output.
+
+The objective is also calibration-dependent. A change that reduces $J$ under the representative James--Stein-shrunk vector may not reduce projection error for every activation row. The shrinkage estimate and conservative integer neighborhood are intended to limit sensitivity to calibration noise, but they do not constitute a distribution-wide guarantee. Finally, the greedy coordinate procedure can stop at a discrete local configuration even when a coordinated multi-weight change would yield a lower objective.
+
+\section{ReFlip: Scalar Query--Key Score Refinement}
+
+\subsection{Fixed-Key Objective}
+
+After initial quantization and optional Flip refinement, ReFlip targets the scalar query--key score residual. The original score is
+\begin{equation}
+s^\star=(xW_Q^\top)\cdot(xW_K^\top),
+\end{equation}
+and the current quantized score is
+\begin{equation}
+\hat{s}=(x\hat W_Q^\top)\cdot(x\hat W_K^\top).
+\end{equation}
+Define
+\begin{equation}
+e_s=\hat{s}-s^\star,
+\qquad
+\mathcal{L}=\frac{1}{2}e_s^2.
+\end{equation}
+
+During ReFlip, $\hat W_K$ is held fixed. ReFlip updates $\hat W_Q$ only; it does not update $\hat W_K$ or $\hat W_V$. This asymmetric choice makes the objective and update rule unambiguous. Although the available changes belong only to the query matrix, the target residual $e_s$ includes quantization effects from both $W_Q$ and $W_K$. ReFlip may therefore use a query-weight change to compensate the global Q/K score residual produced by the pair of quantized projections.
+
+Here, ``global'' refers to the combined scalar query--key score rather than an isolated query-weight reconstruction error. It does not mean that the complete attention-score matrix is optimized. For a sequence with multiple query and key rows, pairwise scores depend on many activation pairs. Optimizing the scalar score associated with the representative $x$ does not preserve, and cannot guarantee preservation of, the full pairwise attention matrix.
+
+\subsection{Exact Effect of an Integer Change}
+
+Consider query weight $(a,b)$. ReFlip directly changes its stored integer:
+\begin{equation}
+z_{ab}\leftarrow z_{ab}+\Delta z_{ab},
+\qquad
+\Delta z_{ab}\in\{-1,+1\},
+\end{equation}
+subject to the legal INT4 range
+\begin{equation}
+z_{ab}+\Delta z_{ab}\in\mathcal{Z}_4.
+\end{equation}
+Because the scale and zero point are fixed, the dequantized query-weight change is
+\begin{equation}
+\Delta\hat W_{Q,ab}
+=\alpha_{a,g(b)}\Delta z_{ab}.
+\end{equation}
+Only query output coordinate $\hat q_a$ changes, by
+\begin{equation}
+\Delta\hat q_a
+=x_b\alpha_{a,g(b)}\Delta z_{ab}.
+\end{equation}
+Since $\hat k$ is held fixed, the exact scalar-score change is
+\begin{equation}
+\Delta s_{ab}
+=\hat k_a x_b\alpha_{a,g(b)}\Delta z_{ab}.
+\end{equation}
+
+This equation is exact for the stated scalar objective. It is not a first-order Taylor approximation and does not require a gradient of a full attention matrix. The exact loss change is
+\begin{align}
+\Delta\mathcal{L}_{ab}
+&=\frac{1}{2}(e_s+\Delta s_{ab})^2
+-\frac{1}{2}e_s^2 \\
+&=e_s\Delta s_{ab}
++\frac{1}{2}(\Delta s_{ab})^2 \\
+&=(\hat{s}-s^\star)\Delta s_{ab}
++\frac{1}{2}(\Delta s_{ab})^2.
+\end{align}
+A candidate is accepted only if
+\begin{equation}
+\Delta\mathcal{L}_{ab}<0.
+\end{equation}
+After an accepted integer change, the scalar score and residual are updated:
+\begin{equation}
+\hat{s}\leftarrow\hat{s}+\Delta s_{ab},
+\qquad
+e_s\leftarrow e_s+\Delta s_{ab}.
+\end{equation}
+The residual update must occur immediately because every subsequent exact loss change depends on the current $e_s$.
+
+\subsection{Parameter Sensitivity}
+
+The magnitude of the score change per unit integer step defines the parameter sensitivity:
+\begin{equation}
+\mathcal{S}_{ab}
+=\left|
+\frac{\Delta s_{ab}}{\Delta z_{ab}}
+\right|
+=\left|
+\hat k_a x_b\alpha_{a,g(b)}
+\right|.
+\end{equation}
+This quantity combines three factors. The term $|\hat k_a|$ measures how strongly query output dimension $a$ participates in the current scalar dot product. The term $|x_b|$ measures the contribution of input coordinate $b$ under the representative activation. The scale $\alpha_{a,g(b)}$ gives the dequantized distance produced by a one-integer move.
+
+Parameter sensitivities are aggregated over input columns by an $\ell_2$ norm to define output-dimension sensitivity:
+\begin{align}
+\mathcal{S}_a
+&=\left(\sum_b \mathcal{S}_{ab}^2\right)^{1/2} \\
+&=|\hat k_a|
+\left(
+\sum_b
+\alpha_{a,g(b)}^2x_b^2
+\right)^{1/2}.
+\end{align}
+The $\ell_2$ aggregation captures the overall capacity of query dimension $a$ to alter the scalar score through legal unit steps. It is used to partition dimensions for candidate selection; it is not itself the acceptance objective. Every candidate admitted by the sensitivity heuristic must still pass the exact $\Delta\mathcal{L}_{ab}<0$ test.
+
+\subsection{Kneedle-Based Protection and Candidate Region}
+
+The dimension sensitivities are sorted in descending order:
+\begin{equation}
+\mathcal{S}_{(1)}\ge \mathcal{S}_{(2)}\ge\cdots\ge \mathcal{S}_{(d_{\mathrm{out}})}.
+\end{equation}
+Kneedle \cite{satopaa2011kneedle} is applied to this sorted curve to locate a knee index $a_{\mathrm{knee}}$ that separates a steep extreme regime from the flatter remainder. Dimensions before the knee,
+\begin{equation}
+\mathcal{P}
+=\{(1),\ldots,(a_{\mathrm{knee}})\},
+\end{equation}
+are protected from ReFlip. A unit integer move in these dimensions can cause a disproportionately large score change, so excluding them reduces the risk of overshooting the target or making the result overly dependent on a single extreme coordinate.
+
+ReFlip permits candidates in a moderate-sensitivity window immediately after the knee. With a window-width hyperparameter $h_{\mathrm{R}}$,
+\begin{equation}
+\mathcal{M}
+=
+\left\{
+(a_{\mathrm{knee}}+1),\ldots,
+\min(a_{\mathrm{knee}}+h_{\mathrm{R}},d_{\mathrm{out}})}
+\right\}.
+\end{equation}
+The original output-dimension indices associated with these sorted positions define the allowed rows of $\hat W_Q$. This region retains enough score influence to support useful correction while avoiding the most extreme dimensions. Within each allowed row, legal parameter candidates are evaluated using $\mathcal{S}_{ab}$ as an ordering signal and $\Delta\mathcal{L}_{ab}$ as the acceptance criterion.
+
+Kneedle supplies an adaptive partition when sensitivity distributions differ across layers. Nevertheless, it is a heuristic. The detected knee can depend on normalization, smoothing, and the Kneedle sensitivity setting; it does not guarantee the globally optimal protected set, allowed set, or final discrete configuration. The post-knee window width is therefore retained as an explicit hyperparameter, and all accepted changes remain governed by the exact scalar loss.
+
+\subsection{Greedy ReFlip Procedure}
+
+ReFlip proceeds from the current $\hat W_Q$, fixed $\hat W_K$, and exact residual $e_s$. It first computes $\mathcal{S}_{ab}$ and $\mathcal{S}_a$, sorts the dimension sensitivities, applies Kneedle, protects the pre-knee extreme dimensions, and selects the moderate region immediately after the knee. It then evaluates legal one-step changes to query integers in the allowed rows.
+
+For each candidate $(a,b,\Delta z_{ab})$, the procedure computes
+\begin{equation}
+\Delta s_{ab}
+=\hat k_a x_b\alpha_{a,g(b)}\Delta z_{ab}
+\end{equation}
+and
+\begin{equation}
+\Delta\mathcal{L}_{ab}
+=e_s\Delta s_{ab}
++\frac{1}{2}(\Delta s_{ab})^2.
+\end{equation}
+Candidates with nonnegative $\Delta\mathcal{L}_{ab}$ are rejected. An accepted candidate updates the integer, $\hat q_a$, $\hat{s}$, and $e_s$ before the next evaluation. If both directions are legal and beneficial, the direction with the more negative exact loss change is preferred. The procedure terminates when it reaches its accepted-change budget, exhausts its pass budget, or finds no loss-decreasing candidate.
+
+Because the residual is scalar and updated after each accepted change, the exact condition has a transparent interpretation:
+\begin{equation}
+|e_s+\Delta s_{ab}|<|e_s|.
+\end{equation}
+ReFlip accepts a change only when it moves the current quantized score closer to the original scalar target. The quadratic term prevents a large score step from being accepted when it crosses the target by more than it corrects.
+
+\subsection{Scope and Limitations of ReFlip}
+
+ReFlip directly targets a query--key interaction that Flip does not model. In particular, a residual caused partly by $\hat W_K-W_K$ can be reduced by a compensating change in $\hat W_Q$. This is a functional correction: the selected query weight need not become closer to its original full-precision value. As in Flip, individual reconstruction error may increase while the targeted aggregate objective improves.
+
+The method deliberately avoids a full-matrix Taylor or gradient formulation. Its candidate score change and loss change are exact for the scalar objective defined above. This precision also clarifies the limitation: ReFlip does not directly preserve every query--key score between distinct token rows, the scaled logits, the softmax distribution, or the final value-weighted attention output. A lower scalar loss under the representative activation is evidence only for that targeted criterion.
+
+ReFlip is also greedy and discrete. Candidate ordering and the protected sensitivity region can affect the result, and a sequence of individually rejected changes could conceivably be beneficial if applied jointly. Kneedle does not remove this limitation and does not provide an optimality certificate. The procedure is therefore best understood as a conservative post-training heuristic with exact local acceptance under a clearly bounded objective.
+
+\section{Unified Refinement Procedure}
+
+The complete methodology follows a consistent sequence from initialization to local projection correction and then to scalar interaction correction.
+
+\subsection{Stage 1: Calibration and Quantization}
+
+First, calibration activations are summarized into the empirical statistic $\tilde{x}$ and then shrunk toward target $m$ to obtain the representative activation $x$. Next, each of $W_Q$, $W_K$, and $W_V$ is partitioned along the input dimension into groups. Group-specific asymmetric INT4 scales and zero points are computed, and RTN initializes the stored integers. This stage produces $\hat W_Q$, $\hat W_K$, and $\hat W_V$ under a common legal integer representation.
+
+\subsection{Stage 2: Flip}
+
+For each projection selected for Flip, compute
+\begin{equation}
+E=\hat W-W,\qquad r=xE^\top,\qquad J=\|r\|_2^2.
+\end{equation}
+Evaluate legal one-step integer candidates. For a candidate at $(j,i)$, use
+\begin{equation}
+\Delta J=2r_jx_i\delta+(x_i\delta)^2,
+\qquad
+\delta=\alpha_{j,g(i)}\Delta z.
+\end{equation}
+Accept only a strictly negative exact objective change and immediately update $r_j$. Repeat until the Flip stopping rule is met. The result is a projection matrix whose aggregate residual under $x$ is no larger than at the beginning of the accepted sequence.
+
+\subsection{Stage 3: ReFlip}
+
+After the chosen Flip refinements, compute
+\begin{equation}
+s^\star=(xW_Q^\top)\cdot(xW_K^\top),
+\qquad
+\hat{s}=(x\hat W_Q^\top)\cdot(x\hat W_K^\top),
+\end{equation}
+and set $e_s=\hat{s}-s^\star$. Hold $\hat W_K$ fixed for the entire ReFlip stage. Compute parameter and dimension sensitivities from the current $\hat k$, apply Kneedle to the sorted $\mathcal{S}_a$ curve, protect the pre-knee extreme dimensions, and admit the moderate region immediately after the knee.
+
+For every allowed query candidate, evaluate
+\begin{equation}
+\Delta s_{ab}=\hat k_ax_b\alpha_{a,g(b)}\Delta z_{ab}
+\end{equation}
+and
+\begin{equation}
+\Delta\mathcal{L}_{ab}
+=e_s\Delta s_{ab}
++\frac{1}{2}(\Delta s_{ab})^2.
+\end{equation}
+Accept only $\Delta\mathcal{L}_{ab}<0$, update the scalar residual after each accepted change, and terminate under the ReFlip stopping rule. No key or value integer is modified during this stage.
+
+\subsection{Monotonicity of Accepted Changes}
+
+The two stages have simple monotonicity properties under their own stated objectives. Every accepted Flip change satisfies
+\begin{equation}
+J_{\mathrm{after}}<J_{\mathrm{before}},
+\end{equation}
+and every accepted ReFlip change satisfies
+\begin{equation}
+\mathcal{L}_{\mathrm{after}}<\mathcal{L}_{\mathrm{before}}.
+\end{equation}
+These properties follow from exact objective differences and immediate residual updates. They do not imply monotonic improvement in a different metric, such as unweighted weight reconstruction error, the complete attention matrix, language-model loss, or downstream task quality.
+
+The order of the stages matters conceptually. Flip first improves each selected projection under an activation-weighted output objective. ReFlip then observes the score residual left by the current quantized query and key matrices and uses query-only compensation. Reversing the stages would change the scalar residual and sensitivity profile against which ReFlip operates.
+
+\section{Hyperparameters and Design Choices}
+
+The methodology exposes its principal choices as explicit hyperparameters.
+
+\begin{itemize}
+\item \textbf{Bit width $b$.} The present formulation fixes $b=4$, giving the legal unsigned integer set $\mathcal{Z}_4=\{0,\ldots,15\}$.
+
+\item \textbf{Group size $g$.} The group size determines the mapping $g(b)$ and the granularity of scales and zero points. Smaller groups increase quantization metadata but can better adapt to local weight ranges.
+
+\item \textbf{Calibration sample count $N_{\mathrm{cal}}$.} This controls the amount of activation data used to estimate $\tilde{x}$, the shrinkage target, and the noise level.
+
+\item \textbf{James--Stein target $m$ and noise estimate $\hat{\sigma}^2$.} These determine the shrinkage factor $\lambda$ and therefore the representative activation used by both exact objectives.
+
+\item \textbf{Flip pass budget $T_{\mathrm{F}}$.} This is the maximum number of scans over eligible Flip coordinates.
+
+\item \textbf{Flip acceptance budget $B_{\mathrm{F}}$.} This limits the total number of accepted integer changes for a projection or layer.
+
+\item \textbf{Flip improvement tolerance $\varepsilon_{\mathrm{F}}$.} In finite precision, the strict mathematical condition $\Delta J<0$ may be implemented conservatively as $\Delta J<-\varepsilon_{\mathrm{F}}$.
+
+\item \textbf{ReFlip Kneedle sensitivity $\kappa$.} This controls how the knee detector responds to curvature in the sorted dimension-sensitivity curve.
+
+\item \textbf{Moderate-region width $h_{\mathrm{R}}$.} This determines how many sorted dimensions immediately after the knee are eligible for ReFlip.
+
+\item \textbf{ReFlip pass budget $T_{\mathrm{R}}$ and acceptance budget $B_{\mathrm{R}}$.} These bound the greedy search over legal query-integer changes.
+
+\item \textbf{ReFlip improvement tolerance $\varepsilon_{\mathrm{R}}$.} A conservative finite-precision rule accepts only $\Delta\mathcal{L}_{ab}<-\varepsilon_{\mathrm{R}}$.
+
+\item \textbf{Candidate order.} Flip candidates may be ordered by potential activation-weighted step magnitude, while ReFlip candidates may be ordered by $\mathcal{S}_{ab}$. Ordering affects the greedy path but never replaces the exact acceptance tests.
+\end{itemize}
+
+The one-step neighborhood $\Delta z\in\{-1,+1\}$ is part of the method rather than an unconstrained hyperparameter. It keeps changes local on the existing INT4 grid and makes both objective differences exact and inexpensive to evaluate. Multiple accepted one-step changes may eventually move an integer by more than one level if the candidate is revisited and every intermediate change remains legal and strictly beneficial.
+
+Hyperparameter selection should respect the distinction between refinement opportunity and refinement risk. Very large budgets or a wide post-knee region create more opportunities to reduce the calibration objective but can increase dependence on the representative activation. Conservative budgets, shrinkage, protected extreme dimensions, and positive improvement tolerances provide regularization against such over-specialization.
+
+\section{Theoretical Discussion}
+
+\subsection{From Scalar Reconstruction to Functional Residuals}
+
+The methodology is motivated by a hierarchy of objectives. RTN minimizes isolated scalar weight error for fixed quantization parameters. Flip moves to a projection-level functional residual,
+\begin{equation}
+x(\hat W-W)^\top,
+\end{equation}
+which accounts for activation magnitude, error sign, and cancellation within each output row. ReFlip then moves to a scalar interaction objective,
+\begin{equation}
+\frac{1}{2}
+\left[
+(x\hat W_Q^\top)\cdot(x\hat W_K^\top)
+-
+(xW_Q^\top)\cdot(xW_K^\top)
+\right]^2,
+\end{equation}
+which accounts for the coupling between query and key projections while constraining changes to the quantized query matrix.
+
+Each level deliberately sacrifices breadth for tractability. The objectives are compact enough to permit exact evaluation of every legal one-step candidate. This avoids the ambiguity of claiming that a local scalar change optimizes a large downstream object through an unverified approximation. The trade-off is that exactness applies only to the specified representative objectives.
+
+\subsection{Why Query-Only Compensation Can Help}
+
+The score residual can be expanded conceptually as the difference between a dot product of two quantized projected vectors and the corresponding full-precision dot product. Its value reflects errors in both vectors and their interaction. Once $\hat W_K$ is fixed, changing $\hat W_Q$ alters one side of the dot product while leaving the other side as the reference direction for correction. A suitable query change can therefore offset part of the score error associated with the fixed quantized key.
+
+This compensation does not require the modified query weight to approach its original value. It requires only that the exact change in $\hat{s}$ reduce $|\hat{s}-s^\star|$. ReFlip is thus aligned with the same general principle as Flip: a functional aggregate can improve even when an individual scalar reconstruction becomes worse.
+
+\subsection{Role of Sensitivity Protection}
+
+Sensitivity has two competing interpretations. A high-sensitivity parameter can correct a residual with a small number of integer changes, but it can also overshoot the target or make the result fragile to calibration variation. ReFlip therefore does not simply choose the largest sensitivities. It protects dimensions in the extreme pre-knee region and searches the moderate region immediately after the knee.
+
+This policy is intentionally risk-aware rather than optimal. The Kneedle partition adapts to the shape of each layer's sensitivity distribution, while the exact loss test ensures that an admitted candidate is accepted only when it improves the current scalar objective. The separation between heuristic admission and exact acceptance is central: sensitivity controls where to search, whereas $\Delta\mathcal{L}_{ab}$ determines whether to change an integer.
+
+\subsection{Boundaries of the Claims}
+
+Several boundaries follow directly from the formulation. First, the representative activation is a James--Stein-shrunk calibration summary, not the complete activation distribution. Second, Flip exactly reduces only its projection residual objective for accepted changes. Third, ReFlip exactly reduces only its representative scalar query--key score loss for accepted changes. Fourth, ReFlip modifies $\hat W_Q$ only and makes no update to $\hat W_K$ or $\hat W_V$.
+
+Most importantly, the ReFlip scalar objective does not preserve the full pairwise attention matrix. In a complete sequence, queries and keys arise from different token rows, and attention logits include many cross-token dot products. A single score based on $x$ cannot constrain all of them. The method also does not directly optimize the softmax transformation or the value-weighted attention output. These limitations do not invalidate the targeted objectives, but they prevent stronger claims than the mathematics supports.
+
+\subsection{Discrete Search and Optimality}
+
+Both Flip and ReFlip perform greedy coordinate search on a finite integer grid. Their accepted changes are monotonic under their respective objectives, and termination is guaranteed under finite budgets. Without an explicit budget, strict decrease on a finite state space also rules out cycles, although repeated scans may be undesirable.
+
+Neither procedure guarantees a globally optimal quantized matrix. Flip can miss coordinated changes that are beneficial only when applied together. ReFlip can miss a sequence whose first step is neutral or unfavorable but whose combined effect is favorable. Candidate ordering, budget choices, and the Kneedle-selected region can all influence the endpoint. Kneedle itself is a heuristic detector, not an optimality guarantee. The methodological claim is therefore limited to exact evaluation and strict improvement of accepted local changes under the stated objectives.
+
+\section{Summary}
+
+This chapter has defined a post-training refinement methodology for group-wise asymmetric INT4 attention projections under a consistent row-vector convention. A representative James--Stein-shrunk activation $x$ provides the calibration signal. The initial RTN quantizer assigns legal integers $z_{ab}$ with group-specific scales $\alpha_{a,g(b)}$ and zero points $\zeta_{a,g(b)}$.
+
+Flip refines a projection matrix through the exact objective
+\begin{equation}
+J=\left\|x(\hat W-W)^\top\right\|_2^2.
+\end{equation}
+For a legal dequantized change $\delta$ at $(j,i)$, it evaluates
+\begin{equation}
+\Delta J=2r_jx_i\delta+(x_i\delta)^2
+\end{equation}
+and accepts only strict reductions. RTN remains the minimizer of isolated scalar weight error; Flip can improve the aggregate activation-weighted residual by allowing signed error cancellation, even when an individual weight becomes less accurate.
+
+ReFlip holds $\hat W_K$ fixed and updates $\hat W_Q$ only. It targets
+\begin{equation}
+\mathcal{L}
+=\frac{1}{2}
+\left[
+(x\hat W_Q^\top)\cdot(x\hat W_K^\top)
+-
+(xW_Q^\top)\cdot(xW_K^\top)
+\right]^2.
+\end{equation}
+A legal unit integer change has exact score effect
+\begin{equation}
+\Delta s_{ab}
+=\hat k_ax_b\alpha_{a,g(b)}\Delta z_{ab},
+\end{equation}
+parameter sensitivity
+\begin{equation}
+\mathcal{S}_{ab}=|\hat k_ax_b\alpha_{a,g(b)}|,
+\end{equation}
+and dimension sensitivity
+\begin{equation}
+\mathcal{S}_a
+=|\hat k_a|
+\left(\sum_b\alpha_{a,g(b)}^2x_b^2\right)^{1/2}.
+\end{equation}
+Kneedle protects pre-knee extreme dimensions and admits a moderate region immediately after the knee. Each admitted candidate is evaluated using the exact loss change
+\begin{equation}
+\Delta\mathcal{L}_{ab}
+=(\hat{s}-s^\star)\Delta s_{ab}
++\frac{1}{2}(\Delta s_{ab})^2,
+\end{equation}
+and the scalar residual is updated after every accepted change.
+
+{\raggedright
+The resulting procedure retains the theoretical memory advan\-tages and deploy\-ment form of group-wise INT4 weight-only quantization. Its guarantees are deliberately limited to the stated objectives. Kneedle is heuristic, greedy refinement is not globally optimal, and the scalar ReFlip objective does not preserve the full pairwise attention matrix. Within these boundaries, Flip first corrects the projection residual under the representative activation, and ReFlip then performs exact compensation of the scalar query--key score.
+\par}

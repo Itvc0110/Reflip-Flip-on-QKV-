@@ -1,0 +1,23 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+
+\begin{center}
+    \Large{\textbf{ABSTRACT}}\\
+\end{center}
+\vspace{1cm}
+\sloppy
+
+Large Language Models (LLMs) have achieved strong performance in many natural language processing tasks, but their deployment is limited by high computational cost and memory consumption. Quantization has been widely studied as an effective solution, especially weight-only quantization due to its efficiency and compatibility with existing inference pipelines. However, maintaining model accuracy under low-bit settings such as INT4 remains challenging. This issue is particularly critical in attention mechanisms, where the Query-Key-Value (QKV) projection layers are highly sensitive to quantization errors. Existing approaches, including AWQ and GPTQ, improve performance but still rely on fixed heuristics and do not fully exploit the statistical properties of weights and activations.
+
+In this thesis, I propose a weight-only quantization method that incorporates the Flip/Reflip mechanism into QKV projection layers within Grouped Query Attention (GQA). This direction is chosen because GQA offers a structured trade-off between efficiency and representation, while QKV layers have a significant impact on overall model performance. The proposed method combines group-wise asymmetric INT4 quantization with dynamic outlier detection using the Kneedle algorithm. In addition, insights from the James-Stein approximation are used to guide the adjustment of quantization behavior, enabling better preservation of important weight distributions.
+
+Later experimental results on modern LLMs on Chapter 4, show that the proposed method reduces quantization error and improves performance compared to baseline methods. Evaluation is conducted using both error-based metrics and downstream tasks=. These results demonstrate that integrating statistical modeling with structured attention design is an effective direction for improving low-bit quantization in large-scale language models.
+
+\begin{flushright}
+\begin{tabular}{@{}c@{}}
+Student\\
+\textit{(Signature and full name)}
+\end{tabular}
+\end{flushright}
+
+\end{document}

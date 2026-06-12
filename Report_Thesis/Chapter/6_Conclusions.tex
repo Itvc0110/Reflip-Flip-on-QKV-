@@ -1,0 +1,43 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+\begingroup
+\emergencystretch=3em
+
+\section{Summary}
+
+This thesis studied post-training weight quantization for large language models, with a particular focus on the query, key, and value projection matrices inside grouped-query attention. The central motivation is that low-bit quantization, especially INT4 quantization, can greatly reduce model storage and deployment cost, but it can also introduce non-negligible errors in attention computation. Since attention scores are formed from the interaction between quantized query and key projections, their rounding errors may interact and produce larger distortions in the final dot product.
+
+To address this problem, the thesis developed and evaluated two refinement mechanisms, Flip and ReFlip. Flip revisits local rounding decisions after standard round-to-nearest quantization and selectively changes integer quantization levels when doing so reduces the aggregate activation-weighted projection residual. A beneficial Flip may therefore increase the isolated error of an individual weight while improving the projection response through cancellation among weighted errors. ReFlip then performs a second correction stage that holds the quantized key projection fixed and updates only the quantized query projection to reduce the remaining scalar attention-score mismatch. The method is supported by calibration statistics, James--Stein mean estimation, and Kneedle-based dimension-sensitivity selection, which together provide a data-aware way to decide where quantization errors should be corrected and where weights should be left untouched.
+
+The experimental chapter evaluated the proposed refinements at two levels. First, a standalone QKV experiment isolated one Llama-3-8B attention group and measured attention-score distortion directly. Second, full-model results compared RTN, AWQ, GPTQ, and their Flip/ReFlip variants on perplexity and downstream language understanding metrics. This combination of local and end-to-end evaluation gives a more complete view of how attention-aware correction behaves in practice.
+
+\section{Main Findings}
+
+The standalone QKV experiment provides the clearest evidence for the mechanism targeted by this work. On Llama-3-8B layer 8, GQA group 3, standard RTN quantization produced a mean absolute attention-score error of 0.142806. Flip reduced this value to 0.070070, and ReFlip further reduced it to 0.047939. Overall, ReFlip achieved a 56.63\% mean error reduction relative to RTN in this isolated setting. This confirms that refining the quantized query projection with scalar attention-score feedback can reduce the specific distortion that the method is designed to address.
+
+The cost of the correction is also important. Flip changed 20,889 integer weights in the selected Q and K projections, corresponding to less than one percent of the involved weights. ReFlip then added only 64 integer changes while still producing an additional error reduction. This suggests that ReFlip acts as a targeted residual correction step rather than a broad re-quantization procedure.
+
+The full-model results show that the local QKV improvement can translate into better model-level behavior, although the effect is task-dependent. Across the evaluated models, AWQ + ReFlip is often the strongest quantized method for perplexity and average downstream performance. This is especially visible on Mistral-7B, Qwen2.5-7B, and Llama-3-8B, where AWQ + ReFlip gives strong WikiText-2 and C4 perplexity while also improving several downstream metrics. For Llama-3-8B, GPTQ + ReFlip gives the highest selected-task average among quantized methods, showing that ReFlip can also complement a second-order reconstruction baseline.
+
+The results also show that Flip and ReFlip do not behave identically. Flip can produce strong gains on selected tasks, such as the RTE result observed for Qwen2.5-7B under RTN + Flip, while ReFlip tends to provide a more consistent correction of residual attention-score error. This supports the interpretation that Flip primarily refines the aggregate activation-weighted projection residual, whereas ReFlip is more directly aligned with the bilinear structure of attention scores.
+
+\section{Limitations}
+
+The selected metric set is limited. WikiText-2 and C4 evaluate language modeling perplexity, while ARC-Challenge, ARC-Easy, BoolQ, PIQA, and RTE evaluate downstream accuracy. These metrics are useful, but they do not cover every type of reasoning, long-context behavior, generation quality, latency, memory bandwidth, or hardware-level inference efficiency. A complete deployment study would need to include these additional dimensions.
+
+\section{Future Work}
+
+Firstly, future experiments should evaluate a larger task suite and more deployment-relevant metrics. Additional lm-evaluation tasks, long-context benchmarks, runtime measurements, memory usage, and throughput would clarify whether the quality gains from ReFlip also lead to practical advantages during inference.
+
+Secondly, the correction strategy itself can be improved. ReFlip uses exact scalar-score loss changes within a candidate region selected heuristically from the sensitivity distribution, and it modifies only the query projection while holding the key projection fixed. Future work may explore stronger optimization objectives, layer-adaptive flip budgets, second-order approximations for Q--K interactions, and hardware-aware constraints so that the method can balance accuracy, efficiency, and implementation cost more effectively.
+
+An additional direction is to extend ReFlip to the value projection using a loss defined on the full attention output rather than on the attention score. For fixed query and key projections, let
+\[
+A=\operatorname{softmax}\left(\frac{QK^\top}{\sqrt{d_h}}\right),
+\qquad
+O=AV=AXW_V^\top.
+\]
+Since \(W_V\) does not affect the attention logits or the attention probabilities, a value-projection correction cannot be justified by the scalar Q--K score used in the present ReFlip formulation. It can instead be evaluated through the residual of \(O\), with \(A\) held fixed during each \(W_V\)-only update. This extension would connect discrete value-weight refinement directly to the representation produced by the complete attention operation.
+
+\endgroup
+\end{document}

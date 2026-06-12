@@ -1,0 +1,14 @@
+\babel@toc {nil}{}\relax 
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\addvspace {10\p@ }
+\contentsline {table}{\numberline {4.1}{\ignorespaces Standalone QKV attention-score error}}{46}{table.caption.48}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Per-head QKV attention errors}}{47}{table.caption.49}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces 4-bit evaluation for Mistral-7B}}{48}{table.caption.52}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces 4-bit evaluation for Llama-3.1-8B}}{48}{table.caption.53}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces 4-bit evaluation for Qwen2.5-7B}}{49}{table.caption.54}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces 4-bit evaluation for Llama-3-8B}}{49}{table.caption.55}%
+\addvspace {10\p@ }
+\contentsfinish 
+\contentsfinish 

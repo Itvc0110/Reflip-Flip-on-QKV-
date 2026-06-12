@@ -1,0 +1,230 @@
+\documentclass[../main.tex]{subfiles}
+\begin{document}
+\begingroup
+\emergencystretch=2em
+
+\section{Experimental Setup}
+
+This chapter evaluates whether the proposed Flip and ReFlip refinements improve quantization quality beyond standard round-to-nearest quantization and established post-training quantization baselines.
+
+Two levels of evaluation are considered. The first is a standalone QKV experiment, where a selected grouped-query-attention block is isolated and the attention-score distortion is measured directly. This experiment makes the local effect of each refinement visible before running the full model. The second is a full-model evaluation, where quantized models are compared using perplexity and downstream task accuracy.
+
+The standalone experiment follows the Transformer attention formulation \cite{vaswani2017attention} and focuses on the grouped-query-attention (GQA) structure used by modern decoder-only language models \cite{ainslie2023gqa}. It uses Llama-3-8B, layer 8, GQA group 3. Calibration activations are collected from C4 \cite{raffel2020t5} using 128 samples with sequence length 512, producing an activation matrix of size $65536 \times 4096$. The exported group contains four query heads sharing one key/value group. James-Stein shrinkage \cite{james1961estimation} is used to stabilize the activation mean estimate before quantization decisions are evaluated.
+
+The full-model comparison covers Mistral-7B \cite{jiang2023mistral}, Llama-3/Llama-3.1 8B \cite{dubey2024llama3}, and Qwen2.5-7B \cite{qwen2024qwen25}. The results are taken from the 4-bit sheet of the reference workbook. Only the metrics used in this thesis are retained: WikiText-2 perplexity, C4 perplexity, ARC-Challenge, ARC-Easy, BoolQ, PIQA, RTE, and the average of the five accuracy tasks. WikiText-2 is a language modeling benchmark introduced with the WikiText corpus \cite{merity2016pointer}, while C4 originates from the T5 work \cite{raffel2020t5}. ARC-Challenge and ARC-Easy measure science-question reasoning \cite{clark2018arc}; BoolQ measures natural yes/no question answering \cite{clark2019boolq}; PIQA measures physical commonsense reasoning \cite{bisk2020piqa}; and RTE is included through the GLUE benchmark family \cite{wang2018glue}. The lm-evaluation harness provides a reproducible framework for running these tasks consistently across language models \cite{biderman2024reproducible}.
+
+For WikiText-2 and C4, lower perplexity is better. For ARC-Challenge, ARC-Easy, BoolQ, PIQA, RTE, and their average, higher accuracy is better. The reported average is computed over the five selected downstream accuracy metrics:
+\[
+\mathrm{avg}=\frac{\mathrm{arc\mbox{-}c}+\mathrm{arc\mbox{-}e}+\mathrm{boolq}+\mathrm{piqa}+\mathrm{rte}}{5}.
+\]
+Full precision is shown as a reference ceiling rather than as a competitor in the quantized-method ranking. Therefore, in the full-model tables, bold values indicate the best quantized result for a metric within the same model, and underlined values indicate the second-best quantized result. Full-precision values are not highlighted.
+
+The method names are normalized for clarity. The full-precision model is denoted as \textit{Full precision}. Standard round-to-nearest quantization is denoted as \textit{RTN}. RTN represents the direct rounding baseline commonly used in post-training quantization before more data-aware reconstruction is applied \cite{gholami2021survey,jacob2018quantization,nagel2020adaround}. GPTQ uses approximate second-order information to quantize pretrained Transformer weights \cite{frantar2022gptq}. AWQ is an activation-aware weight-only quantization method that protects salient channels using calibration statistics \cite{lin2023awq}. 
+
+\section{Standalone QKV Evaluation}
+
+The standalone QKV experiment compares three strategies under the same INT4 group-wise quantization setting. The nearest strategy performs direct round-to-nearest quantization. Flip then adjusts selected integer values by one quantization level to reduce local reconstruction error while avoiding activation outlier channels. ReFlip performs a second-stage correction that targets the attention-score error remaining after Flip.
+
+\begin{table}[H]
+\centering
+\caption[Standalone QKV attention-score error]{Standalone QKV attention-score error on Llama-3-8B layer 8, GQA group 3.}
+\label{tab:qkv-standalone-summary}
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.15}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\hline
+Method & Mean abs. error & Max abs. error & Mean rel. error (\%) & Reduction vs. RTN (\%) & Integer flips \\
+\hline
+RTN & 0.142806 & 0.253523 & 0.5330 & -- & -- \\
+Flip & 0.070070 & 0.113184 & 0.2666 & 41.63 & 20,889 \\
+ReFlip & \textbf{0.047939} & \textbf{0.068937} & \textbf{0.1934} & \textbf{56.63} & 64 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+Table \ref{tab:qkv-standalone-summary} shows that Flip substantially reduces the attention-score error compared with RTN, while ReFlip provides an additional reduction with very few extra integer changes. Flip modifies 20,889 weights across the selected Q and K projections, corresponding to approximately 0.7969\% of the involved weights. ReFlip applies only 64 additional integer changes, but still reduces the mean absolute attention-score error from 0.070070 to 0.047939.
+
+\begin{table}[H]
+\centering
+\caption[Per-head QKV attention errors]{Per-head attention-score errors in the standalone QKV experiment.}
+\label{tab:qkv-per-head}
+\setlength{\tabcolsep}{5pt}
+\renewcommand{\arraystretch}{1.15}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrr}
+\hline
+Head & RTN error & Flip error & ReFlip error & RTN to Flip (\%) & RTN to ReFlip (\%) \\
+\hline
+0 & 0.092831 & 0.062511 & \textbf{0.034649} & 32.66 & 62.68 \\
+1 & 0.253523 & 0.113184 & \textbf{0.068937} & 55.36 & 72.81 \\
+2 & 0.192633 & 0.078560 & \textbf{0.063698} & 59.22 & 66.93 \\
+3 & 0.032239 & 0.026023 & \textbf{0.024472} & 19.28 & 24.09 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+The per-head results in Table \ref{tab:qkv-per-head} indicate that ReFlip improves all four query heads in the selected GQA group. The magnitude of the improvement is not uniform across heads: head 1 obtains the largest RTN-to-ReFlip reduction, while head 3 shows a smaller but still positive reduction. This difference is expected because each query head has a different original score magnitude, error direction, and set of useful moderate dimensions for correction.
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/method_summary_errors.png}
+    \caption{Mean and maximum attention errors.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.png}
+    \caption{Attention error by query head.}
+\end{subfigure}
+\caption[Standalone QKV error comparison]{Standalone QKV error comparison across RTN, Flip, and ReFlip.}
+\label{fig:qkv-error-comparison}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png}
+    \caption{Error reduction from RTN to ReFlip.}
+\end{subfigure}
+\hfill
+\begin{subfigure}{0.48\textwidth}
+    \centering
+    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png}
+    \caption{Flip cost versus error reduction.}
+\end{subfigure}
+\caption[QKV correction behavior]{Per-head correction behavior and cost-benefit analysis.}
+\label{fig:qkv-correction-behavior}
+\end{figure}
+
+The plots in Figures \ref{fig:qkv-error-comparison} and \ref{fig:qkv-correction-behavior} support the numerical tables. Flip provides a large first correction by changing a small fraction of weights, while ReFlip targets the remaining attention-score error more directly. The ReFlip stage therefore behaves as a fine correction step rather than a broad re-quantization pass.
+
+\section{Full-Model Evaluation}
+
+The full-model results evaluate whether the local improvements observed in the QKV setting are reflected in end-to-end model behavior. Four model families are included: Mistral-7B, Llama-3.1-8B, Qwen2.5-7B, and Llama-3-8B. For each model, the tables report 4-bit quantization results for RTN, AWQ, GPTQ, and their Flip/ReFlip variants when the corresponding workbook entries are available.
+
+\begin{table}[H]
+\centering
+\caption[4-bit evaluation for Mistral-7B]{Full-model 4-bit evaluation for Mistral-7B. Bold marks the best quantized result; underline marks the second-best quantized result.}
+\label{tab:full-model-mistral}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\hline
+Method & Wiki & C4 & arc-c & arc-e & boolq & piqa & rte & avg \\
+\hline
+Full precision & 4.845 & 7.535 & 0.509 & 0.802 & 0.837 & 0.800 & 0.686 & 0.7268 \\
+RTN & 4.9917 & 7.8047 & 0.4761 & 0.7875 & \underline{0.8248} & 0.7992 & 0.6643 & 0.7104 \\
+RTN + ReFlip & 4.9704 & \underline{7.7167} & 0.4804 & 0.7934 & 0.8202 & \underline{0.8014} & 0.6751 & 0.7141 \\
+RTN + Flip & 4.9948 & 7.738 & 0.4744 & 0.7887 & \textbf{0.8275} & 0.7987 & 0.6606 & 0.7100 \\
+AWQ & 4.975 & 7.727 & \underline{0.493} & 0.794 & 0.817 & 0.797 & 0.671 & 0.7144 \\
+AWQ + ReFlip & \textbf{4.965} & \textbf{7.711} & \textbf{0.495} & \underline{0.795} & 0.818 & \textbf{0.802} & \textbf{0.690} & \textbf{0.7200} \\
+AWQ + Flip & 4.975 & 7.726 & \underline{0.493} & 0.793 & 0.815 & 0.798 & \underline{0.678} & 0.7154 \\
+GPTQ & 4.978 & 7.744 & 0.480 & \underline{0.795} & 0.820 & 0.798 & 0.675 & 0.7136 \\
+GPTQ + ReFlip & \underline{4.967} & 7.736 & 0.483 & \textbf{0.796} & 0.821 & 0.800 & \underline{0.678} & \underline{0.7156} \\
+GPTQ + Flip & 4.979 & 7.745 & 0.480 & \underline{0.795} & 0.819 & 0.798 & 0.675 & 0.7134 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption[4-bit evaluation for Llama-3.1-8B]{Full-model 4-bit evaluation for Llama-3.1-8B. Bold marks the best quantized result; underline marks the second-best quantized result.}
+\label{tab:full-model-llama31}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\hline
+Method & Wiki & C4 & arc-c & arc-e & boolq & piqa & rte & avg \\
+\hline
+Full precision & 5.522 & 8.409 & 0.522 & 0.822 & 0.830 & 0.791 & 0.711 & 0.7352 \\
+RTN & 6.0248 & 9.4397 & 0.4898 & 0.8064 & \underline{0.7990} & 0.7835 & 0.6351 & 0.7147 \\
+RTN + ReFlip & 5.9727 & 9.3692 & 0.5051 & \underline{0.8068} & 0.7928 & 0.7867 & 0.6531 & \textbf{0.7209} \\
+RTN + Flip & 6.0815 & 9.6308 & 0.4872 & 0.8009 & \textbf{0.8075} & 0.7845 & 0.6315 & 0.7143 \\
+AWQ & \underline{5.968} & 9.321 & \underline{0.511} & 0.806 & 0.794 & \textbf{0.798} & 0.635 & 0.7088 \\
+AWQ + ReFlip & \textbf{5.949} & \textbf{9.294} & \textbf{0.512} & \textbf{0.808} & 0.796 & 0.796 & \textbf{0.671} & \underline{0.7166} \\
+AWQ + Flip & \underline{5.968} & 9.316 & 0.507 & 0.803 & 0.790 & 0.796 & 0.632 & 0.7056 \\
+GPTQ & 5.995 & 9.304 & 0.505 & 0.804 & 0.795 & 0.793 & 0.651 & 0.7096 \\
+GPTQ + ReFlip & 5.989 & \underline{9.300} & 0.507 & 0.806 & 0.790 & \underline{0.797} & \underline{0.663} & 0.7126 \\
+GPTQ + Flip & 5.992 & 9.304 & 0.499 & 0.803 & 0.792 & 0.793 & 0.659 & 0.7092 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption[4-bit evaluation for Qwen2.5-7B]{Full-model 4-bit evaluation for Qwen2.5-7B. Bold marks the best quantized result; underline marks the second-best quantized result.}
+\label{tab:full-model-qwen}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\hline
+Method & Wiki & C4 & arc-c & arc-e & boolq & piqa & rte & avg \\
+\hline
+Full precision & 6.0839 & 10.8166 & 0.477 & 0.804 & 0.846 & 0.787 & 0.815 & 0.7458 \\
+RTN & 6.6915 & 12.2029 & 0.4506 & 0.7784 & 0.8302 & 0.7662 & 0.8016 & 0.7254 \\
+RTN + ReFlip & 6.6366 & 11.8779 & 0.45162 & 0.77125 & 0.83264 & 0.76782 & 0.816018 & 0.7278696 \\
+RTN + Flip & 6.6427 & 12.1076 & 0.44138 & 0.76832 & 0.82685 & 0.7651 & \textbf{0.823258} & 0.7249816 \\
+AWQ & 6.4677 & \underline{11.4443} & \underline{0.469} & 0.786 & 0.842 & 0.780 & 0.805 & 0.7364 \\
+AWQ + ReFlip & \textbf{6.438} & \textbf{11.363} & \textbf{0.473} & \textbf{0.792} & \textbf{0.847} & \underline{0.782} & \underline{0.819} & \textbf{0.7426} \\
+AWQ + Flip & \underline{6.467} & 11.450 & 0.459 & \underline{0.787} & \underline{0.843} & \textbf{0.787} & 0.815 & \underline{0.7382} \\
+GPTQ & 6.708 & 11.539 & 0.454 & 0.781 & 0.805 & 0.780 & 0.769 & 0.7178 \\
+GPTQ + ReFlip & 6.702 & 11.534 & 0.459 & 0.779 & 0.814 & 0.779 & 0.787 & 0.7236 \\
+GPTQ + Flip & 6.709 & 11.538 & 0.451 & 0.779 & 0.805 & 0.778 & 0.769 & 0.7164 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\begin{table}[H]
+\centering
+\caption[4-bit evaluation for Llama-3-8B]{Full-model 4-bit evaluation for Llama-3-8B. Bold marks the best quantized result; underline marks the second-best quantized result.}
+\label{tab:full-model-llama3}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.12}
+\resizebox{\textwidth}{!}{%
+\begin{tabular}{lrrrrrrrr}
+\hline
+Method & Wiki & C4 & arc-c & arc-e & boolq & piqa & rte & avg \\
+\hline
+Full precision & 5.442 & 8.346 & 0.505 & 0.800 & 0.813 & 0.796 & 0.696 & 0.7220 \\
+RTN & 6.0572 & 9.5846 & 0.4789 & 0.780 & 0.791 & 0.784 & 0.628 & 0.6924 \\
+RTN + ReFlip & 6.0236 & 9.2523 & \underline{0.490} & 0.781 & 0.796 & 0.7818 & 0.6679 & 0.7033 \\
+RTN + Flip & 6.0711 & 9.3279 & 0.4806 & 0.782 & 0.794 & 0.7802 & 0.6390 & 0.6952 \\
+AWQ & 5.910 & 9.240 & 0.488 & 0.784 & 0.795 & \underline{0.791} & 0.646 & 0.7008 \\
+AWQ + ReFlip & \textbf{5.885} & \textbf{9.199} & \textbf{0.493} & \underline{0.788} & \textbf{0.799} & 0.788 & 0.679 & \underline{0.7094} \\
+AWQ + Flip & \underline{5.906} & \underline{9.234} & 0.489 & 0.784 & 0.796 & \textbf{0.792} & 0.617 & 0.6956 \\
+GPTQ & 6.011 & 9.370 & 0.487 & 0.783 & \underline{0.798} & 0.788 & \underline{0.689} & 0.7090 \\
+GPTQ + ReFlip & 6.013 & 9.354 & 0.489 & \textbf{0.790} & 0.795 & 0.788 & \textbf{0.693} & \textbf{0.7110} \\
+GPTQ + Flip & 6.014 & 9.371 & 0.486 & 0.783 & 0.795 & 0.787 & 0.686 & 0.7074 \\
+\hline
+\end{tabular}%
+}
+\end{table}
+
+\section{Discussion}
+
+The standalone QKV experiment gives the clearest evidence for the mechanism targeted by this thesis. RTN introduces attention-score distortion because independent rounding errors in $Q$ and $K$ interact through the dot product. Flip reduces this error by improving local rounding decisions on non-outlier channels, and ReFlip further reduces the remaining error by explicitly correcting attention-score mismatch. The reduction from 0.142806 to 0.047939 in mean absolute attention error shows that the two-stage refinement is effective in the isolated setting. The cost profile is also important: Flip performs a broader local correction, while ReFlip adds only 64 integer flips and acts as a targeted residual correction step.
+
+The full-model results are more nuanced because the downstream tasks depend on the entire network, not only on one QKV group. Nevertheless, several consistent patterns appear. On Mistral-7B, AWQ + ReFlip is the strongest quantized method for WikiText-2, C4, ARC-Challenge, PIQA, RTE, and the selected-task average. This suggests that the activation-aware scaling of AWQ and the attention-aware residual correction of ReFlip are complementary in this case. GPTQ + ReFlip obtains the best quantized ARC-Easy score, while RTN + Flip obtains the best quantized BoolQ score, showing that the best refinement can still vary by task.
+
+On Llama-3.1-8B, AWQ + ReFlip gives the best quantized perplexity and the best quantized scores on ARC-Challenge, ARC-Easy, and RTE. RTN + ReFlip gives the highest quantized average, improving the RTN average from 0.7147 to 0.7209 while also reducing WikiText-2 and C4 perplexity. This indicates that ReFlip can be beneficial even when applied to the simplest RTN baseline, although the improvement is not uniformly distributed across every individual task.
+
+On Qwen2.5-7B, AWQ + ReFlip is the strongest quantized method for WikiText-2, C4, ARC-Challenge, ARC-Easy, BoolQ, and the selected-task average. The RTN + ReFlip row also improves RTN perplexity and average task score, increasing the average from 0.7254 to 0.7279. RTN + Flip is particularly strong on RTE, reaching the best quantized RTE score in the table, but its average is slightly lower than RTN + ReFlip. This supports the interpretation that Flip and ReFlip correct different aspects of quantization error: Flip may strongly benefit selected tasks, while ReFlip tends to provide a more attention-aligned residual correction.
+
+On Llama-3-8B, AWQ + ReFlip gives the best quantized WikiText-2 and C4 perplexity and also leads on ARC-Challenge and BoolQ. GPTQ + ReFlip gives the best quantized ARC-Easy, RTE, and average score. The improvements over each raw baseline are visible: RTN + ReFlip improves the RTN average from 0.6924 to 0.7033, AWQ + ReFlip improves AWQ from 0.7008 to 0.7094, and GPTQ + ReFlip improves GPTQ from 0.7090 to 0.7110. This is the clearest full-model evidence that ReFlip can improve multiple baseline quantizers rather than only a single quantization family.
+
+Overall, ReFlip most consistently improves perplexity and average downstream performance when paired with AWQ or RTN, while GPTQ already provides a stronger reconstruction baseline and therefore leaves a smaller margin for further correction. Flip remains useful but is more task-dependent. This behavior is consistent with the design of the methods: Flip is a local rounding correction, whereas ReFlip explicitly targets the bilinear attention-score mismatch that arises from simultaneous Q and K quantization. The results should therefore be interpreted as evidence that attention-aware correction improves quantized model fidelity, not as a guarantee that every task score must improve after every refinement.
+
+\endgroup
+\end{document}

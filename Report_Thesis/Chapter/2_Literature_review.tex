@@ -1,0 +1,319 @@
+\sloppy
+\emergencystretch=10em
+
+This chapter establishes the conceptual and empirical context for low-bit quantization of attention projection weights in large language models. The discussion first defines the scope of the thesis and then distinguishes the principal quantization taxonomies that are often conflated in the literature. It subsequently reviews representative post-training quantization methods, develops the mathematical background of attention and Grouped Query Attention (GQA), and analyzes how projection-weight perturbations enter attention scores and outputs. The final sections separate weight outliers, activation outliers, and functional salience; clarify the limited roles of Kneedle and James--Stein reasoning; and identify the research gap addressed by the thesis. Throughout the chapter, claims about sensitivity and error propagation are qualified by the relevant operating conditions. This distinction is important because structural reuse creates dependencies, but does not by itself prove that errors will be amplified in every input, head, layer, or task.
+
+\section{Scope of Research}
+
+This thesis studies post-training quantization of the query, key, and value projection weights in Transformer-based large language models, with particular attention to models that use GQA. The target setting is group-wise asymmetric INT4 weight-only quantization. The original pretrained model is not retrained or fine-tuned. Activations remain in higher precision, and the study does not attempt to optimize every layer or every inference-system component. This restricted scope makes it possible to examine how the statistical structure of QKV weights and the computational structure of attention jointly affect quantization error.
+
+The models motivating the study include contemporary Transformer families such as LLaMA \cite{touvron2023llama} and Qwen \cite{qwen2023technical}. Their parameter counts make memory capacity and memory bandwidth important deployment constraints. Weight-only quantization directly reduces the storage and transfer cost of model parameters while avoiding the additional dynamic-range difficulties introduced by quantizing activations. The resulting inference process still uses higher-precision token representations, but each linear projection is formed from an approximation of its original weight matrix. Consequently, the quality of the projection depends on both the quantized weights and the activations that multiply them.
+
+The thesis quantizer is consistently defined as \emph{group-wise asymmetric weight-only quantization}. For a projection matrix, each row corresponds to an output channel and each column corresponds to an input channel. Contiguous weights along the input-channel dimension are partitioned into numerical quantization groups. Every such group receives its own scale and zero-point. These numerical groups are unrelated to GQA groups. A GQA group is an architectural association in which several query heads share a key head and a value head; a quantization group is merely a local partition of weights represented by common affine parameters. Maintaining this distinction prevents ambiguity when discussing group size, error sharing, or head structure.
+
+The study also considers a lightweight post-quantization refinement referred to as \emph{bit-level adjustment}. In this thesis, the term has a precise operational meaning: a selected stored integer weight value is changed to an adjacent integer code, and therefore to an adjacent representable quantization level, while retaining the group's scale, zero-point, and assigned bit width. Bit-level adjustment is not a literal flip of a particular binary digit. A literal binary-digit flip can move an integer by a large and representation-dependent distance, whereas the intended operation changes the quantized value by one neighboring level. The term is preserved because it emphasizes discrete low-bit refinement, but every subsequent use refers to adjacent integer-code adjustment.
+
+Calibration data may be used to characterize the effects of quantized weights under representative inputs and to evaluate candidate adjustments. Such use does not constitute training: no gradient-based optimization of the original model parameters is required. The study also excludes hardware-specific kernel design and activation or KV-cache quantization. These topics are relevant to complete deployment systems, but separating them from projection-weight quantization keeps the evidence boundaries clear. In particular, results about quantized KV caches can motivate attention-aware analysis, yet they do not directly establish how QKV projection weights behave under group-wise asymmetric weight-only quantization.
+
+The resulting research question is deliberately narrow. Given low-bit group-wise asymmetric representations of QKV projection weights, can selective adjacent-level adjustment reduce consequential residual errors while respecting the structure of attention and GQA? Answering this question requires more than reporting weight reconstruction error. It requires a taxonomy of quantization choices, a perturbation model that connects weight error to attention computations, and careful interpretation of statistical heuristics. These foundations are developed in the remainder of the chapter.
+
+\section{Quantization Concepts and Taxonomy}
+
+Quantization maps values from a high-precision domain to a finite representable set. For neural-network weights, this mapping reduces memory consumption and can reduce data-transfer cost, but it introduces approximation error. The literature classifies quantizers along several independent dimensions, including uniform versus non-uniform level spacing, symmetric versus asymmetric ranges, tensor granularity, weight-only versus weight-and-activation quantization, and post-training versus training-aware procedures \cite{gholami2021survey,nagel2021white}. A precise account must keep these dimensions separate because a quantizer can, for example, be uniform, asymmetric, group-wise, weight-only, and post-training at the same time.
+
+\subsection{Uniform and Non-uniform Levels}
+
+A uniform quantizer uses a constant step size between adjacent dequantized values. If the step size is $s>0$, moving from one integer code to its neighbor changes the dequantized value by exactly $s$, except where clipping prevents movement beyond the representable endpoints. Uniformity refers only to spacing. It does not require the range to be centered at zero, nor does it require all weights in a tensor to share one scale.
+
+A non-uniform quantizer places representable values at unequal intervals. Such placement can allocate more levels to dense regions of a distribution and fewer levels to sparse regions, potentially improving representation for a specified distortion measure. The trade-off is that irregular levels can complicate representation and arithmetic. The thesis does not use a non-uniform quantizer. Its asymmetric affine quantization remains uniformly spaced within every quantization group.
+
+\subsection{Symmetric and Asymmetric Affine Quantization}
+
+Symmetry concerns the location of the represented range relative to zero. A symmetric quantizer ordinarily uses a range centered at or approximately centered at zero. This choice can simplify some arithmetic and is appropriate when positive and negative magnitudes are balanced. An asymmetric affine quantizer introduces a zero-point that shifts the represented interval. The shift can use the available integer range more effectively when a local weight group is skewed or has unequal positive and negative extrema.
+
+Let a quantization group contain real-valued weights $w_i$, and let the available integer interval be $[c_{\min},c_{\max}]$. With scale $s>0$ and zero-point $z$, affine quantization and dequantization can be written as
+\begin{equation}
+c_i =
+\operatorname{clip}\left(
+\operatorname{round}\left(\frac{w_i}{s}\right)+z,\,
+c_{\min},c_{\max}
+\right),
+\qquad
+\hat{w}_i=s(c_i-z).
+\end{equation}
+The representable dequantized values are separated by the constant distance $s$. Thus, asymmetric affine quantization is still uniform quantization. Its asymmetry shifts the represented range through $z$; it does not create unequal spacing. For INT4, at most $2^4=16$ integer codes are available per group, so the choice of range and the treatment of extreme weights strongly influence the resolution assigned to the remaining weights.
+
+The quantization error for an individual weight is $\Delta w_i=\hat{w}_i-w_i$. Before clipping, nearest rounding bounds its magnitude by approximately $s/2$. Clipping can produce a larger error because a value outside the selected range is mapped to an endpoint. This elementary distinction is important when interpreting candidate refinement: adjacent-level adjustment changes $\hat{w}_i$ by $s$, whereas changing the scale or clipping range changes the representable set for every weight in the group.
+
+\subsection{Granularity: Tensor, Output Channel, and Quantization Group}
+
+Quantization granularity identifies which weights share affine parameters. Per-tensor quantization assigns one scale and, where applicable, one zero-point to an entire tensor. It is economical but forces heterogeneous regions to share one range. Per-channel quantization, as a taxonomy comparator, assigns separate parameters to complete channels. It can adapt to differences across channels but still treats every weight within one channel as a single range.
+
+The thesis instead uses group-wise quantization. Within each output-channel row, contiguous columns along the input-channel dimension are divided into quantization groups. Each group has an independent scale and zero-point. This arrangement provides finer local adaptation than per-tensor or complete-channel granularity while preserving a regular partition. The phrase ``group-wise'' always refers to this numerical partition unless ``GQA group'' is explicitly stated.
+
+The distinction between input and output channels follows the orientation of the projection matrices used throughout this chapter. For one token representation $x\in\mathbb{R}^{d_{\mathrm{in}}}$ and a weight matrix $W\in\mathbb{R}^{d_{\mathrm{out}}\times d_{\mathrm{in}}}$, the projection is $xW^\top$. A row of $W$ produces one output-channel component; a column multiplies one input feature. Grouping along the input-channel dimension therefore divides each row into contiguous sets of contributing input features. It does not combine multiple attention heads merely because those heads belong to the same GQA group.
+
+\subsection{Weight-only and Post-training Quantization}
+
+Weight-only quantization stores weights at reduced precision while leaving runtime activations in higher precision. The approximation error arises from the quantized weights, but its realized effect depends on the activations that multiply those weights. For a linear projection $y=xW^\top$ and quantized weights $\hat{W}=W+\Delta W$,
+\begin{equation}
+\hat{y}-y=x\Delta W^\top.
+\end{equation}
+The same weight perturbation can therefore have different output effects for different inputs. A large-magnitude weight error aligned with rarely active input directions may have limited realized influence, whereas a smaller error aligned with frequently large or task-relevant activations may matter more. This relationship motivates the use of representative calibration inputs without changing the definition of the method as weight-only quantization.
+
+Post-training quantization operates on a pretrained model without repeating the original training process. It can use weight statistics, calibration activations, local reconstruction objectives, or approximate second-order information. Quantization-aware training instead exposes model optimization to quantization effects and updates parameters accordingly. The post-training setting is attractive for large language models because full retraining is expensive, but the absence of retraining also makes the initial quantizer and any discrete refinement particularly important.
+
+\section{Related Work and Evidence Boundaries}
+
+\subsection{General Post-training Weight Quantization}
+
+Post-training quantization methods for large language models differ in how they select ranges, account for activations, and compensate for local error. GPTQ \cite{frantar2022gptq} formulates layer-wise weight quantization using approximate second-order information and sequential error compensation. It is more precise to describe GPTQ as a block-wise reconstruction method than as a method that treats an entire layer with one homogeneous scale. Its objective accounts for calibration-informed curvature approximations within the processed layer, making it a strong general baseline for low-bit weight quantization.
+
+AWQ \cite{lin2023awq} uses activation statistics to identify salient weight channels and applies scaling transformations intended to protect their contributions. AWQ therefore does not ignore differences among channels, and criticism of it must not imply that it uses only a global layer scale. Its salience criterion and scaling strategy address a different problem from explicitly evaluating coupled query--key score perturbations or the consequences of shared K/V heads in GQA. The existence of this difference motivates investigation of attention-specific refinement, but does not establish that AWQ is generally inadequate.
+
+SmoothQuant \cite{xiao2023smoothquant} addresses weight-and-activation quantization by transferring quantization difficulty between activations and weights through mathematically equivalent scaling. It is especially relevant to the distinction between activation outliers and weight outliers: large activation features can be managed by changing the balance between the two operands. The present thesis leaves activations in higher precision, so SmoothQuant provides conceptual context rather than a directly matched weight-only baseline.
+
+These methods demonstrate that reconstruction objectives, activation statistics, and local transformations can preserve model quality at low precision. They also illustrate why broad statements that existing methods are merely layer-wise or statistically unaware are inaccurate. The narrower research gap is that a general reconstruction objective need not explicitly optimize the interaction of Q and K projections, distinguish the reuse pattern induced by GQA, or revisit selected integer levels after initial group-wise asymmetric quantization. Whether those omissions are consequential is an empirical question rather than an assumption.
+
+\subsection{Adjacent Evidence from KV-cache Quantization}
+
+KVQuant \cite{kvquant2024} and QAQ \cite{qaq2024} examine quantization associated with key and value cache representations. Their results are relevant because the KV cache participates directly in attention over previously processed tokens, and long contexts repeatedly reuse stored representations. However, KV-cache quantization and QKV projection-weight quantization intervene at different locations. Cache quantization approximates representations after projection and stores those approximations across decoding steps. Projection-weight quantization approximates the matrices that generate new queries, keys, and values from each input representation.
+
+The two settings share downstream attention equations, so KV-cache evidence supports the general proposition that perturbations to keys and values can matter. It does not directly prove that projection weights are more sensitive than other weights, that a specific QKV projection must receive special treatment, or that a cache-oriented technique transfers to group-wise asymmetric weight-only quantization. Such conclusions require direct analysis or evaluation in the projection-weight setting. Treating KVQuant and QAQ as adjacent rather than direct evidence preserves their relevance without extending their claims beyond their experimental object.
+
+\subsection{Attention Architectures}
+
+Standard multi-head attention (MHA) gives each attention head its own query, key, and value head \cite{vaswani2017attention}. The separate heads can learn different relations and produce different attention distributions. This structure does not guarantee that perturbations remain isolated, because head outputs are later combined and transformed, but head-specific K/V representations do limit direct sharing at the score-computation stage.
+
+Multi-query attention (MQA) shares one key head and one value head across many query heads \cite{shazeer2019fast}. GQA occupies an intermediate design point: several query heads are assigned to each shared key/value pair \cite{ainslie2023gqa}. This reduces KV-cache size and can improve inference efficiency while retaining more K/V diversity than MQA. In GQA terminology, the query heads assigned to one shared key/value pair form a GQA group.
+
+Sharing changes the dependency structure of perturbations. If a shared key is perturbed, every query head associated with that key computes scores using the same perturbed representation. Likewise, a shared value perturbation enters the weighted aggregation for every associated query head. The resulting errors are dependent because they contain a common component. Dependence does not imply that their magnitudes add monotonically or that the final model error is necessarily larger than in MHA. Query directions can make the shared key perturbation influential for some heads and nearly orthogonal for others; softmax can attenuate or redistribute score changes; value effects can cancel after output projection; and later layers can suppress or compound the perturbation. GQA therefore creates a pathway for conditional amplification and coordinated error, not a universal amplification law.
+
+\section{Group-wise Asymmetric Weight-only Quantization}
+
+\subsection{Local Representation and Residual Error}
+
+The purpose of group-wise quantization is to adapt the affine range to local weight statistics. A projection matrix can contain rows and regions with different minima, maxima, variances, and tail behavior. If all regions share one scale, a few extreme values can enlarge the step size for many otherwise compact weights. Partitioning each output-channel row along input channels reduces the number of weights competing for one range. Asymmetric parameters further permit a local interval that is not centered at zero, while the levels remain uniformly spaced.
+
+This granularity does not eliminate quantization error. Within a group, every weight still uses the same step size and endpoints. A single extreme weight can expand the range of its group. Alternatively, clipping or range selection can preserve finer resolution for the bulk of the group while producing larger endpoint errors for excluded values. The preferable trade-off depends on the objective. Minimizing unweighted element-wise error may favor one range, whereas minimizing calibration-output error may favor another because input features weight the columns unequally.
+
+For a group $g$ with scale $s_g$ and zero-point $z_g$, adjacent-level adjustment changes a selected integer $c_i$ to $c_i+1$ or $c_i-1$, provided the result remains within the representable interval. The corresponding dequantized weight changes by $+s_g$ or $-s_g$. The operation leaves all other integer values and the group's affine parameters unchanged. This local discreteness makes the effect easy to define, but not automatically beneficial. Moving to an adjacent level normally increases the selected weight's nearest-rounding error unless the initial assignment was altered by clipping or another objective. Its justification must therefore come from a broader reconstruction or interaction-aware criterion.
+
+The phrase bit-level adjustment is used for this adjacent-level operation throughout the thesis. It does not mean toggling a literal binary bit, changing INT4 to another bit width, or introducing a special high-precision exception. A binary representation is only an encoding of the integer level; the semantic operation is movement to a neighboring integer code. This definition also makes adjustment independent of whether signed integers, offset integers, or another equivalent low-bit encoding is used.
+
+\subsection{Local and Downstream Objectives}
+
+Quantization quality can be measured at several levels. Weight reconstruction compares $\hat{W}$ with $W$, often using a norm such as $\|\Delta W\|_F^2$. Projection reconstruction evaluates $\|X\Delta W^\top\|_F^2$ on calibration inputs. Attention-aware objectives can compare score matrices, probability matrices, or attention outputs. These objectives are related but not equivalent.
+
+An element-wise objective treats every weight error equally. A projection-output objective weights errors according to the calibration activations and their correlations. A score objective couples Q and K errors because the score matrix is bilinear. An attention-output objective additionally includes softmax sensitivity and value perturbations. Moving to a more downstream objective can better represent the target behavior, but it also becomes more input-dependent and may be more expensive or susceptible to calibration overfitting. A selective refinement method therefore needs an explicitly stated objective and cannot assume that reducing one error measure reduces every later error measure.
+
+The initial group-wise asymmetric quantizer supplies a regular low-bit representation. Selective adjacent-level refinement can then revisit a restricted set of integer assignments under a chosen criterion. Selection is necessary because exhaustively evaluating both neighboring levels for every weight, especially in many large projection matrices, is expensive. Candidate selection may use rounding proximity, local error, distribution summaries, or estimated downstream influence. None of these indicators alone proves that an adjustment will improve model behavior; they narrow the search space for subsequent evaluation.
+
+\section{Attention Computation and Projection Perturbations}
+
+\subsection{Notation and Projection Orientation}
+
+Let $X\in\mathbb{R}^{n\times d_{\mathrm{in}}}$ contain $n$ token representations as rows. Let
+$W_Q\in\mathbb{R}^{d_Q\times d_{\mathrm{in}}}$,
+$W_K\in\mathbb{R}^{d_K\times d_{\mathrm{in}}}$, and
+$W_V\in\mathbb{R}^{d_V\times d_{\mathrm{in}}}$.
+For a single row vector $x$, the projections are
+\begin{equation}
+q=xW_Q^\top,\qquad
+k=xW_K^\top,\qquad
+v=xW_V^\top.
+\end{equation}
+Applied to all tokens, the corresponding matrices are
+\begin{equation}
+Q=XW_Q^\top,\qquad
+K=XW_K^\top,\qquad
+V=XW_V^\top.
+\end{equation}
+This orientation is used consistently: rows of each weight matrix are output channels, columns are input channels, and group-wise quantization partitions columns within each row.
+
+For one attention head, scaled dot-product attention is
+\begin{equation}
+S=\frac{QK^\top}{\sqrt{d_k}},
+\qquad
+P=\operatorname{softmax}_{\mathrm{row}}(S),
+\qquad
+O=PV,
+\end{equation}
+where $d_k$ is the head dimension, $S$ is the score matrix, $P$ contains row-wise attention probabilities, and $O$ is the weighted aggregation of values \cite{vaswani2017attention}. Multi-head variants apply this process across heads and subsequently combine their outputs.
+
+\subsection{From Weight Error to Projection Error}
+
+Let the quantized projection weights be
+\begin{equation}
+\hat{W}_Q=W_Q+\Delta W_Q,\qquad
+\hat{W}_K=W_K+\Delta W_K,\qquad
+\hat{W}_V=W_V+\Delta W_V.
+\end{equation}
+The induced projection perturbations are
+\begin{equation}
+\Delta Q=X\Delta W_Q^\top,\qquad
+\Delta K=X\Delta W_K^\top,\qquad
+\Delta V=X\Delta W_V^\top,
+\end{equation}
+so that $\hat{Q}=Q+\Delta Q$, $\hat{K}=K+\Delta K$, and $\hat{V}=V+\Delta V$. The transpose is essential because the rows of each weight matrix are output channels. These equations also make the role of activations explicit: the same $\Delta W_Q$, $\Delta W_K$, or $\Delta W_V$ produces different projection errors for different $X$.
+
+The perturbed unscaled score product expands as
+\begin{equation}
+\hat{Q}\hat{K}^\top
+=QK^\top
++\Delta QK^\top
++Q\Delta K^\top
++\Delta Q\Delta K^\top.
+\end{equation}
+After division by $\sqrt{d_k}$, the score perturbation is therefore
+\begin{equation}
+\Delta S=
+\frac{\Delta QK^\top+Q\Delta K^\top+\Delta Q\Delta K^\top}
+{\sqrt{d_k}}.
+\end{equation}
+The first two terms are first order in the projection perturbations, while the last term is second order. When perturbations are small, the second-order term may be less influential, but low bit widths, clipping, large activation directions, or aligned errors can make it non-negligible. The expansion shows why independently small Q and K reconstruction errors do not determine score error by themselves: orientation and interaction with the unperturbed projections also matter.
+
+A norm bound illustrates possibilities without predicting realized behavior:
+\begin{equation}
+\|\Delta S\|
+\leq
+\frac{
+\|\Delta Q\|\,\|K\|
++\|Q\|\,\|\Delta K\|
++\|\Delta Q\|\,\|\Delta K\|
+}{\sqrt{d_k}},
+\end{equation}
+for compatible submultiplicative norms. This upper bound can be loose because it discards direction and cancellation. It establishes that large projection errors can permit large score error, but it does not prove that the bound is attained or that QKV weights are universally more sensitive than other model parameters.
+
+\subsection{Local Sensitivity of Softmax}
+
+Softmax converts each score row into a probability distribution. For a score vector $s$ and $p=\operatorname{softmax}(s)$, the Jacobian is
+\begin{equation}
+J_{\mathrm{softmax}}(s)=\operatorname{diag}(p)-pp^\top.
+\end{equation}
+For a sufficiently small score perturbation $\delta s$, the local first-order probability change is approximately
+\begin{equation}
+\delta p\approx
+\left(\operatorname{diag}(p)-pp^\top\right)\delta s.
+\end{equation}
+This expression provides a more precise account than the blanket statement that softmax amplifies errors. Softmax is invariant to adding the same constant to all elements of one score row, so that perturbation direction has no effect. When one probability is already close to one, some perturbations may be strongly attenuated. When several scores are close and receive substantial probability, perturbations that alter their relative differences can redistribute attention meaningfully. The effect is therefore local, directional, and dependent on the current score distribution.
+
+For finite perturbations, a change can cross a region in which the local Jacobian itself changes. A small score error near a narrow decision margin may alter which token receives the largest probability, but even a ranking change need not cause a large output change if the corresponding value vectors are similar. Conversely, a modest probability redistribution can matter if it transfers weight between very different values. Softmax is thus one conditional link in the propagation chain rather than a universal amplifier.
+
+\subsection{Value Error and Attention-output Error}
+
+With $\hat{P}=P+\Delta P$ and $\hat{V}=V+\Delta V$, the attention-output perturbation is
+\begin{equation}
+\hat{O}-O
+=
+\Delta PV
++P\Delta V
++\Delta P\Delta V.
+\end{equation}
+The term $\Delta PV$ reflects changes in attention probabilities, $P\Delta V$ reflects direct value-projection error under the original probabilities, and $\Delta P\Delta V$ couples both effects. This decomposition distinguishes the roles of Q/K and V. Q and K affect scores and probabilities; V affects the content being aggregated. A large score perturbation can have limited output effect when relevant values are similar, while a small value perturbation can matter when it is repeatedly assigned high attention probability.
+
+Later operations, including head concatenation, output projection, residual addition, normalization, and subsequent layers, can attenuate, preserve, or compound the attention-output perturbation. It is therefore defensible to say that QKV quantization creates structured pathways for downstream error, but not that every local QKV error necessarily produces a proportionally larger final error. Claims of comparative sensitivity require direct measurements under specified models, data, quantizers, and evaluation tasks.
+
+\section{GQA and Dependent Error}
+
+GQA changes how query heads are mapped to key and value heads. Suppose query heads $h\in\mathcal{G}_r$ belong to GQA group $r$ and share $K_r$ and $V_r$. For each associated query head,
+\begin{equation}
+S_h=\frac{Q_hK_r^\top}{\sqrt{d_k}},
+\qquad
+O_h=\operatorname{softmax}_{\mathrm{row}}(S_h)V_r.
+\end{equation}
+If the shared key is perturbed by $\Delta K_r$, then every $h\in\mathcal{G}_r$ contains the score-error term
+\begin{equation}
+\frac{Q_h\Delta K_r^\top}{\sqrt{d_k}}.
+\end{equation}
+These errors are dependent because the same $\Delta K_r$ appears in every term. Their realized magnitudes and signs differ because the $Q_h$ differ. Similarly, a shared $\Delta V_r$ enters the output of every associated query head, but each head weights that value perturbation with its own attention probabilities.
+
+Dependence matters for analysis because an independence assumption would overlook common error sources. It does not imply coherent accumulation. If query directions differ, some products with $\Delta K_r$ may be small or oppose one another after later transformations. If attention distributions differ, the same $\Delta V_r$ may be weighted differently. The output projection can mix heads in a manner that cancels or compounds their errors. Consequently, GQA can increase the reach of a shared perturbation and can conditionally amplify its downstream effect, yet the architecture alone does not determine the final magnitude.
+
+Comparisons among MHA, GQA, and MQA should therefore be stated structurally. MHA uses more independent K/V heads; MQA shares K/V most broadly; GQA shares within intermediate-sized architectural groups. Broader sharing creates more query heads that depend on each shared K/V perturbation. Whether this produces worse model quality after quantization depends on the learned weights, input activations, quantization errors, softmax operating points, and downstream mixing. The thesis focuses on GQA because shared K/V makes interaction-aware analysis especially relevant, not because GQA is assumed to be universally fragile.
+
+The numerical quantization groups used in the thesis remain independent of this architecture. A quantization group lies inside one output-channel row and spans contiguous input channels. A GQA group associates several query heads with a shared key/value head. The two kinds of groups can interact indirectly because quantization error in weights contributing to a shared head is reused architecturally, but neither group definition determines the other.
+
+\section{Outliers, Salience, and Candidate Selection}
+
+\subsection{Weight Outliers and Quantization Range}
+
+A weight outlier is a weight whose magnitude or value is extreme relative to an explicitly specified reference population, such as its quantization group. The reference population matters: a value can be ordinary at the layer level but extreme within a small local group, or the reverse. Under min--max affine quantization, extreme endpoints influence the scale. Preserving a distant endpoint can enlarge the step size and increase rounding error for many central values. Clipping the endpoint can reduce the step size but incurs a potentially large clipping error for the excluded weight \cite{gholami2021survey,banner2019post}.
+
+At INT4, the limited number of levels makes this trade-off visible. Nevertheless, the presence of a weight outlier does not establish that it should be clipped, preserved exactly, or selected for adjustment. Its functional effect depends on the input feature multiplying it, correlations with other errors, and the downstream objective. Group-wise affine quantization localizes the range trade-off, but a single extreme weight can still affect every weight sharing its numerical group.
+
+\subsection{Activation Outliers and Functional Salience}
+
+An activation outlier is an unusually large or otherwise extreme activation feature under a specified input distribution. It is conceptually distinct from a weight outlier. Weight-only quantization does not directly approximate activations, but activation magnitude influences how weight errors are expressed because projection error equals $X\Delta W^\top$. A modest weight error in a frequently large activation direction can have a substantial projection effect. SmoothQuant \cite{xiao2023smoothquant} and AWQ \cite{lin2023awq} illustrate, in different settings, why activation statistics are relevant to quantization decisions.
+
+Salience refers to functional importance under a stated criterion. A weight can be salient because changing it strongly affects calibration outputs or another objective, even if its magnitude is ordinary. Conversely, a large weight or activation can have limited effect under a particular data distribution or can be compensated elsewhere. Outlier status is distributional; salience is objective-dependent. Treating the terms as synonyms would obscure the difference between selecting extreme values and selecting influential values.
+
+Candidate-selection heuristics can combine these signals, but their roles should remain explicit. Distance to a quantization boundary indicates rounding ambiguity. Magnitude indicates extremeness relative to a reference set. Calibration-weighted error estimates realized projection influence on the calibration sample. Interaction-aware measures estimate effects on score or attention-output objectives. Each signal can narrow the candidate set, but final benefit must be assessed using the selected refinement objective and, ultimately, model evaluation.
+
+\subsection{Kneedle as a Heuristic}
+
+Kneedle was introduced as a general method for locating knee points in suitable curves \cite{satopaa2011kneedle}. A knee is a region where the curve's rate of improvement or growth changes markedly after normalization and comparison with a reference line. The algorithm's general literature role is curve-based transition-point identification. It is not inherently an outlier detector, a quantization algorithm, or a proof that a selected threshold is optimal.
+
+In a quantization context, one may construct a monotone summary from sorted weight magnitudes, cumulative energy, reconstruction error, or another quantity and apply Kneedle to propose a transition point. The result depends on the constructed curve, normalization, smoothing, and sensitivity parameters. Applying the algorithm to a weight summary can therefore yield a reproducible heuristic threshold or candidate budget, but the values beyond that point are not thereby proven to be harmful outliers or salient weights.
+
+This distinction separates the general literature claim from the later methodology of the thesis. The literature supports Kneedle as a knee-point heuristic. Any use of its output to choose candidates for adjacent-level adjustment is a methodological design choice that must be evaluated under the quantization objective. The method may help avoid a fixed global threshold when groups have different distributions, but it does not guarantee a better scale, a better candidate set, or improved downstream accuracy.
+
+\section{Selective Adjacent-level Refinement}
+
+After initial group-wise asymmetric quantization, each weight is represented by an integer level and a group-specific affine transformation. A selective refinement stage can evaluate whether moving a candidate integer to an adjacent level improves a chosen objective. If $c_i$ is the stored integer for weight $i$ in group $g$, the candidate set is restricted to valid neighbors,
+\begin{equation}
+\mathcal{N}(c_i)=
+\{c_i-1,c_i+1\}
+\cap[c_{\min},c_{\max}].
+\end{equation}
+Changing $c_i$ to an element of $\mathcal{N}(c_i)$ is the bit-level adjustment considered by this thesis. It moves the dequantized value by exactly one local step $s_g$. It is not a literal binary-digit flip and does not alter $s_g$, $z_g$, group membership, or bit width.
+
+Restricting adjustment to adjacent levels has several conceptual advantages. It bounds the local change, preserves the original quantizer, and permits a clear comparison between the current assignment and its immediate alternatives. It also avoids interpreting a large jump caused by flipping a high-order binary digit as a small refinement. However, adjacency is a constraint, not evidence of improvement. A neighbor can reduce an interaction-aware objective even while increasing element-wise weight error, or it can worsen both. Every accepted adjustment therefore requires an explicit acceptance criterion.
+
+Sequential adjustment also introduces interactions among decisions. The benefit estimated for one candidate can change after another candidate is moved because projection, score, and attention-output errors contain sums and cross terms. Evaluating candidates independently is efficient but may miss coordinated effects. Evaluating all combinations is generally impractical. A selective procedure occupies the middle ground: use heuristics to restrict candidates, evaluate adjacent alternatives according to a stated objective, and recognize that the resulting solution is a local discrete refinement rather than a proven global optimum.
+
+The choice of objective determines what the refinement preserves. A weight-space objective is inexpensive and input-independent but ignores activation directions. A projection-space objective uses calibration inputs and directly measures $X\Delta W^\top$. A score-space objective couples Q and K but omits the conditional transformation through softmax and values. An attention-output objective includes more of the relevant computation but is more input-dependent. No single objective guarantees improvement on all downstream tasks. The rationale for interaction-aware refinement is therefore that it measures a quantity closer to attention behavior, not that it universally dominates simpler reconstruction.
+
+\section{Statistical Interpretation and Its Limits}
+
+\subsection{James--Stein Estimation}
+
+The James--Stein result concerns estimation of a multivariate normal mean under specific assumptions \cite{james1961estimation}. In its classical form, one observes
+\begin{equation}
+\mathbf{x}\sim\mathcal{N}(\boldsymbol{\theta},\sigma^2I_d),
+\end{equation}
+with known common variance, squared-error risk, and dimension $d\geq3$. The James--Stein estimator shrinks the observation vector toward a chosen center, commonly the origin:
+\begin{equation}
+\hat{\boldsymbol{\theta}}_{\mathrm{JS}}
+=
+\left(
+1-\frac{(d-2)\sigma^2}{\|\mathbf{x}\|^2}
+\right)\mathbf{x}.
+\end{equation}
+Under the classical conditions and the relevant risk definition, shrinkage can dominate the component-wise maximum-likelihood estimator in total expected squared error. The result demonstrates that accepting coordinated bias can reduce aggregate estimation risk in a particular statistical model.
+
+Quantized neural-network weights do not generally satisfy these assumptions. Their errors are discrete, bounded or clipped by a quantizer, grouped under shared affine parameters, multiplied by data-dependent activations, and evaluated through nonlinear model behavior. The unknown-mean Gaussian model, known isotropic variance, and classical squared-error risk do not directly describe this setting. James--Stein theory therefore does not prove that adjacent-level adjustment, Flip, or ReFlip improves a quantized model. It also does not prescribe which weights to adjust or which attention-aware objective to use.
+
+The valid role of James--Stein reasoning in this literature review is modest and analogical. It cautions against assuming that independently optimal component decisions must minimize an aggregate criterion, and it illustrates how controlled bias can improve total risk under suitable assumptions. This analogy can motivate empirical investigation of coordinated or objective-aware decisions, but it is neither a principled basis in the sense of a derived guarantee nor evidence for a specific refinement procedure.
+
+\subsection{Connecting Heuristics to Evaluation}
+
+Kneedle and James--Stein reasoning occupy different roles. Kneedle is an algorithmic heuristic for proposing a transition point on a constructed curve. James--Stein is a statistical theorem under a specific probabilistic model that offers a limited analogy about aggregate risk. Neither establishes that a selected quantization candidate is salient, that an adjacent-level move is beneficial, or that a downstream model metric will improve.
+
+A defensible refinement framework therefore separates proposal, acceptance, and validation. A heuristic may propose candidate weights or a candidate budget. A specified reconstruction or interaction-aware objective determines whether an adjacent-level alternative is accepted. Model-level evaluation determines whether the resulting quantized model preserves behavior on relevant data. This separation prevents a selection heuristic from being interpreted as proof and prevents an analogy from being interpreted as an optimization guarantee.
+
+\section{Synthesis and Research Gap}
+
+The literature establishes several relevant facts while leaving a focused gap. First, post-training quantization can compress large language models effectively without full retraining, and methods such as GPTQ and AWQ use substantially more information than a single layer-wide scale \cite{frantar2022gptq,lin2023awq}. Second, affine asymmetry and group-wise granularity address different aspects of representation: asymmetry shifts a uniformly spaced local range, while grouping localizes the parameters shared by weights. Third, attention couples projection errors through a bilinear score product, a locally sensitive softmax transformation, and value aggregation. Fourth, GQA causes several query heads to depend on shared K/V perturbations, creating dependent errors whose eventual amplification, attenuation, or cancellation is conditional.
+
+The evidence does not support several stronger claims. KV-cache studies do not directly prove projection-weight sensitivity. Weight magnitude does not establish salience. Softmax does not universally amplify score perturbations. GQA sharing does not guarantee coherent accumulation. Kneedle does not prove that a threshold separates harmful outliers, and James--Stein theory does not prove the value of a discrete quantization refinement. Preserving these boundaries narrows the thesis claim but makes it testable.
+
+Within these boundaries, the research gap is the selective refinement of group-wise asymmetric low-bit QKV projection weights under objectives that can account for more than independent element-wise rounding. The initial quantizer provides a regular, efficient representation. Bit-level adjustment, precisely understood as an adjacent integer-code or quantization-level change, provides a restricted discrete action after quantization. Distributional and calibration-based heuristics can reduce the candidate set, while projection- or interaction-aware objectives can assess candidate changes. The resulting method must be judged empirically; its motivation follows from the structure of the problem, not from a claim of universal sensitivity or a statistical guarantee.
+
+\section*{Conclusion}
+
+This chapter has defined the thesis setting as post-training, group-wise asymmetric INT4 weight-only quantization of QKV projection weights. It distinguished input channels, output channels, numerical quantization groups, and architectural GQA groups; clarified that asymmetric affine quantization remains uniformly spaced; and defined bit-level adjustment as movement to an adjacent integer code and quantization level rather than a literal binary-digit flip.
+
+The perturbation analysis showed that projection-weight errors induce $\Delta Q=X\Delta W_Q^\top$, $\Delta K=X\Delta W_K^\top$, and $\Delta V=X\Delta W_V^\top$. Query and key errors interact in the score product, after which softmax transforms score perturbations according to its local, directional sensitivity. GQA reuses shared K/V perturbations across associated query heads and therefore creates dependent errors, but their downstream accumulation or amplification remains conditional on queries, score margins, values, output mixing, and later computations.
+
+Finally, the chapter established careful evidence boundaries. KVQuant and QAQ provide adjacent evidence about the KV cache rather than direct proof about pro\-jection weights. GPTQ and AWQ are strong, structured post-training methods, but their objectives differ from explicit refinement of attention interactions. Kneedle can guide candi\-date selection but does not certify outliers or optimal thresh\-olds. James--Stein estimation offers only a restricted analogy under assumptions that do not directly hold for quantized neural networks. These conclusions motivate the later methodology while leaving its effectiveness to direct empirical evaluation.

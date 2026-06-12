@@ -1,0 +1,89 @@
+\babel@toc {nil}{}\relax 
+\ttl@change@i {\@ne }{chapter}{0.0cm}{\bfseries \vspace {0.3cm}}{{\bfseries {\scshape } CHAPTER \thecontentslabel .\ }}{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@v {chapter}{}{}{}\relax 
+\ttl@change@i {\@ne }{section}{0.0cm}{\vspace {0.3cm}}{\thecontentslabel \ }{}{\titlerule *[0.3pc]{.}\contentspage }\relax 
+\ttl@change@v {section}{}{}{}\relax 
+\thispagestyle {empty}
+\contentsline {chapter}{\numberline {1}INTRODUCTION}{1}{chapter.1}%
+\contentsline {section}{\numberline {1.1}Problem Statement}{1}{section.1.1}%
+\contentsline {section}{\numberline {1.2}Background and Research Motivation}{2}{section.1.2}%
+\contentsline {section}{\numberline {1.3}Research Questions and Objectives}{3}{section.1.3}%
+\contentsline {section}{\numberline {1.4}Scope and Boundaries}{4}{section.1.4}%
+\contentsline {section}{\numberline {1.5}Contributions}{5}{section.1.5}%
+\contentsline {section}{\numberline {1.6}Organization of the Thesis}{5}{section.1.6}%
+\contentsline {chapter}{\numberline {2}LITERATURE REVIEW}{7}{chapter.2}%
+\contentsline {section}{\numberline {2.1}Scope of Research}{7}{section.2.1}%
+\contentsline {section}{\numberline {2.2}Quantization Concepts and Taxonomy}{9}{section.2.2}%
+\contentsline {subsection}{Uniform and Non-uniform Levels}{9}{subsection*.6}%
+\contentsline {subsection}{Symmetric and Asymmetric Affine Quantization}{9}{subsection*.7}%
+\contentsline {subsection}{Granularity: Tensor, Output Channel, and Quantization Group}{10}{subsection*.8}%
+\contentsline {subsection}{Weight-only and Post-training Quantization}{11}{subsection*.9}%
+\contentsline {section}{\numberline {2.3}Related Work and Evidence Boundaries}{11}{section.2.3}%
+\contentsline {subsection}{General Post-training Weight Quantization}{11}{subsection*.10}%
+\contentsline {subsection}{Adjacent Evidence from KV-cache Quantization}{12}{subsection*.11}%
+\contentsline {subsection}{Attention Architectures}{13}{subsection*.12}%
+\contentsline {section}{\numberline {2.4}Group-wise Asymmetric Weight-only Quantization}{13}{section.2.4}%
+\contentsline {subsection}{Local Representation and Residual Error}{13}{subsection*.13}%
+\contentsline {subsection}{Local and Downstream Objectives}{14}{subsection*.14}%
+\contentsline {section}{\numberline {2.5}Attention Computation and Projection Perturbations}{15}{section.2.5}%
+\contentsline {subsection}{Notation and Projection Orientation}{15}{subsection*.15}%
+\contentsline {subsection}{From Weight Error to Projection Error}{15}{subsection*.16}%
+\contentsline {subsection}{Local Sensitivity of Softmax}{16}{subsection*.17}%
+\contentsline {subsection}{Value Error and Attention-output Error}{17}{subsection*.18}%
+\contentsline {section}{\numberline {2.6}GQA and Dependent Error}{18}{section.2.6}%
+\contentsline {section}{\numberline {2.7}Outliers, Salience, and Candidate Selection}{19}{section.2.7}%
+\contentsline {subsection}{Weight Outliers and Quantization Range}{19}{subsection*.19}%
+\contentsline {subsection}{Activation Outliers and Functional Salience}{19}{subsection*.20}%
+\contentsline {subsection}{Kneedle as a Heuristic}{20}{subsection*.21}%
+\contentsline {section}{\numberline {2.8}Selective Adjacent-level Refinement}{20}{section.2.8}%
+\contentsline {section}{\numberline {2.9}Statistical Interpretation and Its Limits}{21}{section.2.9}%
+\contentsline {subsection}{James--Stein Estimation}{21}{subsection*.22}%
+\contentsline {subsection}{Connecting Heuristics to Evaluation}{22}{subsection*.23}%
+\contentsline {section}{\numberline {2.10}Synthesis and Research Gap}{23}{section.2.10}%
+\contentsline {chapter}{\numberline {3}METHODOLOGY}{25}{chapter.3}%
+\contentsline {section}{\numberline {3.1}Overview}{25}{section.3.1}%
+\contentsline {section}{\numberline {3.2}Notation and Calibration Representative}{26}{section.3.2}%
+\contentsline {subsection}{Projection Convention}{26}{subsection*.24}%
+\contentsline {subsection}{James--Stein-Shrunk Activation}{27}{subsection*.25}%
+\contentsline {section}{\numberline {3.3}Problem Formulation}{27}{section.3.3}%
+\contentsline {section}{\numberline {3.4}Group-Wise Asymmetric INT4 Quantization}{29}{section.3.4}%
+\contentsline {subsection}{Integer Representation}{29}{subsection*.26}%
+\contentsline {subsection}{What RTN Optimizes}{30}{subsection*.27}%
+\contentsline {subsection}{Memory and Inference Motivation}{30}{subsection*.28}%
+\contentsline {section}{\numberline {3.5}Flip: Activation-Weighted Projection Refinement}{31}{section.3.5}%
+\contentsline {subsection}{Flip Objective}{31}{subsection*.29}%
+\contentsline {subsection}{Interpretation as Error Cancellation}{32}{subsection*.30}%
+\contentsline {subsection}{Candidate Evaluation and Acceptance}{32}{subsection*.31}%
+\contentsline {subsection}{Scope and Limitations of Flip}{33}{subsection*.32}%
+\contentsline {section}{\numberline {3.6}ReFlip: Scalar Query--Key Score Refinement}{34}{section.3.6}%
+\contentsline {subsection}{Fixed-Key Objective}{34}{subsection*.33}%
+\contentsline {subsection}{Exact Effect of an Integer Change}{34}{subsection*.34}%
+\contentsline {subsection}{Parameter Sensitivity}{35}{subsection*.35}%
+\contentsline {subsection}{Kneedle-Based Protection and Candidate Region}{36}{subsection*.36}%
+\contentsline {subsection}{Greedy ReFlip Procedure}{37}{subsection*.37}%
+\contentsline {subsection}{Scope and Limitations of ReFlip}{37}{subsection*.38}%
+\contentsline {section}{\numberline {3.7}Unified Refinement Procedure}{38}{section.3.7}%
+\contentsline {subsection}{Stage 1: Calibration and Quantization}{38}{subsection*.39}%
+\contentsline {subsection}{Stage 2: Flip}{38}{subsection*.40}%
+\contentsline {subsection}{Stage 3: ReFlip}{38}{subsection*.41}%
+\contentsline {subsection}{Monotonicity of Accepted Changes}{39}{subsection*.42}%
+\contentsline {section}{\numberline {3.8}Hyperparameters and Design Choices}{39}{section.3.8}%
+\contentsline {section}{\numberline {3.9}Theoretical Discussion}{41}{section.3.9}%
+\contentsline {subsection}{From Scalar Reconstruction to Functional Residuals}{41}{subsection*.43}%
+\contentsline {subsection}{Why Query-Only Compensation Can Help}{41}{subsection*.44}%
+\contentsline {subsection}{Role of Sensitivity Protection}{42}{subsection*.45}%
+\contentsline {subsection}{Boundaries of the Claims}{42}{subsection*.46}%
+\contentsline {subsection}{Discrete Search and Optimality}{42}{subsection*.47}%
+\contentsline {section}{\numberline {3.10}Summary}{43}{section.3.10}%
+\contentsline {chapter}{\numberline {4}EXPERIMENTAL EVALUATION}{45}{chapter.4}%
+\contentsline {section}{\numberline {4.1}Experimental Setup}{45}{section.4.1}%
+\contentsline {section}{\numberline {4.2}Standalone QKV Evaluation}{46}{section.4.2}%
+\contentsline {section}{\numberline {4.3}Full-Model Evaluation}{48}{section.4.3}%
+\contentsline {section}{\numberline {4.4}Discussion}{49}{section.4.4}%
+\contentsline {chapter}{\numberline {5}CONCLUSIONS}{52}{chapter.5}%
+\contentsline {section}{\numberline {5.1}Summary}{52}{section.5.1}%
+\contentsline {section}{\numberline {5.2}Main Findings}{52}{section.5.2}%
+\contentsline {section}{\numberline {5.3}Limitations}{53}{section.5.3}%
+\contentsline {section}{\numberline {5.4}Future Work}{53}{section.5.4}%
+\contentsline {chapter}{REFERENCE}{56}{section*.57}%
+\contentsfinish 

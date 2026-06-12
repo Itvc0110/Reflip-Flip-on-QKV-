@@ -1,0 +1,67 @@
+\sloppy
+\emergencystretch=10em
+
+\section{Problem Statement}
+
+Large Language Models (LLMs) have achieved strong performance across a broad range of natural language processing tasks. Their practical deployment, however, remains constrained by the memory capacity, memory bandwidth, and computational resources required during inference. These constraints are especially important when a model must operate on limited hardware, serve many concurrent requests, or satisfy strict latency and energy budgets. Reducing the storage and data-movement cost of model parameters is therefore an important direction for making LLM inference more accessible and efficient.
+
+Post-training quantization reduces these costs by representing pretrained model parameters with lower-precision numerical formats without requiring full model retraining. Weight-only quantization is particularly attractive because it compresses the model weights while retaining higher-precision activations, thereby limiting changes to the inference computation. Nevertheless, aggressive low-bit quantization can introduce substantial approximation error. At INT4 precision, the errors contributed by many weights may accumulate under the activations observed during inference, and the resulting aggregate projection residual can vary considerably across model components.
+
+This thesis studies group-wise asymmetric INT4 weight-only quantization of the query, key, and value projection matrices in Transformer attention. In this setting, each weight matrix is partitioned into groups, and each group is represented by its own scale and asymmetric zero-point. The group-wise formulation can adapt to local weight distributions more effectively than a single matrix-wide quantizer, but it does not eliminate quantization error. Attention projections are a consequential target because perturbations to queries and keys alter attention scores, while perturbations to values alter the information aggregated by attention.
+
+The notation used throughout this thesis treats an activation token \(x\) as a row vector. The corresponding projected row vectors are
+\[
+    q = xW_Q^{T}, \qquad k = xW_K^{T}, \qquad v = xW_V^{T}.
+\]
+For a projection matrix \(W\) and its quantized counterpart \(\widehat{W}\), the activation-weighted projection residual for a token is \(x(\widehat{W}-W)^{T}\). Each output coordinate of this residual aggregates the signed contributions of many individual weight errors after they have been weighted by the corresponding activation values. Consequently, the isolated error of each quantized scalar is not, by itself, a complete measure of the functional projection error. Changes to \(W_Q\) additionally change the query representation and the attention scores formed with keys. These observations motivate two targeted but distinct correction procedures: Flip reduces an aggregate activation-weighted residual, whereas ReFlip evaluates disagreement at the attention-score level. The central problem is therefore to determine whether lightweight, structure-aware corrections can improve the fidelity of group-wise asymmetric INT4 QKV quantization without expanding the correction objectives into full model retraining.
+
+\section{Background and Research Motivation}
+
+The Transformer architecture relies on attention to determine how token representations exchange information. Standard multi-head attention assigns separate query, key, and value projections to each attention head. Multi-query attention and Grouped Query Attention (GQA) reduce key-value redundancy by allowing multiple query heads to share key and value heads. These variants can reduce memory use and improve decoding efficiency, but their sharing structure also means that an error in a shared key or value representation may influence several query heads. Quantization methods applied to GQA should therefore account for the distinct roles and shapes of the QKV projections.
+
+Low-bit quantization must balance representational range against resolution. Asymmetric quantization can better represent groups whose distributions are not centered at zero, while group-wise quantization limits the effect of distribution differences across a large matrix. A standard round-to-nearest (RTN) decision selects the nearest representable quantization level for each weight and therefore minimizes the isolated scalar quantization error for that weight under the fixed quantizer. RTN does not, however, directly minimize the aggregate activation-weighted residual because signed scalar errors can reinforce or cancel after multiplication by the calibration activations. Static criteria for identifying consequential rounding decisions are not always appropriate because activation patterns and residual contributions can differ between matrices, layers, and groups. This thesis consequently considers adaptive identification based on the Kneedle algorithm \cite{satopaa2011kneedle}, which identifies a knee in an ordered sensitivity curve. For ReFlip, the detected knee provides a data-dependent boundary between extremely sensitive query dimensions that are protected and a moderate post-knee region considered for correction.
+
+The proposed framework distinguishes two correction stages. \emph{Flip} changes selected RTN rounding decisions after group-wise asymmetric INT4 quantization in order to reduce the aggregate activation-weighted projection residual measured on calibration data. Because RTN already minimizes each isolated scalar error, a flipped decision may move an individual quantized weight farther from its original full-precision value. Flip accepts such an increase only when the changed signed contribution helps reduce the combined residual produced by the relevant weights under the observed activations. It therefore targets cancellation and accumulation in the aggregate residual rather than seeking uniformly smaller individual weight errors. Flip preserves the INT4 representation and the broader quantization configuration, and it does not use the attention-score objective described below.
+
+\emph{ReFlip} is a separate, subsequent correction stage. ReFlip updates only the query projection matrix \(W_Q\); it does not update \(W_K\) or \(W_V\). The update is guided by a scalar attention-score loss that measures disagreement between attention scores produced by the reference and quantized projections on calibration data. By using a scalar loss at the score level, ReFlip targets the functional effect of query-projection error without introducing a full hidden-state reconstruction objective. The method is also informed by the general motivation of statistical shrinkage: in high-dimensional estimation, carefully regularized adjustments can reduce aggregate error relative to unregularized estimates \cite{james1961estimation}. This connection is used as design motivation rather than as a claim that the proposed correction is itself a James--Stein estimator.
+
+Together, Flip and ReFlip address different aspects of the same problem. Flip changes selected rounding decisions across QKV projections to reduce an aggregate activation-weighted projection residual, whereas ReFlip focuses narrowly on \(W_Q\) and uses attention-score disagreement as its signal. Keeping the two stages conceptually separate is important for evaluating their individual effects and for avoiding claims that improvements from one stage necessarily imply improvements from the other.
+
+\section{Research Questions and Objectives}
+
+The overall objective of this thesis is to investigate whether targeted corrections can improve the reliability of group-wise asymmetric INT4 weight-only quantization for QKV projections, particularly in attention modules using GQA. The study is guided by the following research questions:
+
+\begin{enumerate}
+    \item How is quantization error distributed across QKV projection matrices and their weight groups under group-wise asymmetric INT4 weight-only quantization?
+    \item Can adaptively selected Flip decisions reduce the aggregate activation-weighted QKV projection residual, even when some flipped decisions increase their individual scalar weight errors, without changing the prescribed INT4 weight-only setting?
+    \item Can ReFlip, defined as an update to \(W_Q\) alone using a scalar attention-score loss, improve attention-score fidelity beyond the Flip stage?
+    \item To what extent do changes in weight-space error and attention-score error correspond to changes in downstream language-model evaluation?
+\end{enumerate}
+
+To answer these questions, the thesis develops a controlled framework that first establishes the INT4 quantization setting, then evaluates Flip and ReFlip as distinct interventions. The analysis distinguishes isolated scalar quantization error, aggregate activation-weighted projection residual, attention-score error, and downstream evaluation. This distinction is necessary because RTN can minimize each isolated scalar error while leaving a larger combined projection residual, and because a reduction in that residual does not by itself guarantee a meaningful improvement in model quality.
+
+\section{Scope and Boundaries}
+
+This work is limited to post-training, group-wise asymmetric INT4 weight-only quantization. Activations remain outside the low-bit quantization scope, and the thesis does not propose quantization-aware training or full model retraining. The primary objects of study are the \(W_Q\), \(W_K\), and \(W_V\) projection matrices in Transformer attention, with particular attention to GQA structure. Other model components may still affect end-to-end behavior, but they are not the central correction targets considered here.
+
+Flip and ReFlip are deliberately bounded procedures. Flip changes only selected RTN rounding decisions within the quantized QKV projections and selects those changes according to their effect on the aggregate activation-weighted projection residual over calibration data. It may worsen individual scalar weight errors and is not intended to minimize a weight-wise error metric. ReFlip updates only \(W_Q\) and is optimized using a scalar attention-score loss on calibration data; it does not update \(W_K\), \(W_V\), or the remaining model parameters. The thesis evaluates these procedures empirically and does not claim universal improvement across all architectures, tasks, datasets, group sizes, activation distributions, or calibration choices. Likewise, adaptive selection and shrinkage-inspired reasoning are treated as practical design principles whose usefulness must be established by the reported experiments.
+
+\section{Contributions}
+
+Within the stated scope, this thesis makes the following contributions:
+
+\begin{enumerate}
+    \item It formulates a targeted study of QKV projections under group-wise asymmetric INT4 weight-only quantization, with explicit consideration of the sharing structure present in GQA.
+    \item It defines Flip as a selective change to RTN rounding decisions that may increase individual scalar weight errors while reducing the aggregate activation-weighted QKV projection residual, and it distinguishes this objective from ReFlip.
+    \item It defines ReFlip as a query-only correction that updates \(W_Q\) using a scalar attention-score loss while leaving \(W_K\), \(W_V\), and other model parameters unchanged.
+    \item It incorporates Kneedle-based partitioning of query-dimension sensitivities so that ReFlip protects the extreme pre-knee region and evaluates candidates from a moderate post-knee region, and it evaluates the resulting corrections using both quantization-fidelity measures and downstream language-model evaluation.
+    \item It provides an empirical assessment of when the proposed corrections are helpful and where their benefits are limited, explicitly distinguishing RTN's isolated scalar-error objective from Flip's aggregate activation-weighted residual objective rather than assuming that either objective necessarily produces better end-to-end performance.
+\end{enumerate}
+
+These contributions are intended as a focused investigation of attention-projection correction under a specific low-bit setting. They do not establish that QKV projections are always the dominant source of quantization degradation or that the proposed procedures replace broader post-training quantization methods.
+
+\section{Organization of the Thesis}
+
+{\raggedright
+The remainder of this thesis is organized as follows. Chapter 2 reviews Trans\-former attention, GQA, and relevant approaches to neural network and LLM quanti\-zation. Chapter 3 presents the proposed methodology, including group-wise asymmetric INT4 weight-only quanti\-zation, adaptive selection, Flip, and the query-only ReFlip objective. Chapter 4 reports the experimental evaluation, including ablation studies, quanti\-zation fidelity analysis, and downstream results. Chapter 5 summarizes the findings and limitations and identifies directions for future research.
+\par}

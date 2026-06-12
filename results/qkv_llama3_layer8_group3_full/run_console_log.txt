@@ -1,0 +1,382 @@
+!python xspot.py --model-path ./models/Llama-3-8B --layer-id 8 --group-id 3 --n-samples 128 --seqlen 512 --output-dir ./xspot_llama3_layer8_group3_full
+Using device: cuda
+
+Loading model: ./models/Llama-3-8B
+2026-06-10 03:54:28.334817: E external/local_xla/xla/stream_executor/cuda/cuda_fft.cc:467] Unable to register cuFFT factory: Attempting to register factory for plugin cuFFT when one has already been registered
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+E0000 00:00:1781063668.506996     184 cuda_dnn.cc:8579] Unable to register cuDNN factory: Attempting to register factory for plugin cuDNN when one has already been registered
+E0000 00:00:1781063668.559756     184 cuda_blas.cc:1407] Unable to register cuBLAS factory: Attempting to register factory for plugin cuBLAS when one has already been registered
+W0000 00:00:1781063668.969860     184 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1781063668.969900     184 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1781063668.969904     184 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+W0000 00:00:1781063668.969908     184 computation_placer.cc:177] computation placer already registered. Please check linkage and avoid linking the same target more than once.
+Loading checkpoint shards: 100%|██████████████████| 4/4 [01:03<00:00, 15.93s/it]
+Model loaded successfully
+
+=== GQA Configuration ===
+Layer: 8
+Group: 3 (out of 8 groups)
+Hidden size: 4096
+Number of query heads: 32
+Number of key/value heads: 8
+Head dimension: 128
+Queries per KV group: 4
+========================
+
+Registered hook on layer 8 q_proj
+
+Loading calibration data: C4
+
+[C4 Calibration Data - Optimized]
+  Samples: 128
+  Sequence length: 512 tokens
+  Method: Random slicing with fast filtering
+  Seed: 42
+
+  ⚠️  No cache found, downloading from C4...
+
+  Streaming C4 with fast filtering...
+    Collected 31/128 samples (skipped 106 short docs)...
+    Collected 63/128 samples (skipped 189 short docs)...
+    Collected 95/128 samples (skipped 278 short docs)...
+    Collected 127/128 samples (skipped 363 short docs)...
+
+  ✓ Collected 128 samples from C4
+  ✓ Skipped 363 documents (too short)
+  💾 Saving to cache: calibration_cache/c4_calib_n128_len512_seed42_tensorsFalse.pkl
+Loaded 128 calibration samples
+
+Running calibration to capture activations...
+Processing sample 1/128
+Processing sample 21/128
+Processing sample 41/128
+Processing sample 61/128
+Processing sample 81/128
+Processing sample 101/128
+Processing sample 121/128
+Captured activations from 128 samples
+Removed hooks
+
+Concatenating activations...
+Total activation shape: torch.Size([65536, 4096])
+
+=== Computing James-Stein Estimates ===
+Activation shape: torch.Size([65536, 4096])
+Naive means shape: torch.Size([4096])
+Number of channels (p): 4096
+Grand mean: -0.001683
+Sum of squared deviations: 130.657486
+Variance estimate (MAD²): 0.003188
+Shrinkage factor c: 0.099905
+James-Stein means shape: torch.Size([4096])
+
+Shrinkage statistics:
+  Mean absolute difference: 0.005641
+  Max absolute difference: 0.270772
+  Shrinkage direction: towards grand mean (-0.001683)
+
+=== Extracting Group 3 Weights ===
+Original weight shapes:
+  Wq: torch.Size([4096, 4096])
+  Wk: torch.Size([1024, 4096])
+  Wv: torch.Size([1024, 4096])
+
+Group 3 weight shapes:
+  Wq_group: torch.Size([4, 128, 4096]) [queries_per_group, head_dim, hidden_size]
+  Wk_group: torch.Size([128, 4096]) [head_dim, hidden_size]
+  Wv_group: torch.Size([128, 4096]) [head_dim, hidden_size]
+
+This group corresponds to query heads 12-15
+
+Saving data to ./xspot_llama3_layer8_group3_full...
+
+Saved X_activations.npy: (65536, 4096)
+Saved James-Stein estimation results
+Saved group 3 Q/K/V weights
+Saved metadata.json
+Saved README.txt
+
+All data saved to: xspot_llama3_layer8_group3_full
+
+============================================================
+✓ Export complete!
+============================================================
+
+Configuration:
+  Model: ./models/Llama-3-8B
+  Layer: 8
+  GQA Group: 3
+  Calibration: C4 dataset, 128 samples
+  Output: ./xspot_llama3_layer8_group3_full
+
+Files saved:
+  - X_activations.npy [torch.Size([65536, 4096])]
+  - naive_means.npy [torch.Size([4096])]
+  - js_means.npy [torch.Size([4096])]
+  - Wq_group3.npy [torch.Size([4, 128, 4096])]
+  - Wk_group3.npy [torch.Size([128, 4096])]
+  - Wv_group3.npy [torch.Size([128, 4096])]
+  - metadata.json
+  - README.txt
+
+James-Stein Statistics:
+  Grand mean: -0.001683
+  Shrinkage factor λ: 0.099905
+  Mean absolute correction: 0.005641
+
+Load in Python:
+  import numpy as np
+  naive = np.load('./xspot_llama3_layer8_group3_full/naive_means.npy')
+  js = np.load('./xspot_llama3_layer8_group3_full/js_means.npy')
+  Wq = np.load('./xspot_llama3_layer8_group3_full/Wq_group3.npy')
+  Wk = np.load('./xspot_llama3_layer8_group3_full/Wk_group3.npy')
+  Wv = np.load('./xspot_llama3_layer8_group3_full/Wv_group3.npy')
+
+!python fast_quantize_qkv.py --data-dir ./xspot_llama3_layer8_group3_full --output-dir ./results/qkv_llama3_layer8_group3_full
+======================================================================
+INT4 Weight Quantization for GQA Attention (Group 3)
+Comparing: Nearest | Heuristic | ReFlip
+======================================================================
+  Data dir: xspot_llama3_layer8_group3_full
+  Output dir: results/qkv_llama3_layer8_group3_full
+
+Parameters:
+  Critical dim %%: 10.0%% (increased from 5%% for more aggressive correction)
+  Knee tolerance: 0.0
+  Group size: 128
+  Max flip %% (ReFlip): 10.0%% (5x more than heuristic)
+  Correction scale: 1.0x (amplifies error correction weighting)
+
+[1] Loading data...
+  JS means: (4096,)
+  Wq (group 3): (4, 128, 4096) [num_heads, head_dim, hidden_size]
+  Wk (group 3): (128, 4096) [head_dim, hidden_size]
+  Wv (group 3): (128, 4096) [head_dim, hidden_size]
+
+  Using JS means as input X: (4096,)
+  X statistics: min=-2.423882, max=2.437834, mean=-0.001683, std=0.160759
+
+[2] Quantizing weights to INT4 (group_size=128)...
+  Strategy 1: Nearest rounding
+  Strategy 2: Heuristic flip correction (from awq_js_xl.py)
+
+  [2a] Quantizing with NEAREST rounding...
+    Quantizing Wq (4 heads)...
+    Quantizing Wk (1 head)...
+
+  [2b] Quantizing with HEURISTIC FLIP correction...
+    Quantizing Wq (4 heads)...
+    Quantizing Wk (1 head)...
+
+  Wq scales: (4, 128, 32) [num_heads, head_dim, n_groups]
+  Wk scales: (128, 32) [head_dim, n_groups]
+
+  Flip statistics:
+    Wq: 16676 flips (0.7952% of weights)
+        Dynamic outlier detection: 2.47% outliers
+        Error reduction: 3.320513 (47.85%)
+        Error before flip: 6.939772
+        Error after flip:  3.619258
+    Wk: 4213 flips (0.8036% of weights)
+        Dynamic outlier detection: 2.47% outliers
+        Error reduction: 1.366581 (46.39%)
+        Error before flip: 2.945560
+        Error after flip:  1.578979
+
+  [2c] Applying REFLIP correction (attention score error redistribution)...
+
+  ReFlip statistics:
+    Total moderate dims: 48 across 4 heads
+    Moderate dims per head: [12, 12, 12, 12]
+    Target percentage: 10.0%
+    Attention score errors to correct: [-0.06251278210675082, -0.11318082207390745, -0.07856818249429764, 0.026027975151404092]
+    Total integer flips applied: 64 (0.0031% of weights)
+
+[3] Weight quantization errors:
+
+  Strategy 1: NEAREST rounding
+    Wq head 0: MAE=0.001680, Max=0.005957, Rel=11.1606%
+    Wq head 1: MAE=0.001097, Max=0.005892, Rel=11.1687%
+    Wq head 2: MAE=0.001755, Max=0.007340, Rel=11.1805%
+    Wq head 3: MAE=0.001356, Max=0.005192, Rel=11.1881%
+    Wk: MAE=0.002407, Max=0.010742, Rel=11.0937%
+
+  Strategy 2: HEURISTIC FLIP correction
+    Wq head 0: MAE=0.001681, Max=0.006055, Rel=11.1639%
+    Wq head 1: MAE=0.001098, Max=0.005892, Rel=11.1719%
+    Wq head 2: MAE=0.001755, Max=0.007373, Rel=11.1840%
+    Wq head 3: MAE=0.001357, Max=0.005379, Rel=11.1911%
+    Wk: MAE=0.002408, Max=0.010742, Rel=11.0970%
+
+  Strategy 3: REFLIP correction
+    Wq head 0: MAE=0.001681, Max=0.012341, Rel=11.1655%
+    Wq head 1: MAE=0.001098, Max=0.008577, Rel=11.1727%
+    Wq head 2: MAE=0.001756, Max=0.013159, Rel=11.1859%
+    Wq head 3: MAE=0.001357, Max=0.006836, Rel=11.1912%
+    Wk: MAE=0.002408, Max=0.010742, Rel=11.0970%
+
+[4] Computing attention scores: (X @ Wq^T) · (X @ Wk^T)
+======================================================================
+
+--- Query Head 0 ---
+Original score:                -40.068478
+
+Strategy 1 (Nearest):
+  Score:                       -39.975647
+  Absolute error:                0.092831
+  Relative error:                  0.2317%
+
+Strategy 2 (Heuristic):
+  Score:                       -40.005966
+  Absolute error:                0.062511
+  Relative error:                  0.1560%
+
+Strategy 3 (ReFlip):
+  Score:                       -40.033829
+  Absolute error:                0.034649
+  Relative error:                  0.0865%
+
+Improvements:
+  Nearest → Heuristic:              32.66%
+  Nearest → ReFlip:                 62.68%
+  Heuristic → ReFlip:               44.57%
+
+--- Query Head 1 ---
+Original score:                -29.461004
+
+Strategy 1 (Nearest):
+  Score:                       -29.207481
+  Absolute error:                0.253523
+  Relative error:                  0.8605%
+
+Strategy 2 (Heuristic):
+  Score:                       -29.347820
+  Absolute error:                0.113184
+  Relative error:                  0.3842%
+
+Strategy 3 (ReFlip):
+  Score:                       -29.392067
+  Absolute error:                0.068937
+  Relative error:                  0.2340%
+
+Improvements:
+  Nearest → Heuristic:              55.36%
+  Nearest → ReFlip:                 72.81%
+  Heuristic → ReFlip:               39.09%
+
+--- Query Head 2 ---
+Original score:                -24.564472
+
+Strategy 1 (Nearest):
+  Score:                       -24.371840
+  Absolute error:                0.192633
+  Relative error:                  0.7842%
+
+Strategy 2 (Heuristic):
+  Score:                       -24.485912
+  Absolute error:                0.078560
+  Relative error:                  0.3198%
+
+Strategy 3 (ReFlip):
+  Score:                       -24.500774
+  Absolute error:                0.063698
+  Relative error:                  0.2593%
+
+Improvements:
+  Nearest → Heuristic:              59.22%
+  Nearest → ReFlip:                 66.93%
+  Heuristic → ReFlip:               18.92%
+
+--- Query Head 3 ---
+Original score:                -12.618875
+
+Strategy 1 (Nearest):
+  Score:                       -12.651114
+  Absolute error:               -0.032239
+  Relative error:                 -0.2555%
+
+Strategy 2 (Heuristic):
+  Score:                       -12.644897
+  Absolute error:               -0.026023
+  Relative error:                 -0.2062%
+
+Strategy 3 (ReFlip):
+  Score:                       -12.643347
+  Absolute error:               -0.024472
+  Relative error:                 -0.1939%
+
+Improvements:
+  Nearest → Heuristic:              19.28%
+  Nearest → ReFlip:                 24.09%
+  Heuristic → ReFlip:                5.96%
+
+====================================================================================================
+SUMMARY: Attention Score Quantization Comparison (3 Strategies)
+====================================================================================================
+Head   Original      Nearest       Heuristic     ReFlip        Err(N)     Err(H)     Err(R)
+----------------------------------------------------------------------------------------------------
+0      -40.068478    -39.975647    -40.005966    -40.033829    0.0928     0.0625     0.0346
+1      -29.461004    -29.207481    -29.347820    -29.392067    0.2535     0.1132     0.0689
+2      -24.564472    -24.371840    -24.485912    -24.500774    0.1926     0.0786     0.0637
+3      -12.618875    -12.651114    -12.644897    -12.643347    -0.0322    -0.0260    -0.0245
+----------------------------------------------------------------------------------------------------
+
+Strategy 1 (Nearest):
+  Mean absolute error:    0.142806
+  Mean relative error:    0.5330%
+  Max absolute error:     0.253523
+
+Strategy 2 (Heuristic):
+  Mean absolute error:    0.070070
+  Mean relative error:    0.2666%
+  Max absolute error:     0.113184
+
+Strategy 3 (ReFlip):
+  Mean absolute error:    0.047939
+  Mean relative error:    0.1934%
+  Max absolute error:     0.068937
+
+Improvements:
+  Nearest → Heuristic:    41.63% (mean)
+  Nearest → ReFlip:       56.63% (mean)
+  Heuristic → ReFlip:     27.14% (mean)
+  Best ReFlip reduction:  72.81% (head 1)
+  Worst ReFlip reduction: 24.09% (head 3)
+
+Flip Statistics:
+  Wq total flips:         16,676 (0.7952% of weights)
+  Wq error reduction:     3.320513 (47.85%)
+  Wk total flips:         4,213 (0.8036% of weights)
+  Wk error reduction:     1.366581 (46.39%)
+======================================================================
+
+[5] Generating visualizations...
+  Saved: results/qkv_llama3_layer8_group3_full/attention_quantization_analysis.png
+
+[5b] Generating sorted error visualization...
+  Saved: results/qkv_llama3_layer8_group3_full/sorted_error_comparison.png
+
+[6] Saving detailed results...
+  Saved: results/qkv_llama3_layer8_group3_full/quantization_results.npz
+
+======================================================================
+✓ Analysis complete!
+======================================================================
+
+Key findings:
+  1. Nearest quantization:
+     - Mean attention score error: 0.142806 (0.5330%)
+  2. Heuristic quantization:
+     - Mean attention score error: 0.070070 (0.2666%)
+     - Flipped 20,889 weights (0.7969%)
+     - Error reduction from flipping: Wq=47.85%, Wk=46.39%
+  3. ReFlip quantization:
+     - Mean attention score error: 0.047939 (0.1934%)
+     - Corrected 48 moderate dimensions (10.0% target)
+     - Attention score errors: ['-0.062513', '-0.113181', '-0.078568', '0.026028']
+
+  Improvements:
+     - Nearest → Heuristic: 41.63% average error reduction
+     - Nearest → ReFlip:    56.63% average error reduction
+     - Heuristic → ReFlip:  27.14% average error reduction
+     - Best ReFlip improvement: 72.81% (head 1)
