@@ -5,57 +5,113 @@
 
 \section{Experimental Setup}
 
-This chapter evaluates whether the proposed Flip and ReFlip refinements improve quantization quality beyond standard round-to-nearest quantization and established post-training quantization baselines.
+This chapter evaluates whether the proposed Flip and ReFlip refinements are accompanied by lower quantization distortion than standard round-to-nearest quantization and established post-training quantization baselines. The evaluation is organized into two complementary levels. The first is a tightly bounded standalone case study that follows the local refinement sequence and reports the scalar Q--K score distortion after RTN, Flip, and Flip + ReFlip for one grouped-query-attention setting. Flip's projection-residual objective is part of this sequence, but the reported standalone tables focus on the scalar score surrogate used to compare the successive quantized states. The second level compares full-model perplexity and downstream task accuracy after 4-bit quantization. The local study directly examines the targeted representative-vector comparison, whereas the full-model comparison describes end-to-end behavior without isolating a single projection, layer, or correction decision.
 
-Two levels of evaluation are considered. The first is a standalone QKV experiment, where a selected grouped-query-attention block is isolated and the attention-score distortion is measured directly. This experiment makes the local effect of each refinement visible before running the full model. The second is a full-model evaluation, where quantized models are compared using perplexity and downstream task accuracy.
+The standalone case study follows the Transformer attention formulation \cite{vaswani2017attention} and the grouped-query-attention (GQA) structure used by modern decoder-only language models \cite{ainslie2023gqa}. Its scope is deliberately narrow: one representative activation vector is evaluated at Llama-3-8B layer 8, GQA group 3, which contains four query heads sharing one key/value head. The representative vector is formed from C4 calibration activations \cite{raffel2020t5}: 128 samples of sequence length 512 provide $65536$ token-level activation observations over 4096 hidden dimensions, and a James--Stein-inspired shrinkage heuristic \cite{james1961estimation} regularizes the channel-wise mean used as the representative vector. The study evaluates the unscaled scalar Q--K surrogate for the four query heads. It does not evaluate an attention matrix, a complete attention block, or the value projection $W_V$. Table \ref{tab:qkv-standalone-configuration} summarizes this configuration and its evidence boundary.
 
-The standalone experiment follows the Transformer attention formulation \cite{vaswani2017attention} and focuses on the grouped-query-attention (GQA) structure used by modern decoder-only language models \cite{ainslie2023gqa}. It uses Llama-3-8B, layer 8, GQA group 3. Calibration activations are collected from C4 \cite{raffel2020t5} using 128 samples with sequence length 512, producing an activation matrix of size $65536 \times 4096$. The exported group contains four query heads sharing one key/value group. James-Stein shrinkage \cite{james1961estimation} is used to stabilize the activation mean estimate before quantization decisions are evaluated.
+\begin{table}[H]
+\centering
+\caption[Standalone case-study configuration]{Configuration and evidence boundary of the standalone Q--K case study.}
+\label{tab:qkv-standalone-configuration}
+\setlength{\tabcolsep}{6pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{>{\raggedright\arraybackslash}p{0.30\textwidth}>{\raggedright\arraybackslash}p{0.61\textwidth}}
+\hline
+Item & Configuration \\
+\hline
+Evaluated setting & Llama-3-8B, layer 8, GQA group 3 \\
+GQA structure & Four query heads sharing one key/value head \\
+Calibration observations & 128 C4 samples, sequence length 512; $65536 \times 4096$ activations \\
+Evaluation input & One James--Stein-shrunk representative activation vector \\
+Weight quantization & Asymmetric INT4, group size 128 \\
+Evaluated projections & $W_Q$ and $W_K$ \\
+Evaluated quantity & Unscaled scalar Q--K surrogate per query head \\
+Not evaluated & $W_V$, attention matrices, and complete attention outputs \\
+\hline
+\end{tabular}
+\end{table}
 
-The full-model comparison covers Mistral-7B \cite{jiang2023mistral}, Llama-3/Llama-3.1 8B \cite{dubey2024llama3}, and Qwen2.5-7B \cite{qwen2024qwen25}. The results are taken from the 4-bit sheet of the reference workbook. Only the metrics used in this thesis are retained: WikiText-2 perplexity, C4 perplexity, ARC-Challenge, ARC-Easy, BoolQ, PIQA, RTE, and the average of the five accuracy tasks. WikiText-2 is a language modeling benchmark introduced with the WikiText corpus \cite{merity2016pointer}, while C4 originates from the T5 work \cite{raffel2020t5}. ARC-Challenge and ARC-Easy measure science-question reasoning \cite{clark2018arc}; BoolQ measures natural yes/no question answering \cite{clark2019boolq}; PIQA measures physical commonsense reasoning \cite{bisk2020piqa}; and RTE is included through the GLUE benchmark family \cite{wang2018glue}. The lm-evaluation harness provides a reproducible framework for running these tasks consistently across language models \cite{biderman2024reproducible}.
+The full-model comparison covers Mistral-7B \cite{jiang2023mistral}, Llama-3/Llama-3.1 8B \cite{dubey2024llama3}, and Qwen2.5-7B \cite{qwen2024qwen25}. Only the metrics considered in this thesis are reported: WikiText-2 perplexity, C4 perplexity, ARC-Challenge, ARC-Easy, BoolQ, PIQA, RTE, and the average of the five accuracy tasks. WikiText-2 is a language modeling benchmark introduced with the WikiText corpus \cite{merity2016pointer}, while C4 originates from the T5 work \cite{raffel2020t5}. ARC-Challenge and ARC-Easy measure science-question reasoning \cite{clark2018arc}; BoolQ measures natural yes/no question answering \cite{clark2019boolq}; PIQA measures physical commonsense reasoning \cite{bisk2020piqa}; and RTE is included through the GLUE benchmark family \cite{wang2018glue}. A reproducible language-model evaluation framework supports consistent task definitions across models \cite{biderman2024reproducible}. Only reported metric values are compared; unavailable values are neither inferred nor substituted.
 
 For WikiText-2 and C4, lower perplexity is better. For ARC-Challenge, ARC-Easy, BoolQ, PIQA, RTE, and their average, higher accuracy is better. The reported average is computed over the five selected downstream accuracy metrics:
 \[
 \mathrm{avg}=\frac{\mathrm{arc\mbox{-}c}+\mathrm{arc\mbox{-}e}+\mathrm{boolq}+\mathrm{piqa}+\mathrm{rte}}{5}.
 \]
-Full precision is shown as a reference ceiling rather than as a competitor in the quantized-method ranking. Therefore, in the full-model tables, bold values indicate the best quantized result for a metric within the same model, and underlined values indicate the second-best quantized result. Full-precision values are not highlighted.
+Full precision is shown as a reference baseline rather than as a competitor in the quantized-method ranking. It is not assumed to be an absolute ceiling because a finite evaluation can occasionally favor a quantized model on an individual metric. In the full-model tables, bold values indicate the best reported quantized result for a metric within the same model, and underlined values indicate the second-best reported quantized result. Ties at the second-best value are all underlined. Full-precision values are not highlighted.
 
-The method names are normalized for clarity. The full-precision model is denoted as \textit{Full precision}. Standard round-to-nearest quantization is denoted as \textit{RTN}. RTN represents the direct rounding baseline commonly used in post-training quantization before more data-aware reconstruction is applied \cite{gholami2021survey,jacob2018quantization,nagel2020adaround}. GPTQ uses approximate second-order information to quantize pretrained Transformer weights \cite{frantar2022gptq}. AWQ is an activation-aware weight-only quantization method that protects salient channels using calibration statistics \cite{lin2023awq}. 
+The method names are normalized for clarity. The full-precision model is denoted as \textit{Full precision}. Standard round-to-nearest quantization is denoted as \textit{RTN}; it is the direct rounding baseline commonly used before more data-aware reconstruction is considered \cite{gholami2021survey,jacob2018quantization,nagel2020adaround}. GPTQ uses approximate second-order information to quantize pretrained Transformer weights \cite{frantar2022gptq}. AWQ is an activation-aware weight-only quantization method that protects activation-salient feature channels using calibration statistics \cite{lin2023awq}. A method labelled ``+ Flip'' applies the Flip refinement to its named baseline, while ``+ ReFlip'' denotes the corresponding result after the ReFlip refinement. In the standalone case study, where ReFlip explicitly begins from the Flip-refined state, the complete third stage is labelled \textit{Flip + ReFlip}.
 
-\section{Standalone QKV Evaluation}
+These two evaluation levels answer different questions. The standalone case study measures the exact quantity selected for its local comparison, so it can show how the three successive quantized states differ for the representative vector. The full-model tables instead report aggregate behavioral metrics influenced by all model components. They can establish which reported model--method combinations have lower perplexity or higher task accuracy, but they cannot by themselves attribute a full-model difference exclusively to a particular local correction.
 
-The standalone QKV experiment compares three strategies under the same INT4 group-wise quantization setting. The nearest strategy performs direct round-to-nearest quantization. Flip then adjusts selected integer values by one quantization level to reduce local reconstruction error while avoiding activation outlier channels. ReFlip performs a second-stage correction that targets the attention-score error remaining after Flip.
+\section{Standalone Q--K Surrogate Evaluation}
+
+The standalone case study compares three successive quantized states under the same INT4 group-wise quantization setting. RTN performs direct round-to-nearest quantization. Flip then adjusts selected integer levels to reduce the aggregate activation-weighted projection residual. Finally, ReFlip begins from the Flip-refined state, keeps the quantized key projection fixed, and updates selected query-weight integer levels according to the remaining scalar Q--K surrogate loss. The resulting third state is therefore denoted as \textit{Flip + ReFlip}, rather than ReFlip alone.
+
+For query head $h$, let $s_h^\star$ be the full-precision scalar Q--K surrogate and let $\widehat{s}_{h,m}$ be the score obtained by quantized state $m$. The reported absolute and relative errors are
+\[
+e_{h,m}=\left|\widehat{s}_{h,m}-s_h^\star\right|,
+\qquad
+e^{\mathrm{rel}}_{h,m}
+=
+\frac{e_{h,m}}{|s_h^\star|}\times 100\%.
+\]
+Across the four query heads, mean absolute error (MAE) and maximum absolute error are
+\[
+\mathrm{MeanRel}_m=\frac{1}{4}\sum_{h=1}^{4}e^{\mathrm{rel}}_{h,m},
+\qquad
+\mathrm{MAE}_m=\frac{1}{4}\sum_{h=1}^{4}e_{h,m},
+\qquad
+e^{\max}_m=\max_h e_{h,m}.
+\]
+Two reduction summaries are reported because they weight heads differently. For a baseline state $b$ and a later state $m$, the mean of per-head percentage reductions gives equal importance to every head after normalizing by its own baseline error:
+\[
+R_{\mathrm{head}}(b\!\rightarrow\!m)
+=
+\frac{100}{4}
+\sum_{h=1}^{4}
+\frac{e_{h,b}-e_{h,m}}{e_{h,b}}.
+\]
+The aggregate-MAE reduction first aggregates absolute errors and then computes one percentage:
+\[
+R_{\mathrm{MAE}}(b\!\rightarrow\!m)
+=
+100
+\frac{\mathrm{MAE}_{b}-\mathrm{MAE}_{m}}
+{\mathrm{MAE}_{b}}.
+\]
+Consequently, $R_{\mathrm{head}}$ gives a relatively small-error head the same influence as a large-error head, whereas $R_{\mathrm{MAE}}$ places more influence on heads contributing more absolute error.
 
 \begin{table}[H]
 \centering
-\caption[Standalone QKV attention-score error]{Standalone QKV attention-score error on Llama-3-8B layer 8, GQA group 3.}
+\caption[Standalone scalar Q--K surrogate error]{Standalone scalar Q--K surrogate error on Llama-3-8B layer 8, GQA group 3.}
 \label{tab:qkv-standalone-summary}
 \setlength{\tabcolsep}{6pt}
 \renewcommand{\arraystretch}{1.15}
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lrrrrr}
+\begin{tabular}{lrrrrrrr}
 \hline
-Method & Mean abs. error & Max abs. error & Mean rel. error (\%) & Reduction vs. RTN (\%) & Integer flips \\
+Method & Mean abs. error & Max abs. error & Mean rel. error (\%) & $R_{\mathrm{head}}$ (\%) & $R_{\mathrm{MAE}}$ (\%) & Incremental operations & Cumulative operations \\
 \hline
-RTN & 0.142806 & 0.253523 & 0.5330 & -- & -- \\
-Flip & 0.070070 & 0.113184 & 0.2666 & 41.63 & 20,889 \\
-ReFlip & \textbf{0.047939} & \textbf{0.068937} & \textbf{0.1934} & \textbf{56.63} & 64 \\
+RTN & 0.142806 & 0.253523 & 0.5330 & -- & -- & 0 & 0 \\
+Flip & 0.070070 & 0.113184 & 0.2666 & 41.63 & 50.93 & 20,889 & 20,889 \\
+Flip + ReFlip & \textbf{0.047939} & \textbf{0.068937} & \textbf{0.1934} & \textbf{56.63} & \textbf{66.43} & 64 & 20,953 \\
 \hline
 \end{tabular}%
 }
 \end{table}
 
-Table \ref{tab:qkv-standalone-summary} shows that Flip substantially reduces the attention-score error compared with RTN, while ReFlip provides an additional reduction with very few extra integer changes. Flip modifies 20,889 weights across the selected Q and K projections, corresponding to approximately 0.7969\% of the involved weights. ReFlip applies only 64 additional integer changes, but still reduces the mean absolute attention-score error from 0.070070 to 0.047939.
+Table \ref{tab:qkv-standalone-summary} separates the one-level integer operations accepted at each stage from the cumulative number of accepted operations across the sequence. Flip accepts 20,889 operations across the selected Q and K projections, corresponding to approximately 0.7969\% of the involved weights. ReFlip then accepts 64 additional query-weight operations, bringing the cumulative operation count to 20,953. This sum is an operation count, not necessarily the number of distinct final weights that differ from RTN, because a coordinate may in principle be revisited. The additional stage is accompanied by a decrease in mean absolute scalar-score error from 0.070070 to 0.047939. Relative to RTN, the final state has a 56.63\% mean per-head reduction and a 66.43\% aggregate-MAE reduction. Relative to Flip itself, the corresponding incremental reductions are 27.14\% and 31.58\%, respectively.
 
 \begin{table}[H]
 \centering
-\caption[Per-head QKV attention errors]{Per-head attention-score errors in the standalone QKV experiment.}
+\caption[Per-head scalar Q--K surrogate errors]{Per-head scalar Q--K surrogate errors in the standalone case study.}
 \label{tab:qkv-per-head}
 \setlength{\tabcolsep}{5pt}
 \renewcommand{\arraystretch}{1.15}
 \resizebox{\textwidth}{!}{%
 \begin{tabular}{lrrrrr}
 \hline
-Head & RTN error & Flip error & ReFlip error & RTN to Flip (\%) & RTN to ReFlip (\%) \\
+Head & RTN error & Flip error & Flip + ReFlip error & RTN to Flip (\%) & RTN to Flip + ReFlip (\%) \\
 \hline
 0 & 0.092831 & 0.062511 & \textbf{0.034649} & 32.66 & 62.68 \\
 1 & 0.253523 & 0.113184 & \textbf{0.068937} & 55.36 & 72.81 \\
@@ -66,22 +122,22 @@ Head & RTN error & Flip error & ReFlip error & RTN to Flip (\%) & RTN to ReFlip 
 }
 \end{table}
 
-The per-head results in Table \ref{tab:qkv-per-head} indicate that ReFlip improves all four query heads in the selected GQA group. The magnitude of the improvement is not uniform across heads: head 1 obtains the largest RTN-to-ReFlip reduction, while head 3 shows a smaller but still positive reduction. This difference is expected because each query head has a different original score magnitude, error direction, and set of useful moderate dimensions for correction.
+The per-head results in Table \ref{tab:qkv-per-head} show lower absolute scalar-score error for the Flip + ReFlip state than for RTN or Flip on all four query heads in this case study. The magnitude is not uniform across heads: head 1 has the largest RTN-to-Flip + ReFlip percentage reduction, while head 3 has the smallest. The arithmetic distinction between the two reduction summaries is visible here. Head 3 has the smallest RTN absolute error and therefore contributes little to aggregate MAE, yet its comparatively modest percentage reduction receives equal weight in $R_{\mathrm{head}}$. This is why the 56.63\% mean per-head reduction is lower than the 66.43\% aggregate-MAE reduction.
 
 \begin{figure}[H]
 \centering
 \begin{subfigure}{0.48\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/method_summary_errors.png}
-    \caption{Mean and maximum attention errors.}
+    \includegraphics[width=\linewidth]{Figure/qkv_method_summary_errors.png}
+    \caption{Mean and maximum scalar Q--K surrogate errors.}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.48\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.png}
-    \caption{Attention error by query head.}
+    \includegraphics[width=\linewidth]{Figure/qkv_attention_error_by_head.png}
+    \caption{Scalar Q--K surrogate error by query head.}
 \end{subfigure}
-\caption[Standalone QKV error comparison]{Standalone QKV error comparison across RTN, Flip, and ReFlip.}
+\caption[Standalone Q--K surrogate error comparison]{Standalone scalar Q--K surrogate error comparison across RTN, Flip, and Flip + ReFlip.}
 \label{fig:qkv-error-comparison}
 \end{figure}
 
@@ -89,24 +145,28 @@ The per-head results in Table \ref{tab:qkv-per-head} indicate that ReFlip improv
 \centering
 \begin{subfigure}{0.48\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png}
-    \caption{Error reduction from RTN to ReFlip.}
+    \includegraphics[width=\linewidth]{Figure/qkv_error_waterfall_by_head.png}
+    \caption{Error reduction from RTN to Flip + ReFlip.}
 \end{subfigure}
 \hfill
 \begin{subfigure}{0.48\textwidth}
     \centering
-    \includegraphics[width=\linewidth]{../results/qkv_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png}
+    \includegraphics[width=\linewidth]{Figure/qkv_flip_cost_vs_error_reduction.png}
     \caption{Flip cost versus error reduction.}
 \end{subfigure}
-\caption[QKV correction behavior]{Per-head correction behavior and cost-benefit analysis.}
+\caption[Q--K surrogate correction behavior]{Per-head scalar Q--K surrogate correction behavior and cost-benefit analysis.}
 \label{fig:qkv-correction-behavior}
 \end{figure}
 
-The plots in Figures \ref{fig:qkv-error-comparison} and \ref{fig:qkv-correction-behavior} support the numerical tables. Flip provides a large first correction by changing a small fraction of weights, while ReFlip targets the remaining attention-score error more directly. The ReFlip stage therefore behaves as a fine correction step rather than a broad re-quantization pass.
+Figures \ref{fig:qkv-error-comparison} and \ref{fig:qkv-correction-behavior} visualize the same bounded case study. The bars compare independent query heads; adjacency on the horizontal axis does not imply an ordering relationship or a trend between heads. Flip is associated with the larger first decrease in absolute scalar-score error and accepts operations affecting a small fraction of the selected projection weights. The subsequent ReFlip stage is associated with a further decrease while introducing 64 additional one-level operations, so within this representative-vector comparison it behaves as a targeted correction rather than a broad re-quantization pass.
+
+The evidence boundary is important. These numbers characterize one representative activation vector at one layer and one GQA group. They do not measure token-to-token attention matrices, softmax-normalized attention probabilities, value-projection distortion, or final attention outputs. In particular, $W_V$ is not evaluated in this standalone study. The results therefore demonstrate the behavior of the selected scalar Q--K surrogate in this case, but they do not establish that every activation, head group, layer, or complete attention output changes by the same proportion.
 
 \section{Full-Model Evaluation}
 
-The full-model results evaluate whether the local improvements observed in the QKV setting are reflected in end-to-end model behavior. Four model families are included: Mistral-7B, Llama-3.1-8B, Qwen2.5-7B, and Llama-3-8B. For each model, the tables report 4-bit quantization results for RTN, AWQ, GPTQ, and their Flip/ReFlip variants when the corresponding workbook entries are available.
+The full-model results describe end-to-end behavior for four model configurations: Mistral-7B, Llama-3.1-8B, Qwen2.5-7B, and Llama-3-8B. Tables \ref{tab:full-model-mistral}, \ref{tab:full-model-llama31}, \ref{tab:full-model-qwen}, and \ref{tab:full-model-llama3} report the available 4-bit quantization results for RTN, AWQ, GPTQ, and their Flip/ReFlip variants. Perplexity and downstream accuracy reflect the complete model and therefore complement, rather than directly validate, the isolated scalar Q--K case study. A lower perplexity indicates that the evaluated model assigns higher probability to the observed language sequence on average. Higher downstream accuracy indicates a larger proportion of correct task predictions. The five-task average gives each selected accuracy task equal weight, regardless of dataset size.
+
+The tables are interpreted descriptively. A difference between a baseline and its Flip or ReFlip variant is an observed association for the reported model and metric; it does not isolate which layer, projection, or individual correction produced the difference. Complete repeated-run metadata, uncertainty estimates, and every protocol detail---including all calibration, context-length, prompting, shot-setting, and random-seed choices---are not available for every configuration. The comparisons therefore rely on the reported configurations being internally consistent and should not be interpreted as statistical significance tests or as evidence about run-to-run variance. No unavailable metric is filled or inferred. Bold and underline identify the first- and second-ranked quantized values within each model after excluding the full-precision reference baseline.
 
 \begin{table}[H]
 \centering
@@ -146,14 +206,14 @@ GPTQ + Flip & 4.979 & 7.745 & 0.480 & \underline{0.795} & 0.819 & 0.798 & 0.675 
 Method & Wiki & C4 & arc-c & arc-e & boolq & piqa & rte & avg \\
 \hline
 Full precision & 5.522 & 8.409 & 0.522 & 0.822 & 0.830 & 0.791 & 0.711 & 0.7352 \\
-RTN & 6.0248 & 9.4397 & 0.4898 & 0.8064 & \underline{0.7990} & 0.7835 & 0.6351 & 0.7147 \\
-RTN + ReFlip & 5.9727 & 9.3692 & 0.5051 & \underline{0.8068} & 0.7928 & 0.7867 & 0.6531 & \textbf{0.7209} \\
-RTN + Flip & 6.0815 & 9.6308 & 0.4872 & 0.8009 & \textbf{0.8075} & 0.7845 & 0.6315 & 0.7143 \\
+RTN & 6.0248 & 9.4397 & 0.4898 & 0.8064 & \underline{0.7990} & 0.7835 & 0.6351 & 0.7028 \\
+RTN + ReFlip & 5.9727 & 9.3692 & 0.5051 & \underline{0.8068} & 0.7928 & 0.7867 & 0.6531 & 0.7089 \\
+RTN + Flip & 6.0815 & 9.6308 & 0.4872 & 0.8009 & \textbf{0.8075} & 0.7845 & 0.6315 & 0.7023 \\
 AWQ & \underline{5.968} & 9.321 & \underline{0.511} & 0.806 & 0.794 & \textbf{0.798} & 0.635 & 0.7088 \\
-AWQ + ReFlip & \textbf{5.949} & \textbf{9.294} & \textbf{0.512} & \textbf{0.808} & 0.796 & 0.796 & \textbf{0.671} & \underline{0.7166} \\
+AWQ + ReFlip & \textbf{5.949} & \textbf{9.294} & \textbf{0.512} & \textbf{0.808} & 0.796 & 0.796 & \textbf{0.671} & \textbf{0.7166} \\
 AWQ + Flip & \underline{5.968} & 9.316 & 0.507 & 0.803 & 0.790 & 0.796 & 0.632 & 0.7056 \\
 GPTQ & 5.995 & 9.304 & 0.505 & 0.804 & 0.795 & 0.793 & 0.651 & 0.7096 \\
-GPTQ + ReFlip & 5.989 & \underline{9.300} & 0.507 & 0.806 & 0.790 & \underline{0.797} & \underline{0.663} & 0.7126 \\
+GPTQ + ReFlip & 5.989 & \underline{9.300} & 0.507 & 0.806 & 0.790 & \underline{0.797} & \underline{0.663} & \underline{0.7126} \\
 GPTQ + Flip & 5.992 & 9.304 & 0.499 & 0.803 & 0.792 & 0.793 & 0.659 & 0.7092 \\
 \hline
 \end{tabular}%
@@ -214,17 +274,27 @@ GPTQ + Flip & 6.014 & 9.371 & 0.486 & 0.783 & 0.795 & 0.787 & 0.686 & 0.7074 \\
 
 \section{Discussion}
 
-The standalone QKV experiment gives the clearest evidence for the mechanism targeted by this thesis. RTN introduces attention-score distortion because independent rounding errors in $Q$ and $K$ interact through the dot product. Flip reduces this error by improving local rounding decisions on non-outlier channels, and ReFlip further reduces the remaining error by explicitly correcting attention-score mismatch. The reduction from 0.142806 to 0.047939 in mean absolute attention error shows that the two-stage refinement is effective in the isolated setting. The cost profile is also important: Flip performs a broader local correction, while ReFlip adds only 64 integer flips and acts as a targeted residual correction step.
+The standalone case study provides the most direct comparison with the local scalar surrogate considered in this thesis. For the selected representative activation vector, quantization errors in $Q$ and $K$ combine through their dot product. The reported states show a decrease in mean absolute scalar-score error from 0.142806 under RTN to 0.070070 after Flip and to 0.047939 after Flip + ReFlip. However, the numerical size of a percentage reduction depends on the aggregation rule. Equal weighting of the four per-head percentages gives reductions of 41.63\% for Flip and 56.63\% for Flip + ReFlip relative to RTN. Computing the percentage after aggregating absolute errors gives larger reductions of 50.93\% and 66.43\%, respectively, because the heads with larger RTN errors also receive larger absolute corrections. Reporting both prevents the smaller-error heads from being hidden by the aggregate while retaining a direct account of total absolute distortion.
 
-The full-model results are more nuanced because the downstream tasks depend on the entire network, not only on one QKV group. Nevertheless, several consistent patterns appear. On Mistral-7B, AWQ + ReFlip is the strongest quantized method for WikiText-2, C4, ARC-Challenge, PIQA, RTE, and the selected-task average. This suggests that the activation-aware scaling of AWQ and the attention-aware residual correction of ReFlip are complementary in this case. GPTQ + ReFlip obtains the best quantized ARC-Easy score, while RTN + Flip obtains the best quantized BoolQ score, showing that the best refinement can still vary by task.
+The correction-operation counts provide a second perspective on the same local comparison. Flip accounts for 20,889 accepted one-level operations in the selected Q and K projections. The ReFlip stage contributes 64 additional query-weight operations, bringing the cumulative operation count to 20,953. The final error is therefore observed after the complete sequence of Flip followed by ReFlip; neither the 64 operations nor their cumulative sum should be interpreted as the number of distinct weights separating RTN from the final state without a separate final-state comparison. Within this case study, the additional 64 operations coincide with a 27.14\% mean per-head reduction, or a 31.58\% aggregate-MAE reduction, relative to the Flip state. These observations are consistent with ReFlip acting as a narrower second-stage adjustment for the selected scalar objective, but they do not establish the same cost--benefit relationship outside this layer, group, and representative vector.
 
-On Llama-3.1-8B, AWQ + ReFlip gives the best quantized perplexity and the best quantized scores on ARC-Challenge, ARC-Easy, and RTE. RTN + ReFlip gives the highest quantized average, improving the RTN average from 0.7147 to 0.7209 while also reducing WikiText-2 and C4 perplexity. This indicates that ReFlip can be beneficial even when applied to the simplest RTN baseline, although the improvement is not uniformly distributed across every individual task.
+The full-model task results are more heterogeneous because each metric depends on the complete network rather than on one scalar score in one GQA group. On Mistral-7B, AWQ + ReFlip has the best quantized WikiText-2 and C4 perplexities, ARC-Challenge, PIQA, RTE, and five-task average. GPTQ + ReFlip has the highest quantized ARC-Easy score, while RTN + Flip has the highest quantized BoolQ score. The best quantized method therefore varies by task even though AWQ + ReFlip leads the average. Relative to their named baselines, all three + ReFlip variants have a higher five-task average: RTN changes from 0.7104 to 0.7141, AWQ from 0.7144 to 0.7200, and GPTQ from 0.7136 to 0.7156.
 
-On Qwen2.5-7B, AWQ + ReFlip is the strongest quantized method for WikiText-2, C4, ARC-Challenge, ARC-Easy, BoolQ, and the selected-task average. The RTN + ReFlip row also improves RTN perplexity and average task score, increasing the average from 0.7254 to 0.7279. RTN + Flip is particularly strong on RTE, reaching the best quantized RTE score in the table, but its average is slightly lower than RTN + ReFlip. This supports the interpretation that Flip and ReFlip correct different aspects of quantization error: Flip may strongly benefit selected tasks, while ReFlip tends to provide a more attention-aligned residual correction.
+On Llama-3.1-8B, AWQ + ReFlip is the best quantized method for both perplexity metrics, ARC-Challenge, ARC-Easy, RTE, and the five-task average of 0.7166. GPTQ + ReFlip is second on the average with 0.7126. The recalculated RTN-family averages are 0.7028 for RTN, 0.7089 for RTN + ReFlip, and 0.7023 for RTN + Flip. Thus, RTN + ReFlip is observed above RTN on the selected-task average and below it on both perplexity measures, while RTN + Flip has the highest quantized BoolQ score but a slightly lower average than RTN. This contrast illustrates why an isolated winning task score and an across-task average should be interpreted separately.
 
-On Llama-3-8B, AWQ + ReFlip gives the best quantized WikiText-2 and C4 perplexity and also leads on ARC-Challenge and BoolQ. GPTQ + ReFlip gives the best quantized ARC-Easy, RTE, and average score. The improvements over each raw baseline are visible: RTN + ReFlip improves the RTN average from 0.6924 to 0.7033, AWQ + ReFlip improves AWQ from 0.7008 to 0.7094, and GPTQ + ReFlip improves GPTQ from 0.7090 to 0.7110. This is the clearest full-model evidence that ReFlip can improve multiple baseline quantizers rather than only a single quantization family.
+On Qwen2.5-7B, AWQ + ReFlip is the best quantized method for WikiText-2, C4, ARC-Challenge, ARC-Easy, BoolQ, and the selected-task average. AWQ + Flip is second on the average and has the best quantized PIQA score. RTN + Flip has the best quantized RTE score, whereas RTN + ReFlip has the higher RTN-family average, changing from 0.7254 for RTN to 0.7279. These reported values again show that the ranking of a refinement can depend on whether the comparison concerns one task, perplexity, or an unweighted task average.
 
-Overall, ReFlip most consistently improves perplexity and average downstream performance when paired with AWQ or RTN, while GPTQ already provides a stronger reconstruction baseline and therefore leaves a smaller margin for further correction. Flip remains useful but is more task-dependent. This behavior is consistent with the design of the methods: Flip is a local rounding correction, whereas ReFlip explicitly targets the bilinear attention-score mismatch that arises from simultaneous Q and K quantization. The results should therefore be interpreted as evidence that attention-aware correction improves quantized model fidelity, not as a guarantee that every task score must improve after every refinement.
+On Llama-3-8B, AWQ + ReFlip has the best quantized WikiText-2 and C4 perplexity and the highest quantized ARC-Challenge and BoolQ scores. GPTQ + ReFlip has the highest quantized ARC-Easy, RTE, and average score. The named-baseline comparisons for average accuracy are 0.6924 to 0.7033 for RTN and RTN + ReFlip, 0.7008 to 0.7094 for AWQ and AWQ + ReFlip, and 0.7090 to 0.7110 for GPTQ and GPTQ + ReFlip. In this model, the highest average and the lowest perplexity are therefore obtained by different quantized method families.
+
+Across the four models, every reported + ReFlip variant has a higher five-task average than its corresponding RTN, AWQ, or GPTQ baseline. The + ReFlip variants also have lower perplexity than their named baselines in all reported pairings except the Llama-3-8B GPTQ WikiText-2 comparison, where 6.013 is slightly higher than 6.011. By contrast, the + Flip averages are more variable: some exceed their named baseline and others do not. These are descriptive regularities in the reported comparisons, not proof that one refinement causes a universal improvement or that the same ranking will hold for unreported tasks, models, quantization settings, or random variations.
+
+\subsection{Evidence Boundaries and Limitations}
+
+Several limitations constrain the conclusions that can be drawn. First, the standalone evaluation uses one representative activation vector rather than a distribution of token-dependent query and key activations. Its scalar Q--K surrogate does not include the usual attention scaling, token-to-token score matrix, causal mask, softmax normalization, or value aggregation. It therefore measures a specific local distortion, not complete attention behavior. Second, only one layer, one GQA group, and four query heads are examined in the standalone case study. Variation across layers, groups, and activation contexts remains outside its scope.
+
+Third, the standalone comparison does not evaluate $W_V$. Consequently, it cannot measure whether a lower scalar Q--K surrogate error produces a lower final attention-output error after value mixing. Fourth, the full-model tables aggregate effects from the entire network. They do not expose which local changes contribute to a perplexity or task-accuracy difference, and they do not constitute an ablation that isolates Flip or ReFlip from every other source of variation. Finally, task accuracy is discrete and benchmark-specific, while the five-task average gives each selected task equal weight. A higher average can coexist with a lower score on an individual task, as several tables demonstrate.
+
+Within these boundaries, the two evaluation levels remain complementary. The standalone results describe how RTN, Flip, and Flip + ReFlip differ for the exact representative-vector scalar surrogate under examination. The full-model results describe the perplexity and selected-task accuracy associated with the reported 4-bit model variants. Taken together, they support a cautious conclusion: the refinements are associated with lower local scalar-score distortion in the bounded case study and with frequently improved full-model metrics, while neither level establishes a universal guarantee across all attention states or downstream tasks.
 
 \endgroup
 \end{document}

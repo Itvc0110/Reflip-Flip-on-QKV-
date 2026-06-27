@@ -1,14 +1,15 @@
-\babel@toc {nil}{}\relax 
+\babel@toc {english}{}\relax 
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
 \addvspace {10\p@ }
-\contentsline {table}{\numberline {4.1}{\ignorespaces Standalone QKV attention-score error}}{46}{table.caption.48}%
-\contentsline {table}{\numberline {4.2}{\ignorespaces Per-head QKV attention errors}}{47}{table.caption.49}%
-\contentsline {table}{\numberline {4.3}{\ignorespaces 4-bit evaluation for Mistral-7B}}{48}{table.caption.52}%
-\contentsline {table}{\numberline {4.4}{\ignorespaces 4-bit evaluation for Llama-3.1-8B}}{48}{table.caption.53}%
-\contentsline {table}{\numberline {4.5}{\ignorespaces 4-bit evaluation for Qwen2.5-7B}}{49}{table.caption.54}%
-\contentsline {table}{\numberline {4.6}{\ignorespaces 4-bit evaluation for Llama-3-8B}}{49}{table.caption.55}%
+\contentsline {table}{\numberline {4.1}{\ignorespaces Standalone case-study configuration}}{51}{table.caption.6}%
+\contentsline {table}{\numberline {4.2}{\ignorespaces Standalone scalar Q--K surrogate error}}{53}{table.caption.7}%
+\contentsline {table}{\numberline {4.3}{\ignorespaces Per-head scalar Q--K surrogate errors}}{53}{table.caption.8}%
+\contentsline {table}{\numberline {4.4}{\ignorespaces 4-bit evaluation for Mistral-7B}}{56}{table.caption.11}%
+\contentsline {table}{\numberline {4.5}{\ignorespaces 4-bit evaluation for Llama-3.1-8B}}{56}{table.caption.12}%
+\contentsline {table}{\numberline {4.6}{\ignorespaces 4-bit evaluation for Qwen2.5-7B}}{57}{table.caption.13}%
+\contentsline {table}{\numberline {4.7}{\ignorespaces 4-bit evaluation for Llama-3-8B}}{57}{table.caption.14}%
 \addvspace {10\p@ }
 \contentsfinish 
 \contentsfinish 

@@ -17,90 +17,6 @@
 \endgroup
 
 \datalist[entry]{none/global//global/global/global}
-  \entry{satopaa2011kneedle}{inproceedings}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=SV}{%
-         family={Satopaa},
-         familyi={S\bibinitperiod},
-         given={Ville},
-         giveni={V\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{SV+1}
-    \strng{fullhash}{SV+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{booktitle}{ICDCS Workshops}
-    \field{title}{Finding a Kneedle in a Haystack}
-    \field{year}{2011}
-  \endentry
-
-  \entry{james1961estimation}{article}{}{}
-    \name{author}{2}{}{%
-      {{hash=JW}{%
-         family={James},
-         familyi={J\bibinitperiod},
-         given={W},
-         giveni={W},
-      }}%
-      {{hash=SC}{%
-         family={Stein},
-         familyi={S\bibinitperiod},
-         given={C},
-         giveni={C},
-      }}%
-    }
-    \strng{namehash}{JWSC1}
-    \strng{fullhash}{JWSC1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{Estimation with Quadratic Loss}
-    \field{journaltitle}{Berkeley Symposium}
-    \field{year}{1961}
-  \endentry
-
-  \entry{touvron2023llama}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=TH}{%
-         family={Touvron},
-         familyi={T\bibinitperiod},
-         given={Hugo},
-         giveni={H\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{TH+1}
-    \strng{fullhash}{TH+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{LLaMA: Open and Efficient Foundation Language Models}
-    \field{journaltitle}{arXiv preprint arXiv:2302.13971}
-    \field{year}{2023}
-  \endentry
-
-  \entry{qwen2023technical}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=BJ}{%
-         family={Bai},
-         familyi={B\bibinitperiod},
-         given={Jinze},
-         giveni={J\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{BJ+1}
-    \strng{fullhash}{BJ+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{Qwen Technical Report}
-    \field{journaltitle}{arXiv preprint arXiv:2309.16609}
-    \field{year}{2023}
-  \endentry
-
   \entry{gholami2021survey}{article}{}{}
     \true{moreauthor}
     \true{morelabelname}
@@ -142,127 +58,78 @@
     \field{year}{2021}
   \endentry
 
-  \entry{frantar2022gptq}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=FE}{%
-         family={Frantar},
-         familyi={F\bibinitperiod},
-         given={Elias},
-         giveni={E\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{FE+1}
-    \strng{fullhash}{FE+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{GPTQ: Accurate Post-Training Quantization for Generative
-  Pre-trained Transformers}
-    \field{journaltitle}{arXiv preprint arXiv:2210.17323}
-    \field{year}{2022}
-  \endentry
-
-  \entry{lin2023awq}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
+  \entry{lin2023awq}{inproceedings}{}{}
+    \name{author}{10}{}{%
       {{hash=LJ}{%
          family={Lin},
          familyi={L\bibinitperiod},
          given={Ji},
          giveni={J\bibinitperiod},
       }}%
-    }
-    \strng{namehash}{LJ+1}
-    \strng{fullhash}{LJ+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{AWQ: Activation-aware Weight Quantization for LLM Compression
-  and Acceleration}
-    \field{journaltitle}{arXiv preprint arXiv:2306.00978}
-    \field{year}{2023}
-  \endentry
-
-  \entry{xiao2023smoothquant}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
+      {{hash=TJ}{%
+         family={Tang},
+         familyi={T\bibinitperiod},
+         given={Jiaming},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=TH}{%
+         family={Tang},
+         familyi={T\bibinitperiod},
+         given={Haotian},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=YS}{%
+         family={Yang},
+         familyi={Y\bibinitperiod},
+         given={Shang},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=CWM}{%
+         family={Chen},
+         familyi={C\bibinitperiod},
+         given={Wei-Ming},
+         giveni={W\bibinithyphendelim M\bibinitperiod},
+      }}%
+      {{hash=WWC}{%
+         family={Wang},
+         familyi={W\bibinitperiod},
+         given={Wei-Chen},
+         giveni={W\bibinithyphendelim C\bibinitperiod},
+      }}%
       {{hash=XG}{%
          family={Xiao},
          familyi={X\bibinitperiod},
          given={Guangxuan},
          giveni={G\bibinitperiod},
       }}%
-    }
-    \strng{namehash}{XG+1}
-    \strng{fullhash}{XG+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{SmoothQuant: Accurate and Efficient Post-Training
-  Quantization for Large Language Models}
-    \field{journaltitle}{arXiv preprint arXiv:2211.10438}
-    \field{year}{2023}
-  \endentry
-
-  \entry{kvquant2024}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=HC}{%
-         family={Hooper},
-         familyi={H\bibinitperiod},
-         given={Coleman},
+      {{hash=DX}{%
+         family={Dang},
+         familyi={D\bibinitperiod},
+         given={Xingyu},
+         giveni={X\bibinitperiod},
+      }}%
+      {{hash=GC}{%
+         family={Gan},
+         familyi={G\bibinitperiod},
+         given={Chuang},
          giveni={C\bibinitperiod},
       }}%
-    }
-    \strng{namehash}{HC+1}
-    \strng{fullhash}{HC+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{KVQuant: KV Cache Quantization for Long Context LLMs}
-    \field{journaltitle}{arXiv preprint arXiv:2401.18079}
-    \field{year}{2024}
-  \endentry
-
-  \entry{qaq2024}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=DS}{%
-         family={Dong},
-         familyi={D\bibinitperiod},
-         given={Shichen},
+      {{hash=HS}{%
+         family={Han},
+         familyi={H\bibinitperiod},
+         given={Song},
          giveni={S\bibinitperiod},
       }}%
     }
-    \strng{namehash}{DS+1}
-    \strng{fullhash}{DS+1}
+    \strng{namehash}{LJ+1}
+    \strng{fullhash}{LJTJTHYSCWMWWCXGDXGCHS1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{QAQ: Quality Adaptive Quantization for KV Cache}
-    \field{journaltitle}{arXiv preprint arXiv:2403.04643}
+    \field{booktitle}{Proceedings of Machine Learning and Systems}
+    \field{title}{{AWQ}: Activation-aware Weight Quantization for On-Device
+  {LLM} Compression and Acceleration}
+    \field{volume}{6}
     \field{year}{2024}
-  \endentry
-
-  \entry{vaswani2017attention}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
-      {{hash=VA}{%
-         family={Vaswani},
-         familyi={V\bibinitperiod},
-         given={Ashish},
-         giveni={A\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{VA+1}
-    \strng{fullhash}{VA+1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{Attention Is All You Need}
-    \field{journaltitle}{NeurIPS}
-    \field{year}{2017}
   \endentry
 
   \entry{shazeer2019fast}{article}{}{}
@@ -283,29 +150,528 @@
     \field{year}{2019}
   \endentry
 
-  \entry{ainslie2023gqa}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
+  \entry{ainslie2023gqa}{inproceedings}{}{}
+    \name{author}{6}{}{%
       {{hash=AJ}{%
          family={Ainslie},
          familyi={A\bibinitperiod},
          given={Joshua},
          giveni={J\bibinitperiod},
       }}%
+      {{hash=LTJ}{%
+         family={Lee-Thorp},
+         familyi={L\bibinithyphendelim T\bibinitperiod},
+         given={James},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=dJM}{%
+         prefix={de},
+         prefixi={d\bibinitperiod},
+         family={Jong},
+         familyi={J\bibinitperiod},
+         given={Michiel},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=ZY}{%
+         family={Zemlyanskiy},
+         familyi={Z\bibinitperiod},
+         given={Yury},
+         giveni={Y\bibinitperiod},
+      }}%
+      {{hash=LF}{%
+         family={Lebron},
+         familyi={L\bibinitperiod},
+         given={Federico},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=SS}{%
+         family={Sanghai},
+         familyi={S\bibinitperiod},
+         given={Sumit},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Association for Computational Linguistics}%
     }
     \strng{namehash}{AJ+1}
-    \strng{fullhash}{AJ+1}
+    \strng{fullhash}{AJLTJJMdZYLFSS1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{GQA: Training Generalized Multi-Query Transformer Models from
-  Multi-Head Checkpoints}
-    \field{journaltitle}{arXiv preprint arXiv:2305.13245}
+    \field{booktitle}{Proceedings of the 2023 Conference on Empirical Methods
+  in Natural Language Processing}
+    \field{pages}{4895\bibrangedash 4901}
+    \field{title}{{GQA}: Training Generalized Multi-Query Transformer Models
+  from Multi-Head Checkpoints}
     \field{year}{2023}
   \endentry
 
+  \entry{satopaa2011kneedle}{inproceedings}{}{}
+    \name{author}{4}{}{%
+      {{hash=SV}{%
+         family={Satopaa},
+         familyi={S\bibinitperiod},
+         given={Ville},
+         giveni={V\bibinitperiod},
+      }}%
+      {{hash=AJ}{%
+         family={Albrecht},
+         familyi={A\bibinitperiod},
+         given={Jeannie},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=ID}{%
+         family={Irwin},
+         familyi={I\bibinitperiod},
+         given={David},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=RB}{%
+         family={Raghavan},
+         familyi={R\bibinitperiod},
+         given={Barath},
+         giveni={B\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{SV+1}
+    \strng{fullhash}{SVAJIDRB1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{2011 31st International Conference on Distributed
+  Computing Systems Workshops}
+    \verb{doi}
+    \verb 10.1109/ICDCSW.2011.20
+    \endverb
+    \field{pages}{166\bibrangedash 171}
+    \field{title}{Finding a Kneedle in a Haystack: Detecting Knee Points in
+  System Behavior}
+    \field{year}{2011}
+  \endentry
+
+  \entry{james1961estimation}{inproceedings}{}{}
+    \name{author}{2}{}{%
+      {{hash=JW}{%
+         family={James},
+         familyi={J\bibinitperiod},
+         given={W.},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=SC}{%
+         family={Stein},
+         familyi={S\bibinitperiod},
+         given={Charles},
+         giveni={C\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {University of California Press}%
+    }
+    \strng{namehash}{JWSC1}
+    \strng{fullhash}{JWSC1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Proceedings of the Fourth Berkeley Symposium on
+  Mathematical Statistics and Probability}
+    \field{pages}{361\bibrangedash 379}
+    \field{title}{Estimation with Quadratic Loss}
+    \field{volume}{1}
+    \field{year}{1961}
+  \endentry
+
+  \entry{touvron2023llama}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=TH}{%
+         family={Touvron},
+         familyi={T\bibinitperiod},
+         given={Hugo},
+         giveni={H\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{TH+1}
+    \strng{fullhash}{TH+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{{LLaMA}: Open and Efficient Foundation Language Models}
+    \field{journaltitle}{arXiv preprint arXiv:2302.13971}
+    \field{year}{2023}
+  \endentry
+
+  \entry{qwen2023technical}{article}{}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=BJ}{%
+         family={Bai},
+         familyi={B\bibinitperiod},
+         given={Jinze},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{BJ+1}
+    \strng{fullhash}{BJ+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{{Qwen} Technical Report}
+    \field{journaltitle}{arXiv preprint arXiv:2309.16609}
+    \field{year}{2023}
+  \endentry
+
+  \entry{xiao2023smoothquant}{inproceedings}{}{}
+    \name{author}{6}{}{%
+      {{hash=XG}{%
+         family={Xiao},
+         familyi={X\bibinitperiod},
+         given={Guangxuan},
+         giveni={G\bibinitperiod},
+      }}%
+      {{hash=LJ}{%
+         family={Lin},
+         familyi={L\bibinitperiod},
+         given={Ji},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=SM}{%
+         family={Seznec},
+         familyi={S\bibinitperiod},
+         given={Mickael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=WH}{%
+         family={Wu},
+         familyi={W\bibinitperiod},
+         given={Hao},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=DJ}{%
+         family={Demouth},
+         familyi={D\bibinitperiod},
+         given={Julien},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=HS}{%
+         family={Han},
+         familyi={H\bibinitperiod},
+         given={Song},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{XG+1}
+    \strng{fullhash}{XGLJSMWHDJHS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Proceedings of the 40th International Conference on
+  Machine Learning}
+    \field{pages}{38087\bibrangedash 38099}
+    \field{series}{Proceedings of Machine Learning Research}
+    \field{title}{{SmoothQuant}: Accurate and Efficient Post-Training
+  Quantization for Large Language Models}
+    \field{volume}{202}
+    \field{year}{2023}
+  \endentry
+
+  \entry{jacob2018quantization}{inproceedings}{}{}
+    \name{author}{8}{}{%
+      {{hash=JB}{%
+         family={Jacob},
+         familyi={J\bibinitperiod},
+         given={Benoit},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=KS}{%
+         family={Kligys},
+         familyi={K\bibinitperiod},
+         given={Skirmantas},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=CB}{%
+         family={Chen},
+         familyi={C\bibinitperiod},
+         given={Bo},
+         giveni={B\bibinitperiod},
+      }}%
+      {{hash=ZM}{%
+         family={Zhu},
+         familyi={Z\bibinitperiod},
+         given={Menglong},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=TM}{%
+         family={Tang},
+         familyi={T\bibinitperiod},
+         given={Matthew},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=HA}{%
+         family={Howard},
+         familyi={H\bibinitperiod},
+         given={Andrew},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=AH}{%
+         family={Adam},
+         familyi={A\bibinitperiod},
+         given={Hartwig},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=KD}{%
+         family={Kalenichenko},
+         familyi={K\bibinitperiod},
+         given={Dmitry},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{JB+1}
+    \strng{fullhash}{JBKSCBZMTMHAAHKD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Proceedings of the IEEE Conference on Computer Vision and
+  Pattern Recognition}
+    \field{pages}{2704\bibrangedash 2713}
+    \field{title}{Quantization and Training of Neural Networks for Efficient
+  Integer-Arithmetic-Only Inference}
+    \field{year}{2018}
+  \endentry
+
+  \entry{nagel2020adaround}{inproceedings}{}{}
+    \name{author}{5}{}{%
+      {{hash=NM}{%
+         family={Nagel},
+         familyi={N\bibinitperiod},
+         given={Markus},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=ARA}{%
+         family={Amjad},
+         familyi={A\bibinitperiod},
+         given={Rana\bibnamedelima Ali},
+         giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod},
+      }}%
+      {{hash=VBM}{%
+         family={Van\bibnamedelima Baalen},
+         familyi={V\bibinitperiod\bibinitdelim B\bibinitperiod},
+         given={Mart},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=LC}{%
+         family={Louizos},
+         familyi={L\bibinitperiod},
+         given={Christos},
+         giveni={C\bibinitperiod},
+      }}%
+      {{hash=BT}{%
+         family={Blankevoort},
+         familyi={B\bibinitperiod},
+         given={Tijmen},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NM+1}
+    \strng{fullhash}{NMARAVBMLCBT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Proceedings of the 37th International Conference on
+  Machine Learning}
+    \field{pages}{7197\bibrangedash 7206}
+    \field{series}{Proceedings of Machine Learning Research}
+    \field{title}{Up or Down? Adaptive Rounding for Post-Training Quantization}
+    \field{volume}{119}
+    \field{year}{2020}
+  \endentry
+
+  \entry{frantar2022gptq}{inproceedings}{}{}
+    \name{author}{4}{}{%
+      {{hash=FE}{%
+         family={Frantar},
+         familyi={F\bibinitperiod},
+         given={Elias},
+         giveni={E\bibinitperiod},
+      }}%
+      {{hash=AS}{%
+         family={Ashkboos},
+         familyi={A\bibinitperiod},
+         given={Saleh},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=HT}{%
+         family={Hoefler},
+         familyi={H\bibinitperiod},
+         given={Torsten},
+         giveni={T\bibinitperiod},
+      }}%
+      {{hash=AD}{%
+         family={Alistarh},
+         familyi={A\bibinitperiod},
+         given={Dan},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{FE+1}
+    \strng{fullhash}{FEASHTAD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{International Conference on Learning Representations}
+    \field{title}{{GPTQ}: Accurate Post-Training Quantization for Generative
+  Pre-trained Transformers}
+    \field{year}{2023}
+  \endentry
+
+  \entry{kvquant2024}{article}{}{}
+    \name{author}{7}{}{%
+      {{hash=HC}{%
+         family={Hooper},
+         familyi={H\bibinitperiod},
+         given={Coleman},
+         giveni={C\bibinitperiod},
+      }}%
+      {{hash=KS}{%
+         family={Kim},
+         familyi={K\bibinitperiod},
+         given={Sehoon},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=MH}{%
+         family={Mohammadzadeh},
+         familyi={M\bibinitperiod},
+         given={Hiva},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=MMW}{%
+         family={Mahoney},
+         familyi={M\bibinitperiod},
+         given={Michael\bibnamedelima W.},
+         giveni={M\bibinitperiod\bibinitdelim W\bibinitperiod},
+      }}%
+      {{hash=SYS}{%
+         family={Shao},
+         familyi={S\bibinitperiod},
+         given={Yakun\bibnamedelima Sophia},
+         giveni={Y\bibinitperiod\bibinitdelim S\bibinitperiod},
+      }}%
+      {{hash=KK}{%
+         family={Keutzer},
+         familyi={K\bibinitperiod},
+         given={Kurt},
+         giveni={K\bibinitperiod},
+      }}%
+      {{hash=GA}{%
+         family={Gholami},
+         familyi={G\bibinitperiod},
+         given={Amir},
+         giveni={A\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{HC+1}
+    \strng{fullhash}{HCKSMHMMWSYSKKGA1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{{KVQuant}: Towards 10 Million Context Length {LLM} Inference
+  with {KV} Cache Quantization}
+    \field{journaltitle}{arXiv preprint arXiv:2401.18079}
+    \field{year}{2024}
+  \endentry
+
+  \entry{qaq2024}{article}{}{}
+    \name{author}{4}{}{%
+      {{hash=DS}{%
+         family={Dong},
+         familyi={D\bibinitperiod},
+         given={Shichen},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=CW}{%
+         family={Cheng},
+         familyi={C\bibinitperiod},
+         given={Wen},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=QJ}{%
+         family={Qin},
+         familyi={Q\bibinitperiod},
+         given={Jiayu},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=WW}{%
+         family={Wang},
+         familyi={W\bibinitperiod},
+         given={Wei},
+         giveni={W\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{DS+1}
+    \strng{fullhash}{DSCWQJWW1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{{QAQ}: Quality Adaptive Quantization for {LLM KV} Cache}
+    \field{journaltitle}{arXiv preprint arXiv:2403.04643}
+    \field{year}{2024}
+  \endentry
+
+  \entry{vaswani2017attention}{inproceedings}{}{}
+    \name{author}{8}{}{%
+      {{hash=VA}{%
+         family={Vaswani},
+         familyi={V\bibinitperiod},
+         given={Ashish},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=SN}{%
+         family={Shazeer},
+         familyi={S\bibinitperiod},
+         given={Noam},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=PN}{%
+         family={Parmar},
+         familyi={P\bibinitperiod},
+         given={Niki},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=UJ}{%
+         family={Uszkoreit},
+         familyi={U\bibinitperiod},
+         given={Jakob},
+         giveni={J\bibinitperiod},
+      }}%
+      {{hash=JL}{%
+         family={Jones},
+         familyi={J\bibinitperiod},
+         given={Llion},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=GAN}{%
+         family={Gomez},
+         familyi={G\bibinitperiod},
+         given={Aidan\bibnamedelima N.},
+         giveni={A\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+      {{hash=KL}{%
+         family={Kaiser},
+         familyi={K\bibinitperiod},
+         given={Lukasz},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=PI}{%
+         family={Polosukhin},
+         familyi={P\bibinitperiod},
+         given={Illia},
+         giveni={I\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{VA+1}
+    \strng{fullhash}{VASNPNUJJLGANKLPI1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Advances in Neural Information Processing Systems}
+    \field{pages}{5998\bibrangedash 6008}
+    \field{title}{Attention Is All You Need}
+    \field{volume}{30}
+    \field{year}{2017}
+  \endentry
+
   \entry{banner2019post}{inproceedings}{}{}
-    \name{author}{3}{}{%
+    \name{author}{4}{}{%
       {{hash=BR}{%
          family={Banner},
          familyi={B\bibinitperiod},
@@ -318,6 +684,12 @@
          given={Yury},
          giveni={Y\bibinitperiod},
       }}%
+      {{hash=HE}{%
+         family={Hoffer},
+         familyi={H\bibinitperiod},
+         given={Elad},
+         giveni={E\bibinitperiod},
+      }}%
       {{hash=SD}{%
          family={Soudry},
          familyi={S\bibinitperiod},
@@ -326,34 +698,83 @@
       }}%
     }
     \strng{namehash}{BR+1}
-    \strng{fullhash}{BRNYSD1}
+    \strng{fullhash}{BRNYHESD1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{booktitle}{Advances in Neural Information Processing Systems
-  (NeurIPS)}
-    \field{title}{Post Training 4-bit Quantization of Convolutional Networks
+    \field{booktitle}{Advances in Neural Information Processing Systems}
+    \field{title}{Post-Training 4-bit Quantization of Convolutional Networks
   for Rapid-Deployment}
+    \field{volume}{32}
     \field{year}{2019}
   \endentry
 
   \entry{raffel2020t5}{article}{}{}
-    \true{moreauthor}
-    \true{morelabelname}
-    \name{author}{1}{}{%
+    \name{author}{9}{}{%
       {{hash=RC}{%
          family={Raffel},
          familyi={R\bibinitperiod},
          given={Colin},
          giveni={C\bibinitperiod},
       }}%
+      {{hash=SN}{%
+         family={Shazeer},
+         familyi={S\bibinitperiod},
+         given={Noam},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=RA}{%
+         family={Roberts},
+         familyi={R\bibinitperiod},
+         given={Adam},
+         giveni={A\bibinitperiod},
+      }}%
+      {{hash=LK}{%
+         family={Lee},
+         familyi={L\bibinitperiod},
+         given={Katherine},
+         giveni={K\bibinitperiod},
+      }}%
+      {{hash=NS}{%
+         family={Narang},
+         familyi={N\bibinitperiod},
+         given={Sharan},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=MM}{%
+         family={Matena},
+         familyi={M\bibinitperiod},
+         given={Michael},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=ZY}{%
+         family={Zhou},
+         familyi={Z\bibinitperiod},
+         given={Yanqi},
+         giveni={Y\bibinitperiod},
+      }}%
+      {{hash=LW}{%
+         family={Li},
+         familyi={L\bibinitperiod},
+         given={Wei},
+         giveni={W\bibinitperiod},
+      }}%
+      {{hash=LPJ}{%
+         family={Liu},
+         familyi={L\bibinitperiod},
+         given={Peter\bibnamedelima J.},
+         giveni={P\bibinitperiod\bibinitdelim J\bibinitperiod},
+      }}%
     }
     \strng{namehash}{RC+1}
-    \strng{fullhash}{RC+1}
+    \strng{fullhash}{RCSNRALKNSMMZYLWLPJ1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
+    \field{number}{140}
+    \field{pages}{1\bibrangedash 67}
     \field{title}{Exploring the Limits of Transfer Learning with a Unified
   Text-to-Text Transformer}
-    \field{journaltitle}{JMLR}
+    \field{volume}{21}
+    \field{journaltitle}{Journal of Machine Learning Research}
     \field{year}{2020}
   \endentry
 
@@ -372,7 +793,7 @@
     \strng{fullhash}{JAQ+1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{Mistral 7B}
+    \field{title}{{Mistral 7B}}
     \field{journaltitle}{arXiv preprint arXiv:2310.06825}
     \field{year}{2023}
   \endentry
@@ -381,18 +802,18 @@
     \true{moreauthor}
     \true{morelabelname}
     \name{author}{1}{}{%
-      {{hash=DA}{%
-         family={Dubey},
-         familyi={D\bibinitperiod},
-         given={Abhimanyu},
+      {{hash=GA}{%
+         family={Grattafiori},
+         familyi={G\bibinitperiod},
+         given={Aaron},
          giveni={A\bibinitperiod},
       }}%
     }
-    \strng{namehash}{DA+1}
-    \strng{fullhash}{DA+1}
+    \strng{namehash}{GA+2}
+    \strng{fullhash}{GA+2}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{The Llama 3 Herd of Models}
+    \field{title}{The {Llama 3} Herd of Models}
     \field{journaltitle}{arXiv preprint arXiv:2407.21783}
     \field{year}{2024}
   \endentry
@@ -412,7 +833,7 @@
     \strng{fullhash}{YA+1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{Qwen2.5 Technical Report}
+    \field{title}{{Qwen2.5} Technical Report}
     \field{journaltitle}{arXiv preprint arXiv:2412.15115}
     \field{year}{2024}
   \endentry
@@ -508,7 +929,7 @@
     \field{year}{2018}
   \endentry
 
-  \entry{clark2019boolq}{article}{}{}
+  \entry{clark2019boolq}{inproceedings}{}{}
     \name{author}{6}{}{%
       {{hash=CC}{%
          family={Clark},
@@ -547,13 +968,22 @@
          giveni={K\bibinitperiod},
       }}%
     }
+    \list{publisher}{1}{%
+      {Association for Computational Linguistics}%
+    }
     \strng{namehash}{CC+1}
     \strng{fullhash}{CCLKCMWKTCMTK1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{BoolQ: Exploring the Surprising Difficulty of Natural Yes/No
-  Questions}
-    \field{journaltitle}{arXiv preprint arXiv:1905.10044}
+    \field{booktitle}{Proceedings of the 2019 Conference of the North American
+  Chapter of the Association for Computational Linguistics: Human Language
+  Technologies, Volume 1}
+    \verb{doi}
+    \verb 10.18653/v1/N19-1300
+    \endverb
+    \field{pages}{2924\bibrangedash 2936}
+    \field{title}{{BoolQ}: Exploring the Surprising Difficulty of Natural
+  Yes/No Questions}
     \field{year}{2019}
   \endentry
 
@@ -594,14 +1024,20 @@
     \strng{fullhash}{BYZRLBRGJCY1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{PIQA: Reasoning about Physical Commonsense in Natural
+    \verb{doi}
+    \verb 10.1609/aaai.v34i05.6239
+    \endverb
+    \field{number}{5}
+    \field{pages}{7432\bibrangedash 7439}
+    \field{title}{{PIQA}: Reasoning about Physical Commonsense in Natural
   Language}
+    \field{volume}{34}
     \field{journaltitle}{Proceedings of the AAAI Conference on Artificial
   Intelligence}
     \field{year}{2020}
   \endentry
 
-  \entry{wang2018glue}{article}{}{}
+  \entry{wang2018glue}{inproceedings}{}{}
     \name{author}{6}{}{%
       {{hash=WA}{%
          family={Wang},
@@ -644,10 +1080,10 @@
     \strng{fullhash}{WASAMJHFLOBSR1}
     \field{labelnamesource}{author}
     \field{labeltitlesource}{title}
-    \field{title}{GLUE: A Multi-Task Benchmark and Analysis Platform for
+    \field{booktitle}{International Conference on Learning Representations}
+    \field{title}{{GLUE}: A Multi-Task Benchmark and Analysis Platform for
   Natural Language Understanding}
-    \field{journaltitle}{arXiv preprint arXiv:1804.07461}
-    \field{year}{2018}
+    \field{year}{2019}
   \endentry
 
   \entry{biderman2024reproducible}{article}{}{}
@@ -699,111 +1135,6 @@
   Language Models}
     \field{journaltitle}{arXiv preprint arXiv:2405.14782}
     \field{year}{2024}
-  \endentry
-
-  \entry{jacob2018quantization}{article}{}{}
-    \name{author}{8}{}{%
-      {{hash=JB}{%
-         family={Jacob},
-         familyi={J\bibinitperiod},
-         given={Benoit},
-         giveni={B\bibinitperiod},
-      }}%
-      {{hash=KS}{%
-         family={Kligys},
-         familyi={K\bibinitperiod},
-         given={Skirmantas},
-         giveni={S\bibinitperiod},
-      }}%
-      {{hash=CB}{%
-         family={Chen},
-         familyi={C\bibinitperiod},
-         given={Bo},
-         giveni={B\bibinitperiod},
-      }}%
-      {{hash=ZM}{%
-         family={Zhu},
-         familyi={Z\bibinitperiod},
-         given={Menglong},
-         giveni={M\bibinitperiod},
-      }}%
-      {{hash=TM}{%
-         family={Tang},
-         familyi={T\bibinitperiod},
-         given={Matthew},
-         giveni={M\bibinitperiod},
-      }}%
-      {{hash=HA}{%
-         family={Howard},
-         familyi={H\bibinitperiod},
-         given={Andrew},
-         giveni={A\bibinitperiod},
-      }}%
-      {{hash=AH}{%
-         family={Adam},
-         familyi={A\bibinitperiod},
-         given={Hartwig},
-         giveni={H\bibinitperiod},
-      }}%
-      {{hash=KD}{%
-         family={Kalenichenko},
-         familyi={K\bibinitperiod},
-         given={Dmitry},
-         giveni={D\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{JB+1}
-    \strng{fullhash}{JBKSCBZMTMHAAHKD1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{Quantization and Training of Neural Networks for Efficient
-  Integer-Arithmetic-Only Inference}
-    \field{journaltitle}{Proceedings of the IEEE Conference on Computer Vision
-  and Pattern Recognition}
-    \field{year}{2018}
-  \endentry
-
-  \entry{nagel2020adaround}{article}{}{}
-    \name{author}{5}{}{%
-      {{hash=NM}{%
-         family={Nagel},
-         familyi={N\bibinitperiod},
-         given={Markus},
-         giveni={M\bibinitperiod},
-      }}%
-      {{hash=ARA}{%
-         family={Amjad},
-         familyi={A\bibinitperiod},
-         given={Rana\bibnamedelima Ali},
-         giveni={R\bibinitperiod\bibinitdelim A\bibinitperiod},
-      }}%
-      {{hash=VBM}{%
-         family={Van\bibnamedelima Baalen},
-         familyi={V\bibinitperiod\bibinitdelim B\bibinitperiod},
-         given={Mart},
-         giveni={M\bibinitperiod},
-      }}%
-      {{hash=LC}{%
-         family={Louizos},
-         familyi={L\bibinitperiod},
-         given={Christos},
-         giveni={C\bibinitperiod},
-      }}%
-      {{hash=BT}{%
-         family={Blankevoort},
-         familyi={B\bibinitperiod},
-         given={Tijmen},
-         giveni={T\bibinitperiod},
-      }}%
-    }
-    \strng{namehash}{NM+1}
-    \strng{fullhash}{NMARAVBMLCBT1}
-    \field{labelnamesource}{author}
-    \field{labeltitlesource}{title}
-    \field{title}{Up or Down? Adaptive Rounding for Post-Training Quantization}
-    \field{journaltitle}{Proceedings of the International Conference on Machine
-  Learning}
-    \field{year}{2020}
   \endentry
 \enddatalist
 \endinput

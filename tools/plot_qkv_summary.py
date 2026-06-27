@@ -1,4 +1,4 @@
-"""Generate report plots from a standalone QKV summary JSON."""
+"""Generate report plots from a standalone scalar Q--K surrogate summary."""
 
 from __future__ import annotations
 
@@ -19,6 +19,7 @@ PLOT_NAMES = (
     "error_waterfall_by_head.png",
     "method_summary_errors.png",
     "flip_cost_vs_error_reduction.png",
+    "manual_attention_error_by_head.png",
 )
 
 METHOD_COLORS = {
@@ -37,11 +38,20 @@ def _load_summary(summary_path: Path) -> dict:
     return summary
 
 
-def _title_prefix(summary: dict) -> str:
+def report_method_label(method: str) -> str:
+    return {
+        "Original": "Full precision",
+        "Nearest": "RTN",
+        "Flip": "Flip",
+        "ReFlip": "Flip + ReFlip",
+    }[method]
+
+
+def report_title_prefix(summary: dict) -> str:
     xspot = summary.get("xspot", {})
     layer = xspot.get("layer_id", "?")
     group = xspot.get("group_id", "?")
-    return f"QKV Layer {layer} Group {group}"
+    return f"Standalone Q--K Surrogate: Layer {layer}, GQA Group {group}"
 
 
 def _head_labels(heads: Iterable[dict]) -> list[str]:
@@ -75,14 +85,14 @@ def plot_score_comparison(summary: dict, output_dir: Path) -> Path:
             x + offset * width,
             values,
             width,
-            label=name,
+            label=report_method_label(name),
             color=METHOD_COLORS[name],
             alpha=0.88,
         )
 
     ax.axhline(0, color="#333333", linewidth=0.8)
-    ax.set_title(f"{_title_prefix(summary)}: Original vs Quantized Attention Scores")
-    ax.set_ylabel("Attention score")
+    ax.set_title(f"{report_title_prefix(summary)}\nFull-Precision and Quantized Scores")
+    ax.set_ylabel("Scalar Q--K surrogate score")
     ax.set_xticks(x)
     ax.set_xticklabels(labels)
     ax.grid(axis="y", alpha=0.25)
@@ -102,7 +112,7 @@ def plot_error_waterfall(summary: dict, output_dir: Path) -> Path:
         figsize=(6.2 * n_cols, 4.2 * n_rows),
         squeeze=False,
     )
-    fig.suptitle(f"{_title_prefix(summary)}: Error Reduction Waterfall By Head", y=1.02)
+    fig.suptitle(f"{report_title_prefix(summary)}\nError Reduction Waterfall by Head", y=1.02)
 
     for ax, head in zip(axes.ravel(), heads):
         nearest = abs(head["nearest_abs_error"])
@@ -111,7 +121,7 @@ def plot_error_waterfall(summary: dict, output_dir: Path) -> Path:
         flip_delta = flip - nearest
         reflip_delta = reflip - flip
 
-        labels = ["Nearest", "Flip gain", "ReFlip gain", "ReFlip"]
+        labels = ["RTN", "Flip gain", "ReFlip-stage gain", "Flip + ReFlip"]
         colors = [
             METHOD_COLORS["Nearest"],
             "#2ca02c" if flip_delta <= 0 else "#d62728",
@@ -129,7 +139,7 @@ def plot_error_waterfall(summary: dict, output_dir: Path) -> Path:
         ax.plot([2, 3], [reflip, reflip], color="#777777", linewidth=0.8, alpha=0.7)
 
         ax.set_title(f"Head {head['head']}")
-        ax.set_ylabel("Absolute attention error")
+        ax.set_ylabel("Absolute scalar Q--K surrogate error")
         ax.set_xticks(range(len(labels)))
         ax.set_xticklabels(labels, rotation=18, ha="right")
         ax.set_ylim(bottom=0)
@@ -158,6 +168,37 @@ def plot_error_waterfall(summary: dict, output_dir: Path) -> Path:
     return _save(fig, output_dir / "error_waterfall_by_head.png")
 
 
+def plot_error_by_head(summary: dict, output_dir: Path) -> Path:
+    heads = summary["heads"]
+    labels = _head_labels(heads)
+    x = np.arange(len(heads))
+    width = 0.24
+    series = [
+        ("Nearest", [abs(head["nearest_abs_error"]) for head in heads]),
+        ("Flip", [abs(head["flip_abs_error"]) for head in heads]),
+        ("ReFlip", [abs(head["reflip_abs_error"]) for head in heads]),
+    ]
+
+    fig, ax = plt.subplots(figsize=(11, 5.8))
+    for offset, (method, values) in zip((-1, 0, 1), series):
+        ax.bar(
+            x + offset * width,
+            values,
+            width,
+            label=report_method_label(method),
+            color=METHOD_COLORS[method],
+            alpha=0.88,
+        )
+
+    ax.set_title(f"{report_title_prefix(summary)}\nAbsolute Error by Query Head")
+    ax.set_ylabel("Absolute scalar Q--K surrogate error")
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels)
+    ax.grid(axis="y", alpha=0.25)
+    ax.legend(loc="best")
+    return _save(fig, output_dir / "manual_attention_error_by_head.png")
+
+
 def plot_method_summary_errors(summary: dict, output_dir: Path) -> Path:
     metrics = summary["metrics"]
     methods = ["Nearest", "Flip", "ReFlip"]
@@ -171,7 +212,7 @@ def plot_method_summary_errors(summary: dict, output_dir: Path) -> Path:
                 metrics["flip_mean_abs_attention_error"],
                 metrics["reflip_mean_abs_attention_error"],
             ],
-            "Attention score error",
+            "Scalar Q--K surrogate error",
         ),
         (
             "Mean relative error",
@@ -189,14 +230,14 @@ def plot_method_summary_errors(summary: dict, output_dir: Path) -> Path:
                 metrics["flip_max_abs_attention_error"],
                 metrics["reflip_max_abs_attention_error"],
             ],
-            "Attention score error",
+            "Scalar Q--K surrogate error",
         ),
     ]
 
     fig, axes = plt.subplots(1, 3, figsize=(14, 4.6))
-    fig.suptitle(f"{_title_prefix(summary)}: Method-Level Error Summary", y=1.03)
+    fig.suptitle(f"{report_title_prefix(summary)}\nMethod-Level Error Summary", y=1.03)
     for ax, (title, values, ylabel) in zip(axes, panels):
-        ax.bar(methods, values, color=colors, alpha=0.88)
+        ax.bar([report_method_label(method) for method in methods], values, color=colors, alpha=0.88)
         ax.set_title(title)
         ax.set_ylabel(ylabel)
         ax.grid(axis="y", alpha=0.25)
@@ -225,7 +266,7 @@ def plot_flip_cost_vs_error_reduction(summary: dict, output_dir: Path) -> Path:
         metrics["flip_mean_abs_attention_error"],
         metrics["reflip_mean_abs_attention_error"],
     ]
-    cumulative_flips = [
+    cumulative_operations = [
         0,
         flip_stats.get("total_flip_weights", 0),
         flip_stats.get("total_flip_weights", 0) + reflip_stats.get("total_integer_flips", 0),
@@ -246,29 +287,29 @@ def plot_flip_cost_vs_error_reduction(summary: dict, output_dir: Path) -> Path:
         alpha=0.86,
         label="Mean abs error",
     )
-    ax_error.set_title(f"{_title_prefix(summary)}: Flip Cost vs Error Reduction")
-    ax_error.set_ylabel("Mean absolute attention error")
+    ax_error.set_title(f"{report_title_prefix(summary)}\nCorrection Operations vs Error Reduction")
+    ax_error.set_ylabel("Mean absolute scalar Q--K surrogate error")
     ax_error.set_xticks(x)
-    ax_error.set_xticklabels(methods)
+    ax_error.set_xticklabels([report_method_label(method) for method in methods])
     ax_error.grid(axis="y", alpha=0.25)
 
     ax_flips = ax_error.twinx()
     ax_flips.scatter(
         x,
-        cumulative_flips,
+        cumulative_operations,
         color="#111111",
         s=90,
         marker="D",
-        label="Cumulative integer flips",
+        label="Cumulative one-level operations",
         zorder=5,
     )
-    ax_flips.set_ylabel("Cumulative integer flips")
-    max_flips = max(cumulative_flips) if cumulative_flips else 0
-    if max_flips > 0:
-        ax_flips.set_ylim(bottom=-max_flips * 0.08, top=max_flips * 1.28)
+    ax_flips.set_ylabel("Cumulative one-level operations")
+    max_operations = max(cumulative_operations) if cumulative_operations else 0
+    if max_operations > 0:
+        ax_flips.set_ylim(bottom=-max_operations * 0.08, top=max_operations * 1.28)
 
     for idx, (bar, error, flips, reduction) in enumerate(
-        zip(bars, mean_errors, cumulative_flips, reductions)
+        zip(bars, mean_errors, cumulative_operations, reductions)
     ):
         ax_error.annotate(
             f"{error:.4f}",
@@ -282,7 +323,7 @@ def plot_flip_cost_vs_error_reduction(summary: dict, output_dir: Path) -> Path:
         flip_label_offset = 12 if flips == 0 else -28
         flip_label_va = "bottom" if flips == 0 else "top"
         ax_flips.annotate(
-            f"{flips:,} flips\n{reduction:.1f}% red.",
+            f"{flips:,} operations\n{reduction:.1f}% reduction",
             xy=(idx, flips),
             xytext=(0, flip_label_offset),
             textcoords="offset points",
@@ -315,12 +356,13 @@ def plot_summary(summary_path: str | Path, output_dir: str | Path | None = None)
         plot_error_waterfall(summary, output_dir),
         plot_method_summary_errors(summary, output_dir),
         plot_flip_cost_vs_error_reduction(summary, output_dir),
+        plot_error_by_head(summary, output_dir),
     ]
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Generate report plots from a standalone QKV manual_summary.json file."
+        description="Generate report plots from a standalone scalar Q--K surrogate summary."
     )
     parser.add_argument(
         "--summary",

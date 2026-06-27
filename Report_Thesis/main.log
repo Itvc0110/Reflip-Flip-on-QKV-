@@ -1,13 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.10)  12 JUN 2026 16:06
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.10)  26 JUN 2026 11:23
 entering extended mode
  restricted \write18 enabled.
- file:line:error style messages enabled.
  %&-line parsing enabled.
-**"c:/Users/Cuong/OneDrive - Hanoi University of Science and Technology/Documen
-ts/GitHub/My/Reflip-Flip-on-QKV-/Report_Thesis/main.tex"
-
-(c:/Users/Cuong/OneDrive - Hanoi University of Science and Technology/Documents
-/GitHub/My/Reflip-Flip-on-QKV-/Report_Thesis/main.tex
+**./main.tex
+(main.tex
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
 (C:\Program Files\MiKTeX\tex/latex/base\report.cls
@@ -315,14 +311,36 @@ Package babel Info: Configuration files are deprecated, as
 File: bblopts.cfg 2005/09/08 v0.1 add Arabic and Farsi to "declared" options of
  babel
 )
-Package babel Info: You haven't specified a language as a class or package
-(babel)             option. I'll load 'nil'. Reported on input line 4287.
-Package babel Info: Importing font and identification data for nil
-(babel)             from babel-und-x-nil.ini. Reported on input line 4356.
+(C:\Program Files\MiKTeX\tex/generic/babel/locale/en\babel-english.tex)
+Package babel Info: Importing font and identification data for english
+(babel)             from babel-en.ini. Reported on input line 4356.
 
-(C:\Program Files\MiKTeX\tex/generic/babel\nil.ldf
-Language: nil 2026/05/20 v26.8 Nil language
-\l@nil=\language80
+(C:\Program Files\MiKTeX\tex/latex/babel-english\english.ldf
+Language: english 2017/06/06 v3.3r English support from the babel system
+))
+(C:\Program Files\MiKTeX\tex/latex/csquotes\csquotes.sty
+Package: csquotes 2026-05-19 v5.2p context-sensitive quotations (JAW)
+
+(C:\Program Files\MiKTeX\tex/latex/etoolbox\etoolbox.sty
+Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
+\etb@tempcnta=\count293
+)
+\csq@reset=\count294
+\csq@gtype=\count295
+\csq@glevel=\count296
+\csq@qlevel=\count297
+\csq@maxlvl=\count298
+\csq@tshold=\count299
+\csq@ltx@everypar=\toks21
+
+(C:\Program Files\MiKTeX\tex/latex/csquotes\csquotes.def
+File: csquotes.def 2026-05-19 v5.2p csquotes generic definitions (JAW)
+)
+Package csquotes Info: Trying to load configuration file 'csquotes.cfg'...
+Package csquotes Info: ... configuration file loaded successfully.
+
+(C:\Program Files\MiKTeX\tex/latex/csquotes\csquotes.cfg
+File: csquotes.cfg 
 ))
 (C:\Program Files\MiKTeX\tex/latex/xcolor\xcolor.sty
 Package: xcolor 2024/09/29 v3.02 LaTeX color extensions (UK)
@@ -373,10 +391,10 @@ Style option: `fancybox' v1.4 <2010/05/15> (tvz)
 \@fancybox=\box53
 \shadowsize=\dimen162
 \@Sbox=\box54
-\do@VerbBox=\toks21
-\the@fancyput=\toks22
-\this@fancyput=\toks23
-\EndVerbatimTokens=\toks24
+\do@VerbBox=\toks22
+\the@fancyput=\toks23
+\this@fancyput=\toks24
+\EndVerbatimTokens=\toks25
 \Verbatim@Outfile=\write3
 \Verbatim@Infile=\read3
 ) (C:\Program Files\MiKTeX\tex/latex/tools\indentfirst.sty
@@ -384,15 +402,15 @@ Package: indentfirst 2023/07/02 v1.03 Indent first paragraph (DPC)
 )
 (C:\Program Files\MiKTeX\tex/latex/amscls\amsthm.sty
 Package: amsthm 2020/05/29 v2.20.6
-\thm@style=\toks25
-\thm@bodyfont=\toks26
-\thm@headfont=\toks27
-\thm@notefont=\toks28
-\thm@headpunct=\toks29
+\thm@style=\toks26
+\thm@bodyfont=\toks27
+\thm@headfont=\toks28
+\thm@notefont=\toks29
+\thm@headpunct=\toks30
 \thm@preskip=\skip51
 \thm@postskip=\skip52
 \thm@headsep=\skip53
-\dth@everypar=\toks30
+\dth@everypar=\toks31
 )
 (C:\Program Files\MiKTeX\tex/latex/base\latexsym.sty
 Package: latexsym 1998/08/17 v2.2e Standard LaTeX package (lasy symbols)
@@ -410,7 +428,7 @@ Package: amstext 2024/11/17 v2.01 AMS text
 
 (C:\Program Files\MiKTeX\tex/latex/amsmath\amsgen.sty
 File: amsgen.sty 1999/11/30 v2.0 generic functions
-\@emptytoks=\toks31
+\@emptytoks=\toks32
 \ex@=\dimen163
 ))
 (C:\Program Files\MiKTeX\tex/latex/amsmath\amsbsy.sty
@@ -420,14 +438,14 @@ Package: amsbsy 1999/11/29 v1.2d Bold Symbols
 (C:\Program Files\MiKTeX\tex/latex/amsmath\amsopn.sty
 Package: amsopn 2022/04/08 v2.04 operator names
 )
-\inf@bad=\count293
+\inf@bad=\count300
 LaTeX Info: Redefining \frac on input line 233.
-\uproot@=\count294
-\leftroot@=\count295
+\uproot@=\count301
+\leftroot@=\count302
 LaTeX Info: Redefining \overline on input line 398.
 LaTeX Info: Redefining \colon on input line 409.
-\classnum@=\count296
-\DOTSCASE@=\count297
+\classnum@=\count303
+\DOTSCASE@=\count304
 LaTeX Info: Redefining \ldots on input line 495.
 LaTeX Info: Redefining \dots on input line 498.
 LaTeX Info: Redefining \cdots on input line 619.
@@ -440,31 +458,31 @@ LaTeX Info: Redefining \Bigg on input line 724.
 \big@size=\dimen165
 LaTeX Font Info:    Redeclaring font encoding OML on input line 742.
 LaTeX Font Info:    Redeclaring font encoding OMS on input line 743.
-\macc@depth=\count298
+\macc@depth=\count305
 LaTeX Info: Redefining \bmod on input line 904.
 LaTeX Info: Redefining \pmod on input line 909.
 LaTeX Info: Redefining \smash on input line 939.
 LaTeX Info: Redefining \relbar on input line 969.
 LaTeX Info: Redefining \Relbar on input line 970.
-\c@MaxMatrixCols=\count299
+\c@MaxMatrixCols=\count306
 \dotsspace@=\muskip18
-\c@parentequation=\count300
-\dspbrk@lvl=\count301
-\tag@help=\toks32
-\row@=\count302
-\column@=\count303
-\maxfields@=\count304
-\andhelp@=\toks33
+\c@parentequation=\count307
+\dspbrk@lvl=\count308
+\tag@help=\toks33
+\row@=\count309
+\column@=\count310
+\maxfields@=\count311
+\andhelp@=\toks34
 \eqnshift@=\dimen166
 \alignsep@=\dimen167
 \tagshift@=\dimen168
 \tagwidth@=\dimen169
 \totwidth@=\dimen170
 \lineht@=\dimen171
-\@envbody=\toks34
+\@envbody=\toks35
 \multlinegap=\skip55
 \multlinetaggap=\skip56
-\mathdisplay@stack=\toks35
+\mathdisplay@stack=\toks36
 LaTeX Info: Redefining \[ on input line 2965.
 LaTeX Info: Redefining \] on input line 2966.
 )
@@ -487,7 +505,7 @@ Package: array 2026/02/24 v2.7b Tabular extension package (FMi)
 \col@sep=\dimen172
 \ar@mcellbox=\box57
 \extrarowheight=\dimen173
-\NC@list=\toks36
+\NC@list=\toks37
 \extratabsurround=\skip57
 \backup@length=\skip58
 \ar@cellbox=\box58
@@ -496,10 +514,10 @@ Package: array 2026/02/24 v2.7b Tabular extension package (FMi)
 Package: enumitem 2025/02/06 v3.11 Customized lists
 \labelindent=\skip59
 \enit@outerparindent=\dimen174
-\enit@toks=\toks37
+\enit@toks=\toks38
 \enit@inbox=\box59
-\enit@count@id=\count305
-\enitdp@description=\count306
+\enit@count@id=\count312
+\enitdp@description=\count313
 )
 (C:\Program Files\MiKTeX\tex/latex/subfiles\subfiles.sty
 Package: subfiles 2020/11/14 v2.2 Multi-file projects (package)
@@ -514,7 +532,7 @@ Package: titlesec 2025/01/04 v2.17 Sectioning titles
 \aftertitleunit=\skip61
 \ttl@plus=\dimen175
 \ttl@minus=\dimen176
-\ttl@toksa=\toks38
+\ttl@toksa=\toks39
 \titlewidth=\dimen177
 \titlewidthlast=\dimen178
 \titlewidthfirst=\dimen179
@@ -542,18 +560,18 @@ Package pdflscape Info: Auto-detected driver: pdftex on input line 81.
 ))
 (C:\Program Files\MiKTeX\tex/latex/tools\afterpage.sty
 Package: afterpage 2023/07/04 v1.08 After-Page Package (DPC)
-\AP@output=\toks39
+\AP@output=\toks40
 \AP@partial=\box61
 \AP@footins=\box62
 )
 (C:\Program Files\MiKTeX\tex/latex/algorithm2e\algorithm2e.sty
 Package: algorithm2e 2017/07/18 v5.2 algorithms environments
-\c@AlgoLine=\count307
+\c@AlgoLine=\count314
 \algocf@hangindent=\skip62
 
 (C:\Program Files\MiKTeX\tex/latex/ifoddpage\ifoddpage.sty
 Package: ifoddpage 2022/10/18 v1.2 Conditionals for odd/even page detection
-\c@checkoddpage=\count308
+\c@checkoddpage=\count315
 )
 (C:\Program Files\MiKTeX\tex/latex/tools\xspace.sty
 Package: xspace 2014/10/28 v1.13 Space after command names (DPC,MH)
@@ -591,9 +609,9 @@ Package: relsize 2013/03/29 ver 4.1
 \algoheightrule=\skip78
 \algotitleheightruledefault=\skip79
 \algotitleheightrule=\skip80
-\c@algocfline=\count309
-\c@algocfproc=\count310
-\c@algocf=\count311
+\c@algocfline=\count316
+\c@algocfproc=\count317
+\c@algocf=\count318
 \algocf@algoframe=\box69
 \algocf@algobox=\box70
 )
@@ -603,7 +621,7 @@ Package: capt-of 2009/12/29 v0.2 standard captions outside of floats
 (C:\Program Files\MiKTeX\tex/latex/multirow\multirow.sty
 Package: multirow 2024/11/12 v2.9 Span multiple rows of a table
 \multirow@colwidth=\skip81
-\multirow@cntb=\count312
+\multirow@cntb=\count319
 \multirow@dima=\skip82
 \bigstrutjot=\dimen187
 )
@@ -624,7 +642,7 @@ Package: fancyhdr 2025/02/07 v5.2 Extensive control of page headers and footers
 \f@nch@widthL=\skip94
 \f@nch@widthC=\skip95
 \f@nch@widthR=\skip96
-\@temptokenb=\toks40
+\@temptokenb=\toks41
 )
 (C:\Program Files\MiKTeX\tex/latex/caption\caption.sty
 Package: caption 2023/08/05 v3.6o Customizing captions (AR)
@@ -641,24 +659,24 @@ Package: caption3 2023/07/31 v2.4d caption3 kernel (AR)
 \caption@hangindent=\dimen195
 Package caption Info: Standard document class detected.
 )
-\c@caption@flags=\count313
-\c@continuedfloat=\count314
+\c@caption@flags=\count320
+\c@continuedfloat=\count321
 Package caption Info: scrextend package is loaded.
 \caption@addmargin@hsize=\dimen196
 \caption@addmargin@linewidth=\dimen197
 )
 (C:\Program Files\MiKTeX\tex/latex/listings\listings.sty
-\lst@mode=\count315
+\lst@mode=\count322
 \lst@gtempboxa=\box71
-\lst@token=\toks41
-\lst@length=\count316
+\lst@token=\toks42
+\lst@length=\count323
 \lst@currlwidth=\dimen198
-\lst@column=\count317
-\lst@pos=\count318
+\lst@column=\count324
+\lst@pos=\count325
 \lst@lostspace=\dimen199
 \lst@width=\dimen256
-\lst@newlines=\count319
-\lst@lineno=\count320
+\lst@newlines=\count326
+\lst@lineno=\count327
 \lst@maxwidth=\dimen257
 
 (C:\Program Files\MiKTeX\tex/latex/listings\lstpatch.sty
@@ -666,8 +684,8 @@ File: lstpatch.sty 2025/11/14 1.11b (Carsten Heinz)
 )
 (C:\Program Files\MiKTeX\tex/latex/listings\lstmisc.sty
 File: lstmisc.sty 2025/11/14 1.11b (Carsten Heinz)
-\c@lstnumber=\count321
-\lst@skipnumbers=\count322
+\c@lstnumber=\count328
+\lst@skipnumbers=\count329
 \lst@framebox=\box72
 )
 (C:\Program Files\MiKTeX\tex/latex/listings\listings.cfg
@@ -677,18 +695,18 @@ Package: listings 2025/11/14 1.11b (Carsten Heinz)
 
 (C:\Program Files\MiKTeX\tex/latex/float\float.sty
 Package: float 2001/11/08 v1.3d Float enhancements (AL)
-\c@float@type=\count323
-\float@exts=\toks42
+\c@float@type=\count330
+\float@exts=\toks43
 \float@box=\box73
-\@float@everytoks=\toks43
+\@float@everytoks=\toks44
 \@floatcapt=\box74
 )
 (C:\Program Files\MiKTeX\tex/latex/caption\subcaption.sty
 Package: subcaption 2023/07/28 v1.6b Sub-captions (AR)
 Package caption Info: New subtype `subfigure' on input line 238.
-\c@subfigure=\count324
+\c@subfigure=\count331
 Package caption Info: New subtype `subtable' on input line 238.
-\c@subtable=\count325
+\c@subtable=\count332
 )
 (C:\Program Files\MiKTeX\tex/latex/glossaries/base\glossaries.sty
 Package: glossaries 2026/04/21 v5.1 (NLCT)
@@ -698,21 +716,16 @@ Package: xkeyval 2022/06/16 v2.9 package option processing (HA)
 
 (C:\Program Files\MiKTeX\tex/generic/xkeyval\xkeyval.tex
 (C:\Program Files\MiKTeX\tex/generic/xkeyval\xkvutils.tex
-\XKV@toks=\toks44
-\XKV@tempa@toks=\toks45
+\XKV@toks=\toks45
+\XKV@tempa@toks=\toks46
 )
-\XKV@depth=\count326
+\XKV@depth=\count333
 File: xkeyval.tex 2014/12/03 v2.7a key=value parser (HA)
 ))
 (C:\Program Files\MiKTeX\tex/latex/mfirstuc\mfirstuc.sty
 Package: mfirstuc 2025/04/03 v2.09 (NLCT)
-
-(C:\Program Files\MiKTeX\tex/latex/etoolbox\etoolbox.sty
-Package: etoolbox 2025/10/02 v2.5m e-TeX tools for LaTeX (JAW)
-\etb@tempcnta=\count327
-)
-\@glsmfirst=\toks46
-\@glsmrest=\toks47
+\@glsmfirst=\toks47
+\@glsmrest=\toks48
 )
 (C:\Program Files\MiKTeX\tex/latex/xfor\xfor.sty
 Package: xfor 2009/02/05 v1.05 (NLCT)
@@ -721,74 +734,73 @@ Package: xfor 2009/02/05 v1.05 (NLCT)
 Package: tracklang 2026/05/24 v1.6.8 (NLCT) Track Languages
 
 (C:\Program Files\MiKTeX\tex/generic/tracklang\tracklang.tex)
-Package tracklang Info: Tracking dialect `nil' (language `undetermined') on inp
-ut line 264.
+Package tracklang Info: Tracking dialect `english' (language `english') on inpu
+t line 264.
+Package tracklang Info: Tracking dialect `english' (language `english') on inpu
+t line 264.
 )
 (C:\Program Files\MiKTeX\tex/latex/translator\translator.sty
 Package: translator 2021-05-31 v1.12d Easy translation of strings in LaTeX
 )
-
-Package glossaries Warning: No language module detected for `nil'.
-(glossaries)                Language modules need to be installed separately.
-(glossaries)                Please check on CTAN for a bundle called
-(glossaries)                `glossaries-undetermined' or similar.
-
+(C:\Program Files\MiKTeX\tex/latex/glossaries-english\glossaries-english.ldf
+File: glossaries-english.ldf 2014/11/23 v1.0
+)
 (C:\Program Files\MiKTeX\tex/latex/datatool\datatool-base.sty
 Package: datatool-base 2025/12/04 v3.4.3 (NLCT)
-\l__datatool_tmpa_int=\count328
-\l__datatool_tmpb_int=\count329
-\l__datatool_tmpc_int=\count330
-\l__datatool_tmpd_int=\count331
-\l__datatool_count_int=\count332
-\l__datatool_tmp_datatype_int=\count333
+\l__datatool_tmpa_int=\count334
+\l__datatool_tmpb_int=\count335
+\l__datatool_tmpc_int=\count336
+\l__datatool_tmpd_int=\count337
+\l__datatool_count_int=\count338
+\l__datatool_tmp_datatype_int=\count339
 \l__datatool_tmpa_dim=\dimen258
 \l__datatool_tmpb_dim=\dimen259
 
 (C:\Program Files\MiKTeX\tex/latex/datatool\datatool-l3fp.def
 File: datatool-l3fp.def 2025/12/04 v3.4.3 (NLCT)
 )
-\@dtl@toks=\toks48
-\@dtl@tmpcount=\count334
+\@dtl@toks=\toks49
+\@dtl@tmpcount=\count340
 \dtl@tmplength=\skip97
 \l__datatool_measure_box=\box75
-\dtl@sortresult=\count335
+\dtl@sortresult=\count341
 
 (C:\Program Files\MiKTeX\tex/latex/datatool\datatool-utf8.ldf
 File: datatool-utf8.ldf 2025/12/04 v3.4.3 (NLCT)
 )
-\@dtl@datatype=\count336
-\c_datatool_unknown_int=\count337
-\l__datatool_year_int=\count338
-\l__datatool_month_int=\count339
-\l__datatool_day_int=\count340
-\l__datatool_hour_int=\count341
-\l__datatool_minute_int=\count342
-\l__datatool_second_int=\count343
-\l__datatool_tzhour_int=\count344
-\l__datatool_tzminute_int=\count345
-\l__datatool_julian_int=\count346
-\l__datatool_local_julian_int=\count347
-\l__datatool_prefix_int=\count348
-\l__datatool_suffix_int=\count349
-\@dtl@foreach@level=\count350
+\@dtl@datatype=\count342
+\c_datatool_unknown_int=\count343
+\l__datatool_year_int=\count344
+\l__datatool_month_int=\count345
+\l__datatool_day_int=\count346
+\l__datatool_hour_int=\count347
+\l__datatool_minute_int=\count348
+\l__datatool_second_int=\count349
+\l__datatool_tzhour_int=\count350
+\l__datatool_tzminute_int=\count351
+\l__datatool_julian_int=\count352
+\l__datatool_local_julian_int=\count353
+\l__datatool_prefix_int=\count354
+\l__datatool_suffix_int=\count355
+\@dtl@foreach@level=\count356
 
-(C:\Program Files\MiKTeX\tex/latex/datatool\datatool-undetermined.ldf
-File: datatool-undetermined.ldf 2025/12/04 v3.4.3
+
+Package tracklang Warning: No `datatool' support for dialect `english'  on inpu
+t line 9924.
+
+\dtl@codeA=\count357
+\dtl@codeB=\count358
 )
-\dtl@codeA=\count351
-\dtl@codeB=\count352
-)
-\gls@level=\count353
-\@gls@tmpb=\toks49
+\gls@level=\count359
+\@gls@tmpb=\toks50
 \gls@tmplen=\skip98
 \l__glossaries_tmpa_dim=\dimen260
 \l__glossaries_tmpb_dim=\dimen261
-\glskeylisttok=\toks50
-\glslabeltok=\toks51
-\glsshorttok=\toks52
-\glslongtok=\toks53
-
-(C:\Program Files\MiKTeX\tex/latex/glossaries/styles\glossary-hypernav.sty
+\glskeylisttok=\toks51
+\glslabeltok=\toks52
+\glsshorttok=\toks53
+\glslongtok=\toks54
+ (C:\Program Files\MiKTeX\tex/latex/glossaries/styles\glossary-hypernav.sty
 Package: glossary-hypernav 2026/04/21 v5.1 (NLCT)
 )
 (C:\Program Files\MiKTeX\tex/latex/glossaries/styles\glossary-list.sty
@@ -804,18 +816,18 @@ Package: longtable 2026-01-28 v4.27 Multi-page Table package (DPC)
 \LTright=\skip101
 \LTpre=\skip102
 \LTpost=\skip103
-\LTchunksize=\count354
+\LTchunksize=\count360
 \LTcapwidth=\dimen262
 \LT@head=\box76
 \LT@firsthead=\box77
 \LT@foot=\box78
 \LT@lastfoot=\box79
 \LT@gbox=\box80
-\LT@cols=\count355
-\LT@rows=\count356
-\c@LT@tables=\count357
-\c@LT@chunks=\count358
-\LT@p@ftn=\toks54
+\LT@cols=\count361
+\LT@rows=\count362
+\c@LT@tables=\count363
+\c@LT@chunks=\count364
+\LT@p@ftn=\toks55
 )
 \glsdescwidth=\skip104
 \glspagelistwidth=\skip105
@@ -825,7 +837,7 @@ Package: glossary-super 2026/04/21 v5.1 (NLCT)
 
 (C:\Program Files\MiKTeX\tex/latex/supertabular\supertabular.sty
 Package: supertabular 2025/06/26 v4.2d the supertabular environment
-\c@tracingst=\count359
+\c@tracingst=\count365
 \ST@wd=\dimen263
 \ST@rightskip=\skip106
 \ST@leftskip=\skip107
@@ -843,7 +855,7 @@ Package: supertabular 2025/06/26 v4.2d the supertabular environment
 ))
 (C:\Program Files\MiKTeX\tex/latex/glossaries/styles\glossary-tree.sty
 Package: glossary-tree 2026/04/21 v5.1 (NLCT)
-\l__glossaries_tree_max_known_level_int=\count360
+\l__glossaries_tree_max_known_level_int=\count366
 \l__glossaries_tree_offset_dim=\dimen273
 \l__glossaries_tree_namewidth_dim=\dimen274
 \l__glossaries_tree_symbolwidth_dim=\dimen275
@@ -853,7 +865,7 @@ Package: glossary-tree 2026/04/21 v5.1 (NLCT)
 \l__glossaries_tree_symbolwidth_padding_dim=\dimen279
 \l__glossaries_tree_namesymbolwidth_dim=\dimen280
 \l__glossaries_tree_namesymbolwidth_padding_dim=\dimen281
-\l__glossaries_tree_level_int=\count361
+\l__glossaries_tree_level_int=\count367
 \glstreeindent=\skip109
 ))
 (C:\Program Files\MiKTeX\tex/latex/glossaries/styles\glossary-superragged.sty
@@ -881,24 +893,24 @@ Package: tocbasic 2026/02/02 v3.49.2 KOMA-Script package (handling toc-files)
 )
 (C:\Program Files\MiKTeX\tex/latex/blindtext\blindtext.sty
 Package: blindtext 2012/01/06 V2.0 blindtext-Package
-\c@blindtext=\count362
-\c@Blindtext=\count363
-\c@blind@countparstart=\count364
-\blind@countxx=\count365
-\blindtext@numBlindtext=\count366
-\blind@countyy=\count367
-\c@blindlist=\count368
-\c@blindlistlevel=\count369
-\c@blindlist@level=\count370
-\blind@listitem=\count371
-\c@blind@listcount=\count372
-\c@blind@levelcount=\count373
-\blind@mathformula=\count374
-\blind@Mathformula=\count375
-\c@blind@randomcount=\count376
-\c@blind@randommax=\count377
-\c@blind@pangramcount=\count378
-\c@blind@pangrammax=\count379
+\c@blindtext=\count368
+\c@Blindtext=\count369
+\c@blind@countparstart=\count370
+\blind@countxx=\count371
+\blindtext@numBlindtext=\count372
+\blind@countyy=\count373
+\c@blindlist=\count374
+\c@blindlistlevel=\count375
+\c@blindlist@level=\count376
+\blind@listitem=\count377
+\c@blind@listcount=\count378
+\c@blind@levelcount=\count379
+\blind@mathformula=\count380
+\blind@Mathformula=\count381
+\c@blind@randomcount=\count382
+\c@blind@randommax=\count383
+\c@blind@pangramcount=\count384
+\c@blind@pangrammax=\count385
 )
 (C:\Program Files\MiKTeX\tex/latex/biblatex\biblatex.sty
 Package: biblatex 2025/07/10 v3.21 programmable bibliographies (PK/MW)
@@ -916,54 +928,54 @@ Package pdftexcmds Info: \pdfdraftmode found.
 )
 (C:\Program Files\MiKTeX\tex/latex/logreq\logreq.sty
 Package: logreq 2010/08/04 v1.0 xml request logger
-\lrq@indent=\count380
+\lrq@indent=\count386
 
 (C:\Program Files\MiKTeX\tex/latex/logreq\logreq.def
 File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
 ))
-\c@tabx@nest=\count381
-\c@listtotal=\count382
-\c@listcount=\count383
-\c@liststart=\count384
-\c@liststop=\count385
-\c@citecount=\count386
-\c@citetotal=\count387
-\c@multicitecount=\count388
-\c@multicitetotal=\count389
-\c@instcount=\count390
-\c@maxnames=\count391
-\c@minnames=\count392
-\c@maxitems=\count393
-\c@minitems=\count394
-\c@citecounter=\count395
-\c@maxcitecounter=\count396
-\c@savedcitecounter=\count397
-\c@uniquelist=\count398
-\c@uniquename=\count399
-\c@refsection=\count400
-\c@refsegment=\count401
-\c@maxextratitle=\count402
-\c@maxextratitleyear=\count403
-\c@maxextraname=\count404
-\c@maxextradate=\count405
-\c@maxextraalpha=\count406
-\c@abbrvpenalty=\count407
-\c@highnamepenalty=\count408
-\c@lownamepenalty=\count409
-\c@maxparens=\count410
-\c@parenlevel=\count411
-\blx@tempcnta=\count412
-\blx@tempcntb=\count413
-\blx@tempcntc=\count414
-\c@blx@maxsection=\count415
-\blx@maxsegment@0=\count416
-\blx@notetype=\count417
-\blx@parenlevel@text=\count418
-\blx@parenlevel@foot=\count419
-\blx@sectionciteorder@0=\count420
-\blx@sectionciteorderinternal@0=\count421
-\blx@entrysetcounter=\count422
-\blx@biblioinstance=\count423
+\c@tabx@nest=\count387
+\c@listtotal=\count388
+\c@listcount=\count389
+\c@liststart=\count390
+\c@liststop=\count391
+\c@citecount=\count392
+\c@citetotal=\count393
+\c@multicitecount=\count394
+\c@multicitetotal=\count395
+\c@instcount=\count396
+\c@maxnames=\count397
+\c@minnames=\count398
+\c@maxitems=\count399
+\c@minitems=\count400
+\c@citecounter=\count401
+\c@maxcitecounter=\count402
+\c@savedcitecounter=\count403
+\c@uniquelist=\count404
+\c@uniquename=\count405
+\c@refsection=\count406
+\c@refsegment=\count407
+\c@maxextratitle=\count408
+\c@maxextratitleyear=\count409
+\c@maxextraname=\count410
+\c@maxextradate=\count411
+\c@maxextraalpha=\count412
+\c@abbrvpenalty=\count413
+\c@highnamepenalty=\count414
+\c@lownamepenalty=\count415
+\c@maxparens=\count416
+\c@parenlevel=\count417
+\blx@tempcnta=\count418
+\blx@tempcntb=\count419
+\blx@tempcntc=\count420
+\c@blx@maxsection=\count421
+\blx@maxsegment@0=\count422
+\blx@notetype=\count423
+\blx@parenlevel@text=\count424
+\blx@parenlevel@foot=\count425
+\blx@sectionciteorder@0=\count426
+\blx@sectionciteorderinternal@0=\count427
+\blx@entrysetcounter=\count428
+\blx@biblioinstance=\count429
 \labelnumberwidth=\skip111
 \labelalphawidth=\skip112
 \biblabelsep=\skip113
@@ -974,10 +986,10 @@ File: logreq.def 2010/08/04 v1.0 logreq spec v1.0
 \bibhang=\skip118
 \blx@bcfin=\read4
 \blx@bcfout=\write4
-\blx@langwohyphens=\language81
-\c@mincomprange=\count424
-\c@maxcomprange=\count425
-\c@mincompwidth=\count426
+\blx@langwohyphens=\language80
+\c@mincomprange=\count430
+\c@maxcomprange=\count431
+\c@mincompwidth=\count432
 Package biblatex Info: Trying to load biblatex default data model...
 Package biblatex Info: ... file 'blx-dm.def' found.
 
@@ -988,74 +1000,74 @@ Package biblatex Info: Trying to load biblatex style data model...
 Package biblatex Info: ... file 'ieee.dbx' not found.
 Package biblatex Info: Trying to load biblatex custom data model...
 Package biblatex Info: ... file 'biblatex-dm.cfg' not found.
-\c@afterword=\count427
-\c@savedafterword=\count428
-\c@annotator=\count429
-\c@savedannotator=\count430
-\c@author=\count431
-\c@savedauthor=\count432
-\c@bookauthor=\count433
-\c@savedbookauthor=\count434
-\c@commentator=\count435
-\c@savedcommentator=\count436
-\c@editor=\count437
-\c@savededitor=\count438
-\c@editora=\count439
-\c@savededitora=\count440
-\c@editorb=\count441
-\c@savededitorb=\count442
-\c@editorc=\count443
-\c@savededitorc=\count444
-\c@foreword=\count445
-\c@savedforeword=\count446
-\c@holder=\count447
-\c@savedholder=\count448
-\c@introduction=\count449
-\c@savedintroduction=\count450
-\c@namea=\count451
-\c@savednamea=\count452
-\c@nameb=\count453
-\c@savednameb=\count454
-\c@namec=\count455
-\c@savednamec=\count456
-\c@translator=\count457
-\c@savedtranslator=\count458
-\c@shortauthor=\count459
-\c@savedshortauthor=\count460
-\c@shorteditor=\count461
-\c@savedshorteditor=\count462
-\c@labelname=\count463
-\c@savedlabelname=\count464
-\c@institution=\count465
-\c@savedinstitution=\count466
-\c@lista=\count467
-\c@savedlista=\count468
-\c@listb=\count469
-\c@savedlistb=\count470
-\c@listc=\count471
-\c@savedlistc=\count472
-\c@listd=\count473
-\c@savedlistd=\count474
-\c@liste=\count475
-\c@savedliste=\count476
-\c@listf=\count477
-\c@savedlistf=\count478
-\c@location=\count479
-\c@savedlocation=\count480
-\c@organization=\count481
-\c@savedorganization=\count482
-\c@origlocation=\count483
-\c@savedoriglocation=\count484
-\c@origpublisher=\count485
-\c@savedorigpublisher=\count486
-\c@publisher=\count487
-\c@savedpublisher=\count488
-\c@language=\count489
-\c@savedlanguage=\count490
-\c@origlanguage=\count491
-\c@savedoriglanguage=\count492
-\c@pageref=\count493
-\c@savedpageref=\count494
+\c@afterword=\count433
+\c@savedafterword=\count434
+\c@annotator=\count435
+\c@savedannotator=\count436
+\c@author=\count437
+\c@savedauthor=\count438
+\c@bookauthor=\count439
+\c@savedbookauthor=\count440
+\c@commentator=\count441
+\c@savedcommentator=\count442
+\c@editor=\count443
+\c@savededitor=\count444
+\c@editora=\count445
+\c@savededitora=\count446
+\c@editorb=\count447
+\c@savededitorb=\count448
+\c@editorc=\count449
+\c@savededitorc=\count450
+\c@foreword=\count451
+\c@savedforeword=\count452
+\c@holder=\count453
+\c@savedholder=\count454
+\c@introduction=\count455
+\c@savedintroduction=\count456
+\c@namea=\count457
+\c@savednamea=\count458
+\c@nameb=\count459
+\c@savednameb=\count460
+\c@namec=\count461
+\c@savednamec=\count462
+\c@translator=\count463
+\c@savedtranslator=\count464
+\c@shortauthor=\count465
+\c@savedshortauthor=\count466
+\c@shorteditor=\count467
+\c@savedshorteditor=\count468
+\c@labelname=\count469
+\c@savedlabelname=\count470
+\c@institution=\count471
+\c@savedinstitution=\count472
+\c@lista=\count473
+\c@savedlista=\count474
+\c@listb=\count475
+\c@savedlistb=\count476
+\c@listc=\count477
+\c@savedlistc=\count478
+\c@listd=\count479
+\c@savedlistd=\count480
+\c@liste=\count481
+\c@savedliste=\count482
+\c@listf=\count483
+\c@savedlistf=\count484
+\c@location=\count485
+\c@savedlocation=\count486
+\c@organization=\count487
+\c@savedorganization=\count488
+\c@origlocation=\count489
+\c@savedoriglocation=\count490
+\c@origpublisher=\count491
+\c@savedorigpublisher=\count492
+\c@publisher=\count493
+\c@savedpublisher=\count494
+\c@language=\count495
+\c@savedlanguage=\count496
+\c@origlanguage=\count497
+\c@savedoriglanguage=\count498
+\c@pageref=\count499
+\c@savedpageref=\count500
 \shorthandwidth=\skip119
 \shortjournalwidth=\skip120
 \shortserieswidth=\skip121
@@ -1091,19 +1103,19 @@ Package biblatex Info: Trying to load generic definitions...
 Package biblatex Info: ... file 'biblatex.def' found.
  (C:\Program Files\MiKTeX\tex/latex/biblatex\biblatex.def
 File: biblatex.def 2025/07/10 v3.21 biblatex compatibility (PK/MW)
-\c@textcitecount=\count495
-\c@textcitetotal=\count496
-\c@textcitemaxnames=\count497
-\c@biburlbigbreakpenalty=\count498
-\c@biburlbreakpenalty=\count499
-\c@biburlnumpenalty=\count500
-\c@biburlucpenalty=\count501
-\c@biburllcpenalty=\count502
+\c@textcitecount=\count501
+\c@textcitetotal=\count502
+\c@textcitemaxnames=\count503
+\c@biburlbigbreakpenalty=\count504
+\c@biburlbreakpenalty=\count505
+\c@biburlnumpenalty=\count506
+\c@biburlucpenalty=\count507
+\c@biburllcpenalty=\count508
 \biburlbigskip=\muskip19
 \biburlnumskip=\muskip20
 \biburlucskip=\muskip21
 \biburllcskip=\muskip22
-\c@smartand=\count503
+\c@smartand=\count509
 )
 Package biblatex Info: Trying to load bibliography style 'ieee'...
 Package biblatex Info: ... file 'ieee.bbx' found.
@@ -1125,8 +1137,8 @@ Package biblatex Info: ... file 'standard.bbx' found.
 
 (C:\Program Files\MiKTeX\tex/latex/biblatex/bbx\standard.bbx
 File: standard.bbx 2025/07/10 v3.21 biblatex bibliography style (PK/MW)
-\c@bbx:relatedcount=\count504
-\c@bbx:relatedtotal=\count505
+\c@bbx:relatedcount=\count510
+\c@bbx:relatedtotal=\count511
 ))))
 Package biblatex Info: Trying to load citation style 'ieee'...
 Package biblatex Info: ... file 'ieee.cbx' found.
@@ -1163,7 +1175,7 @@ Package: expl3 2026-05-26 L3 programming layer (loader)
 
 (C:\Program Files\MiKTeX\tex/latex/l3backend\l3backend-pdftex.def
 File: l3backend-pdftex.def 2026-02-18 L3 backend support: PDF output (pdfTeX)
-\l__color_backend_stack_int=\count506
+\l__color_backend_stack_int=\count512
 ))
 Package biblatex Info: ... and expl3
 (biblatex)             2026-05-26 L3 programming layer (loader) 
@@ -1198,15 +1210,15 @@ Package: refcount 2019/12/15 v3.6 Data extraction from label references (HO)
 (C:\Program Files\MiKTeX\tex/generic/gettitlestring\gettitlestring.sty
 Package: gettitlestring 2019/12/15 v1.6 Cleanup title references (HO)
 )
-\c@section@level=\count507
+\c@section@level=\count513
 )
 (C:\Program Files\MiKTeX\tex/generic/stringenc\stringenc.sty
 Package: stringenc 2019/11/29 v1.12 Convert strings between diff. encodings (HO
 )
 )
 \@linkdim=\dimen282
-\Hy@linkcounter=\count508
-\Hy@pagecounter=\count509
+\Hy@linkcounter=\count514
+\Hy@pagecounter=\count515
 
 (C:\Program Files\MiKTeX\tex/latex/hyperref\pd1enc.def
 File: pd1enc.def 2026-04-24 v7.01q Hyperref: PDFDocEncoding definition (HO)
@@ -1216,7 +1228,7 @@ Now handling font encoding PD1 ...
 (C:\Program Files\MiKTeX\tex/generic/intcalc\intcalc.sty
 Package: intcalc 2019/12/15 v1.3 Expandable calculations with integers (HO)
 )
-\Hy@SavedSpaceFactor=\count510
+\Hy@SavedSpaceFactor=\count516
 
 (C:\Program Files\MiKTeX\tex/latex/hyperref\puenc.def
 File: puenc.def 2026-04-24 v7.01q Hyperref: PDF Unicode definition (HO)
@@ -1230,7 +1242,7 @@ Package hyperref Info: Plain pages OFF on input line 4214.
 Package hyperref Info: Backreferencing OFF on input line 4219.
 Package hyperref Info: Implicit mode ON; LaTeX internals redefined.
 Package hyperref Info: Bookmarks ON on input line 4466.
-\c@Hy@tempcnt=\count511
+\c@Hy@tempcnt=\count517
 LaTeX Info: Redefining \url on input line 4805.
 \XeTeXLinkMargin=\dimen283
 
@@ -1241,7 +1253,7 @@ Package: bitset 2019/12/09 v1.3 Handle bit-vector datatype (HO)
 Package: bigintcalc 2019/12/15 v1.5 Expandable calculations on big integers (HO
 )
 ))
-\Fld@menulength=\count512
+\Fld@menulength=\count518
 \Field@Width=\dimen284
 \Fld@charsize=\dimen285
 Package hyperref Info: Hyper figures OFF on input line 6091.
@@ -1251,16 +1263,16 @@ Package hyperref Info: backreferencing OFF on input line 6106.
 Package hyperref Info: Link coloring OFF on input line 6111.
 Package hyperref Info: Link coloring with OCG OFF on input line 6116.
 Package hyperref Info: PDF/A mode OFF on input line 6121.
-\Hy@abspage=\count513
-\c@Item=\count514
-\c@Hfootnote=\count515
+\Hy@abspage=\count519
+\c@Item=\count520
+\c@Hfootnote=\count521
 )
 Package hyperref Info: Driver (autodetected): hpdftex.
 
 (C:\Program Files\MiKTeX\tex/latex/hyperref\hpdftex.def
 File: hpdftex.def 2026-04-24 v7.01q Hyperref driver for pdfTeX
-\Fld@listcount=\count516
-\c@bookmark@seq@number=\count517
+\Fld@listcount=\count522
+\c@bookmark@seq@number=\count523
 
 (C:\Program Files\MiKTeX\tex/latex/rerunfilecheck\rerunfilecheck.sty
 Package: rerunfilecheck 2025-06-21 v1.11 Rerun checks for auxiliary files (HO)
@@ -1279,46 +1291,39 @@ Package: hypcap 2024-07-26 v1.13 Adjusting the anchors of captions (HO)
 (C:\Program Files\MiKTeX\tex/latex/letltxmacro\letltxmacro.sty
 Package: letltxmacro 2019/12/03 v1.6 Let assignment for LaTeX macros (HO)
 ))
-\c@example=\count518
-
-
-Package biblatex Warning: 'babel/polyglossia' detected but 'csquotes' missing.
-(biblatex)                Loading 'csquotes' recommended.
-
-\@quotelevel=\count519
-\@quotereset=\count520
-LaTeX Font Info:    Trying to load font information for T5+ptm on input line 16
+\c@example=\count524
+Package csquotes Info: Checking for multilingual support...
+Package csquotes Info: ... found 'babel' package.
+Package csquotes Info: Adjusting default style.
+Package csquotes Info: Redefining alias 'default' -> 'english'.
+LaTeX Font Info:    Trying to load font information for T5+ptm on input line 17
 1.
+
 (C:\Program Files\MiKTeX\tex/latex/vntex\t5ptm.fd
 File: t5utm.fd 2005/08/24 Fontinst v1.929 font definitions for T5/ptm.
-)
-
-LaTeX Warning: Unused global option(s):
-    [13pt,3p].
-
-(main.aux)
+) (main.aux)
 \openout1 = `main.aux'.
 
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
-LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 161.
-LaTeX Font Info:    ... okay on input line 161.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for TS1/cmr/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for T5/cmr/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
+LaTeX Font Info:    Checking defaults for PU/pdf/m/n on input line 171.
+LaTeX Font Info:    ... okay on input line 171.
 
 *geometry* driver: auto-detecting
 *geometry* detected driver: pdftex
@@ -1327,7 +1332,7 @@ LaTeX Font Info:    ... okay on input line 161.
 * paper: a4paper
 * layout: <same size as paper>
 * layoutoffset:(h,v)=(0.0pt,0.0pt)
-* modes: twoside 
+* modes: 
 * h-part:(L,W,R)=(99.58464pt, 426.79135pt, 71.13188pt)
 * v-part:(T,H,B)=(56.9055pt, 731.23584pt, 56.9055pt)
 * \paperwidth=597.50787pt
@@ -1335,13 +1340,13 @@ LaTeX Font Info:    ... okay on input line 161.
 * \textwidth=426.79135pt
 * \textheight=731.23584pt
 * \oddsidemargin=27.31465pt
-* \evensidemargin=-1.1381pt
+* \evensidemargin=27.31465pt
 * \topmargin=-52.36449pt
 * \headheight=15.6pt
 * \headsep=25.0pt
 * \topskip=10.0pt
 * \footskip=30.0pt
-* \marginparwidth=111.0pt
+* \marginparwidth=57.0pt
 * \marginparsep=11.0pt
 * \columnsep=10.0pt
 * \skip\footins=11.69997pt plus 5.19942pt minus 2.60054pt
@@ -1349,24 +1354,24 @@ LaTeX Font Info:    ... okay on input line 161.
 * \voffset=0.0pt
 * \mag=1000
 * \@twocolumnfalse
-* \@twosidetrue
-* \@mparswitchtrue
+* \@twosidefalse
+* \@mparswitchfalse
 * \@reversemarginfalse
 * (1in=72.27pt=25.4mm, 1cm=28.453pt)
 
 (C:\Program Files\MiKTeX\tex/context/base/mkii\supp-pdf.mkii
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count521
+\scratchcounter=\count525
 \scratchdimen=\dimen286
 \scratchbox=\box83
-\nofMPsegments=\count522
-\nofMParguments=\count523
-\everyMPshowfont=\toks55
-\MPscratchCnt=\count524
+\nofMPsegments=\count526
+\nofMParguments=\count527
+\everyMPshowfont=\toks56
+\MPscratchCnt=\count528
 \MPscratchDim=\dimen287
-\MPnumerator=\count525
-\makeMPintoPDFobject=\count526
-\everyMPtoPDFconversion=\toks56
+\MPnumerator=\count529
+\makeMPintoPDFobject=\count530
+\everyMPtoPDFconversion=\toks57
 ) (C:\Program Files\MiKTeX\tex/latex/epstopdf-pkg\epstopdf-base.sty
 Package: epstopdf-base 2020-01-24 v2.11 Base part for package epstopdf
 
@@ -1395,15 +1400,14 @@ Package: ltcaption 2021/01/08 v1.4c longtable captions (AR)
 )
 Package caption Info: supertabular package is loaded.
 Package caption Info: End \AtBeginDocument code.
-\c@lstlisting=\count527
-Package tocbasic Info: setting babel extension for `lol' on input line 161.
-Package biblatex Info: Trying to load language 'nil'...
-Package biblatex Info: ... file 'nil.lbx' not found.
+\c@lstlisting=\count531
+Package tocbasic Info: setting babel extension for `lol' on input line 171.
+Package biblatex Info: Trying to load language 'english'...
+Package biblatex Info: ... file 'english.lbx' found.
 
-
-Package biblatex Warning: Language 'nil' not supported.
-(biblatex)                Using dummy definitions on input line 161.
-
+(C:\Program Files\MiKTeX\tex/latex/biblatex/lbx\english.lbx
+File: english.lbx 2025/07/10 v3.21 biblatex localization (PK/MW)
+)
 Package biblatex Info: Input encoding 'utf8' detected.
 Package biblatex Info: Automatic encoding selection.
 (biblatex)             Assuming data encoding 'utf8'.
@@ -1414,14 +1418,124 @@ Package biblatex Info: Data encoding 'utf8' specified.
 
 Package biblatex Info: Trying to load bibliographic data...
 Package biblatex Info: ... file 'main.bbl' found.
-(main.bbl)
-Package biblatex Info: Reference section=0 on input line 161.
-Package biblatex Info: Reference segment=0 on input line 161.
-Package hyperref Info: Link coloring OFF on input line 161.
+ (main.bbl
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 39.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 59.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 133.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 151.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 207.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 249.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 279.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 299.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 319.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 372.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 435.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 481.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 518.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 573.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 609.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 671.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 709.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 779.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 799.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 819.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 839.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 875.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 930.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 988.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 1038.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 1087.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 1138.
+
+)
+Package biblatex Info: Reference section=0 on input line 171.
+Package biblatex Info: Reference segment=0 on input line 171.
+Package hyperref Info: Link coloring OFF on input line 171.
  (main.out) (main.out)
 \@outlinefile=\write5
 \openout5 = `main.out'.
 
+Package hyperref Info: Option `pageanchor' set `false' on input line 172.
  (Cover.tex
 LaTeX Font Info:    Calculating math sizes for size <13> on input line 34.
 
@@ -1471,73 +1585,15 @@ File: umsb.fd 2013/01/14 v3.01 AMS symbols B
 ) [1
 
 {C:/Users/Cuong/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Program Fi
-les/MiKTeX/fonts/enc/dvips/vntex/t5.enc}]) (Cover2.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
-been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.35 \end{center}
-                  [1] [2]) (Chapter/0_2_Acknowledgment.tex
-Underfull \hbox (badness 1694) in paragraph at lines 10--11
-[]\T5/ptm/m/n/13 I would like to express my deepest and most sincere gratitude 
-to my
- []
-
-) [1] (Chapter/0_3_Abstract.tex
-Underfull \hbox (badness 1163) in paragraph at lines 10--11
-\T5/ptm/m/n/13 natural language processing tasks, but their deployment is limit
-ed by high
- []
-
-
-Underfull \hbox (badness 1237) in paragraph at lines 10--11
-\T5/ptm/m/n/13 studied as an effective solution, especially weight-only quantiz
-ation due to
- []
-
-
-Underfull \hbox (badness 1418) in paragraph at lines 10--11
-\T5/ptm/m/n/13 its efficiency and compatibility with existing inference pipelin
-es. However,
- []
-
-
-Underfull \hbox (badness 1895) in paragraph at lines 10--11
-\T5/ptm/m/n/13 maintaining model accuracy under low-bit settings such as INT4 r
-emains
- []
-
-)
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.186 \newpage
-               [1] (main.toc
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.65 ...ied Refinement Procedure}{38}{section.3.7}
-                                                  % [1
+les/MiKTeX/fonts/enc/dvips/vntex/t5.enc}]) (Cover2.tex [1] [2]) (Chapter/0_2_Ac
+knowledgment.tex)
+[1] (Chapter/0_3_Abstract.tex [1]) [2] (main.toc [1
 
 ])
 \tf@toc=\write6
 \openout6 = `main.toc'.
 
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.}) has b
-een already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.207 \cleardoublepage
-                       [2] (main.lof)
+ [2] (main.lof)
 \tf@lof=\write7
 \openout7 = `main.lof'.
 
@@ -1545,1053 +1601,338 @@ l.207 \cleardoublepage
 
 
 
-] (main.lot)
+]
+(main.lot)
 \tf@lot=\write8
 \openout8 = `main.lot'.
 
  [2
 
 ]
+Package hyperref Info: Option `pageanchor' set `true' on input line 260.
+
 CHAPTER 1.
 (Chapter/1_Introduction.tex
-Underfull \hbox (badness 1910) in paragraph at lines 8--9
-[]\T5/ptm/m/n/13 Post-training quantization reduces these costs by representing
- pretrained
- []
 
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 8.
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.1}) has 
-been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.17 
-      [1
+[1
 
 ]
-Underfull \hbox (badness 1888) in paragraph at lines 20--21
-\T5/ptm/m/n/13 representations exchange information. Standard multi-head attent
-ion assigns
- []
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 20.
 
 
-Underfull \hbox (badness 2573) in paragraph at lines 22--23
-\T5/ptm/m/n/13 multiplication by the calibration activations. Static criteria f
-or identifying
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 22.
 
+[2]
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 26.
 
-
-pdfTeX warning (ext4): destination with the same identifier (name{page.2}) has 
-been already used, duplicate ignored
-<to be read again> 
-                   \relax 
-l.25 
-      [2]
-Underfull \hbox (badness 2970) in paragraph at lines 32--33
-[]\T5/ptm/m/n/13 The overall objective of this thesis is to investigate whether
- targeted
- []
-
-
-Underfull \hbox (badness 1590) in paragraph at lines 35--36
-[]\T5/ptm/m/n/13 How is quantization error distributed across QKV projection ma
-trices
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [3]
-Underfull \hbox (badness 1033) in paragraph at lines 36--37
-[]\T5/ptm/m/n/13 Can adaptively selected Flip decisions reduce the aggregate ac
-tivation-
- []
-
-
-Underfull \hbox (badness 1460) in paragraph at lines 36--37
-\T5/ptm/m/n/13 weighted QKV projection residual, even when some flipped decisio
-ns
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [4]
-Underfull \hbox (badness 2189) in paragraph at lines 54--55
-[]\T5/ptm/m/n/13 It formulates a targeted study of QKV projections under group-
-wise
- []
-
-
-Underfull \hbox (badness 1342) in paragraph at lines 55--56
-[]\T5/ptm/m/n/13 It defines Flip as a selective change to RTN rounding decision
-s that
- []
-
-
-Underfull \hbox (badness 2277) in paragraph at lines 55--56
-\T5/ptm/m/n/13 activation-weighted QKV projection residual, and it distinguishe
-s this
- []
-
-
-Underfull \hbox (badness 1226) in paragraph at lines 58--59
-\T5/ptm/m/n/13 isolated scalar-error objective from Flip's aggregate activation
--weighted
- []
-
-
+[3] [4] [5]
 Underfull \hbox (badness 1087) in paragraph at lines 61--62
-[]\T5/ptm/m/n/13 These contributions are intended as a focused investigation of
- attention-
+[]\T5/ptm/m/n/13 These con-tri-bu-tions are in-tended as a fo-cused in-ves-ti-g
+a-tion of attention-
  []
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [5])
-[6]
+) [6]
 CHAPTER 2.
 (Chapter/2_Literature_review.tex
-Underfull \hbox (badness 1286) in paragraph at lines 4--5
-\T5/ptm/m/n/13 quantization of attention projection weights in large language m
-odels. The
- []
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
 
 
-Underfull \hbox (badness 1389) in paragraph at lines 4--5
-\T5/ptm/m/n/13 discussion first defines the scope of the thesis and then distin
-guishes the
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
 
 
-Underfull \hbox (badness 1019) in paragraph at lines 4--5
-\T5/ptm/m/n/13 outputs. The final sections separate weight outliers, activation
- outliers, and
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
 
-
-Underfull \hbox (badness 2237) in paragraph at lines 4--5
-\T5/ptm/m/n/13 functional salience; clarify the limited roles of Kneedle and Ja
-mes--Stein
- []
-
-
-Underfull \hbox (badness 1028) in paragraph at lines 10--11
-\T5/ptm/m/n/13 activations. The resulting inference process still uses higher-p
-recision token
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [7
+[7
 
 ]
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [8]
-Underfull \hbox (badness 2050) in paragraph at lines 28--29
-\T5/ptm/m/n/13 Its asymmetric affine quantization remains uniformly spaced with
-in every
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 22.
 
+[8]
 
-Underfull \hbox (badness 1019) in paragraph at lines 34--35
-\T5/ptm/m/n/13 integer interval be $\OT1/cmr/m/n/12 [\OML/cmm/m/it/12 c[]; c[]\
-OT1/cmr/m/n/12 ]$\T5/ptm/m/n/13 . With scale $\OML/cmm/m/it/12 s > \OT1/cmr/m/n
-/12 0$ \T5/ptm/m/n/13 and zero-point $\OML/cmm/m/it/12 z$\T5/ptm/m/n/13 , affin
-e
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
 
+[9] [10]
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 66.
 
- [9]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+[11]
 
- [10]
-Underfull \hbox (badness 1342) in paragraph at lines 61--63
-\T5/ptm/m/n/13 different inputs. A large-magnitude weight error aligned with ra
-rely active
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 74.
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [11]
-Underfull \hbox (badness 1205) in paragraph at lines 80--81
-[]\T5/ptm/m/n/13 KVQuant [[]10[]] and QAQ [[]11[]] examine quantization associa
-ted with key
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 76.
 
 
-Underfull \hbox (badness 3118) in paragraph at lines 80--81
-\T5/ptm/m/n/13 long contexts repeatedly reuse stored representations. However, 
-KV-cache
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 78.
 
 
-Underfull \hbox (badness 1681) in paragraph at lines 80--81
-\T5/ptm/m/n/13 quantization and QKV projection-weight quantization intervene at
- different
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 80.
+
+[12]
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 86.
 
 
-Underfull \hbox (badness 1292) in paragraph at lines 82--83
-\T5/ptm/m/n/13 supports the general proposition that perturbations to keys and 
-values can
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 86.
+
+[13]
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 92.
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [12]
-Underfull \hbox (badness 1168) in paragraph at lines 98--99
-\T5/ptm/m/n/13 objective. Minimizing unweighted element-wise error may favor on
-e range,
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 94.
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 94.
 
- [13]
-Underfull \hbox (badness 1354) in paragraph at lines 102--103
-[]\T5/ptm/m/n/13 The phrase bit-level adjustment is used for this adjacent-leve
-l operation
- []
+[14] [15]
 
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 148.
 
-Underfull \hbox (badness 3138) in paragraph at lines 106--107
-\T5/ptm/m/n/13 compares $[]$ with $\OML/cmm/m/it/12 W$\T5/ptm/m/n/13 , often us
-ing a norm such as $\OMS/cmsy/m/n/12 k\OT1/cmr/m/n/12 ^^A\OML/cmm/m/it/12 W\OMS
-/cmsy/m/n/12 k[]$\T5/ptm/m/n/13 . Projection
- []
+[16] [17] [18] [19]
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 247.
 
 
-Underfull \hbox (badness 3323) in paragraph at lines 106--107
-\T5/ptm/m/n/13 reconstruction evaluates $\OMS/cmsy/m/n/12 k\OML/cmm/m/it/12 X\O
-T1/cmr/m/n/12 ^^A\OML/cmm/m/it/12 W[]\OMS/cmsy/m/n/12 k[]$ \T5/ptm/m/n/13 on ca
-libration inputs. Attention-aware
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 253.
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 253.
 
- [14]
-Underfull \hbox (badness 2478) in paragraph at lines 110--111
-[]\T5/ptm/m/n/13 The initial group-wise asymmetric quantizer supplies a regular
- low-bit
- []
+[20]
 
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 261.
 
-Underfull \hbox (badness 1072) in paragraph at lines 110--111
-\T5/ptm/m/n/13 exhaustively evaluating both neighboring levels for every weight
-, especially
- []
+[21] [22]
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [15]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [16]
-Underfull \hbox (badness 2126) in paragraph at lines 215--216
-\T5/ptm/m/n/13 addition, normalization, and subsequent layers, can attenuate, p
-reserve, or
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [17]
-Underfull \hbox (badness 1242) in paragraph at lines 233--234
-[]\T5/ptm/m/n/13 Comparisons among MHA, GQA, and MQA should therefore be stated
-
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [18]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [19]
-Underfull \hbox (badness 4660) in paragraph at lines 259--260
-[]\T5/ptm/m/n/13 This distinction separates the general literature claim from t
-he later
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [20]
-Underfull \hbox (badness 1354) in paragraph at lines 273--274
-\T5/ptm/m/n/13 Evaluating all combinations is generally impractical. A selectiv
-e procedure
- []
-
-
-Underfull \hbox (badness 1210) in paragraph at lines 275--276
-\T5/ptm/m/n/13 space objective is inexpensive and input-independent but ignores
- activation
- []
-
-
-Underfull \hbox (badness 1226) in paragraph at lines 275--276
-\T5/ptm/m/n/13 directions. A projection-space objective uses calibration inputs
- and directly
- []
-
-
-Underfull \hbox (badness 1412) in paragraph at lines 275--276
-\T5/ptm/m/n/13 conditional transformation through softmax and values. An attent
-ion-output
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 289.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/bx/n' in size <13> not available
-(Font)              size <12> substituted on input line 283.
+(Font)              size <12> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `OT1/cmr/bx/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 283.
+(Font)              size <6> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/b/it' in size <13> not available
-(Font)              size <12> substituted on input line 283.
+(Font)              size <12> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/b/it' in size <6.5> not available
-(Font)              size <6> substituted on input line 283.
+(Font)              size <6> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/b/n' in size <13> not available
-(Font)              size <12> substituted on input line 283.
+(Font)              size <12> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/b/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 283.
+(Font)              size <6> substituted on input line 291.
 
 
 LaTeX Font Warning: Font shape `U/lasy/b/n' in size <13> not available
-(Font)              size <12> substituted on input line 283.
+(Font)              size <12> substituted on input line 291.
 
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <9.09996> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 283.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 291.
 LaTeX Font Info:    Font shape `U/lasy/b/n' in size <6.5> not available
-(Font)              Font shape `U/lasy/m/n' tried instead on input line 283.
+(Font)              Font shape `U/lasy/m/n' tried instead on input line 291.
 
 LaTeX Font Warning: Font shape `U/lasy/m/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 283.
+(Font)              size <6> substituted on input line 291.
 
+[23]
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 317.
 
- [21]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [22]
-Underfull \hbox (badness 2653) in paragraph at lines 307--308
-\T5/ptm/m/n/13 more information than a single layer-wide scale [[]7[]], [[]8[]]
-. Second, affine
- []
-
-
-Underfull \hbox (badness 3039) in paragraph at lines 311--312
-\T5/ptm/m/n/13 provides a regular, efficient representation. Bit-level adjustme
-nt, precisely
- []
-
-
-Underfull \hbox (badness 1762) in paragraph at lines 315--316
-[]\T5/ptm/m/n/13 This chapter has defined the thesis setting as post-training, 
-group-wise
- []
-
-
-Underfull \hbox (badness 2027) in paragraph at lines 315--316
-\T5/ptm/m/n/13 asymmetric INT4 weight-only quantization of QKV projection weigh
-ts. It
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [23]
-Underfull \hbox (badness 2229) in paragraph at lines 317--318
-\T5/ptm/m/n/13 to its local, directional sensitivity. GQA reuses shared K/V per
-turbations
- []
-
-) [24]
+[24] [25]) [26]
 CHAPTER 3.
 (Chapter/3_Methodology.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [25
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 5.
+
+[27
 
 ]
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [26]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 43.
 
- [27]
-Underfull \vbox (badness 10000) has occurred while \output is active []
+[28]
 
- [28]
-Underfull \hbox (badness 1642) in paragraph at lines 160--162
-\T5/ptm/m/n/13 Degenerate groups with zero range require a predetermined positi
-ve scale
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 67.
 
+[29] [30] [31] [32] [33] [34] [35] [36] [37] [38] [39]
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 496.
 
- [29]
-Underfull \hbox (badness 1014) in paragraph at lines 189--190
-[]\T5/ptm/m/n/13 The refinement stages do not change the deployed tensor shapes
- or the
- []
-
-
-Underfull \hbox (badness 1735) in paragraph at lines 189--190
-\T5/ptm/m/n/13 mathematical dequantization rule. They modify legal stored integ
-ers while
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [30]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [31]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [32]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [33]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [34]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [35]
-Chapter/3_Methodology.tex:404: Extra }, or forgotten \right.
-l.404 ...{knee}}+h_{\mathrm{R}},d_{\mathrm{out}})}
-                                                  
-I've deleted a group-closing symbol because it seems to be
-spurious, as in `$x}$'. But perhaps the } is legitimate and
-you forgot something else, as in `\hbox{$x}'. In such cases
-the way to recover is to insert both the forgotten and the
-deleted material, e.g., by typing `I$}'.
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [36]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [37]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [38]
-LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 5
-05.
-
-(C:\Program Files\MiKTeX\tex/latex/psnfss\ts1ptm.fd
+[40] [41] [42] [43]
+LaTeX Font Info:    Trying to load font information for TS1+ptm on input line 6
+58.
+ (C:\Program Files\MiKTeX\tex/latex/psnfss\ts1ptm.fd
 File: ts1ptm.fd 2001/06/04 font definitions for TS1/ptm.
 )
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [39{C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}]
-Underfull \hbox (badness 1281) in paragraph at lines 532--533
-\T5/ptm/m/n/13 protected extreme dimensions, and positive improvement tolerance
-s provide
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [40]
-Underfull \hbox (badness 1221) in paragraph at lines 550--552
-\T5/ptm/m/n/13 which accounts for the coupling between query and key projection
-s while
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [41]
-Underfull \hbox (badness 2221) in paragraph at lines 569--570
-\T5/ptm/m/n/13 activation is a James--Stein-shrunk calibration summary, not the
- complete
- []
-
-
-Underfull \hbox (badness 5548) in paragraph at lines 569--570
-\T5/ptm/m/n/13 objective for accepted changes. Third, ReFlip exactly reduces on
-ly its
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [42]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [43])
-[44]
+[44{C:/Program Files/MiKTeX/fonts/enc/dvips/base/8r.enc}] [45] [46] [47])
+[48] [49]
 CHAPTER 4.
 (Chapter/4_Theoretical_Analysis.tex
-Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [45
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 10.
+
+[50
 
 ]
-Underfull \hbox (badness 1400) in paragraph at lines 26--27
-\T5/ptm/m/n/13 INT4 group-wise quantization setting. The nearest strategy perfo
-rms direct
- []
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
 
 
-Underfull \hbox (badness 1014) in paragraph at lines 26--27
-\T5/ptm/m/n/13 outlier channels. ReFlip performs a second-stage correction that
- targets the
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
 
 
-Underfull \hbox (badness 1354) in paragraph at lines 47--48
-[]\T5/ptm/m/n/13 Table []4.1[] shows that Flip substantially reduces the attent
-ion-score error
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
 
 
-Underfull \vbox (badness 10000) has occurred while \output is active []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
 
- [46]
-<../results/qkv_llama3_layer8_group3_full/method_summary_errors.png, id=724, 10
-04.1515pt x 345.29pt>
-File: ../results/qkv_llama3_layer8_group3_full/method_summary_errors.png Graphi
-c file (type png)
-<use ../results/qkv_llama3_layer8_group3_full/method_summary_errors.png>
-Package pdftex.def Info: ../results/qkv_llama3_layer8_group3_full/method_summar
-y_errors.png  used on input line 75.
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 34.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 42.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 42.
+
+
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 42.
+
+[51] [52] [53]
+<Figure/qkv_method_summary_errors.png, id=744, 1004.1515pt x 345.29pt>
+File: Figure/qkv_method_summary_errors.png Graphic file (type png)
+<use Figure/qkv_method_summary_errors.png>
+Package pdftex.def Info: Figure/qkv_method_summary_errors.png  used on input li
+ne 131.
 (pdftex.def)             Requested size: 204.85802pt x 70.44243pt.
-<../results/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.png, i
-d=726, 722.7pt x 397.485pt>
-File: ../results/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.p
-ng Graphic file (type png)
-<use ../results/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.pn
-g>
-Package pdftex.def Info: ../results/qkv_llama3_layer8_group3_full/manual_attent
-ion_error_by_head.png  used on input line 81.
-(pdftex.def)             Requested size: 204.85802pt x 112.67181pt.
-<../results/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png, id=727, 
-888.5195pt x 622.325pt>
-File: ../results/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png Grap
-hic file (type png)
-<use ../results/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png>
-Package pdftex.def Info: ../results/qkv_llama3_layer8_group3_full/error_waterfa
-ll_by_head.png  used on input line 92.
+<Figure/qkv_attention_error_by_head.png, id=746, 787.3415pt x 408.727pt>
+File: Figure/qkv_attention_error_by_head.png Graphic file (type png)
+<use Figure/qkv_attention_error_by_head.png>
+Package pdftex.def Info: Figure/qkv_attention_error_by_head.png  used on input 
+line 137.
+(pdftex.def)             Requested size: 204.85802pt x 106.34758pt.
+<Figure/qkv_error_waterfall_by_head.png, id=747, 888.5195pt x 622.325pt>
+File: Figure/qkv_error_waterfall_by_head.png Graphic file (type png)
+<use Figure/qkv_error_waterfall_by_head.png>
+Package pdftex.def Info: Figure/qkv_error_waterfall_by_head.png  used on input 
+line 148.
 (pdftex.def)             Requested size: 204.85802pt x 143.48308pt.
-<../results/qkv_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png, id=
-728, 714.67pt x 409.9315pt>
-File: ../results/qkv_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png
- Graphic file (type png)
-<use ../results/qkv_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png>
-
-Package pdftex.def Info: ../results/qkv_llama3_layer8_group3_full/flip_cost_vs_
-error_reduction.png  used on input line 98.
-(pdftex.def)             Requested size: 204.85802pt x 117.50723pt.
-
-[47 <../results/qkv_llama3_layer8_group3_full/method_summary_errors.png> <../re
-sults/qkv_llama3_layer8_group3_full/manual_attention_error_by_head.png> <../res
-ults/qkv_llama3_layer8_group3_full/error_waterfall_by_head.png> <../results/qkv
-_llama3_layer8_group3_full/flip_cost_vs_error_reduction.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [48]
-Underfull \hbox (badness 2753) in paragraph at lines 217--218
-\T5/ptm/m/n/13 targeted by this thesis. RTN introduces attention-score distorti
-on because
- []
-
-[49]
-Underfull \hbox (badness 1430) in paragraph at lines 227--228
-\T5/ptm/m/n/13 whereas ReFlip explicitly targets the bilinear attention-score m
-ismatch that
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [50])
-[51]
+<Figure/qkv_flip_cost_vs_error_reduction.png, id=748, 714.67pt x 406.7195pt>
+File: Figure/qkv_flip_cost_vs_error_reduction.png Graphic file (type png)
+<use Figure/qkv_flip_cost_vs_error_reduction.png>
+Package pdftex.def Info: Figure/qkv_flip_cost_vs_error_reduction.png  used on i
+nput line 154.
+(pdftex.def)             Requested size: 204.85802pt x 116.5865pt.
+ [54 <./Figure/qkv_method_summary_errors.png> <./Figure/qkv_attention_error_by_
+head.png> <./Figure/qkv_error_waterfall_by_head.png> <./Figure/qkv_flip_cost_vs
+_error_reduction.png>] [55] [56] [57] [58] [59]) [60]
 CHAPTER 5.
-(Chapter/6_Conclusions.tex
-Underfull \hbox (badness 1635) in paragraph at lines 12--13
-\T5/ptm/m/n/13 language understanding metrics. This combination of local and en
-d-to-end
- []
+(Chapter/6_Conclusions.tex [61
 
+] [62] [63] [64] [65]) [66]
 
-Underfull \hbox (badness 1616) in paragraph at lines 16--17
-[]\T5/ptm/m/n/13 The standalone QKV experiment provides the clearest evidence f
-or the
- []
+Package csquotes Warning: No space factor codes for 'T5' encoding.
+(csquotes)                Punctuation tracker may fail on input line 306.
 
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [52
+LaTeX Font Info:    Trying to load font information for T5+pcr on input line 30
+6.
+(C:\Program Files\MiKTeX\tex/latex/vntex\t5pcr.fd
+File: t5ucr.fd 2005/08/24 Fontinst v1.929 font definitions for T5/pcr.
+) [67
 
 ]
-Underfull \hbox (badness 1400) in paragraph at lines 22--23
-\T5/ptm/m/n/13 Flip primarily refines the aggregate activation-weighted project
-ion residual,
+Underfull \hbox (badness 1205) in paragraph at lines 306--306
+[]\T5/ptm/m/n/13 A. Grattafiori et al., ^^P  The Llama 3 herd of mod-els,^^Q \T
+5/ptm/m/it/13 arXiv preprint
  []
 
-
-Underfull \hbox (badness 1895) in paragraph at lines 26--27
-\T5/ptm/m/n/13 modeling perplexity, while ARC-Challenge, ARC-Easy, BoolQ, PIQA,
- and
- []
-
-
-Underfull \hbox (badness 1152) in paragraph at lines 26--27
-\T5/ptm/m/n/13 RTE evaluate downstream accuracy. These metrics are useful, but 
-they do
- []
-
-
-Underfull \hbox (badness 1253) in paragraph at lines 30--31
-[]\T5/ptm/m/n/13 Firstly, future experiments should evaluate a larger task suit
-e and more
- []
-
-
-Underfull \hbox (badness 7451) in paragraph at lines 30--31
-\T5/ptm/m/n/13 deployment-relevant metrics. Additional lm-evaluation tasks, lon
-g-context
- []
-
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [53])
-[54]
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'satopaa2011kneedle' on input line 295.
-
-
-Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'satopaa2011kneedle' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (12.56578pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 V. Satopaa [], ``Finding a Kneedle in a Haystack,'' []\T5/ptm/
-m/it/13 ICDCS Workshops
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'james1961estimation' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (9.88622pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 W James [] C Stein, ``Estimation with Quadratic Loss,'' \T5/pt
-m/m/it/13 Berkeley Symposium\T5/ptm/m/n/13 ,
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'touvron2023llama' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'qwen2023technical' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (8.57474pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 J. Bai [], ``Qwen Technical Report,'' \T5/ptm/m/it/13 arXiv pr
-eprint arXiv:2309.16609\T5/ptm/m/n/13 ,
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'gholami2021survey' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'nagel2021white' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'frantar2022gptq' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (29.81833pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 E. Frantar [], ``GPTQ: Accurate Post-Training Quantization for
- Generative
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'lin2023awq' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'xiao2023smoothquant' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (0.67989pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 Quantization for Large Language Models,'' \T5/ptm/m/it/13 arXiv 
-preprint arXiv:2211.10438\T5/ptm/m/n/13 ,
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'kvquant2024' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'qaq2024' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'vaswani2017attention' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'ainslie2023gqa' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (1.45233pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 J. Ainslie [], ``GQA: Training Generalized Multi-Query Transfo
-rmer
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'banner2019post' on input line 295.
-
-
-Package biblatex Warning: Bibliography string 'in' untranslated
-(biblatex)                at entry 'banner2019post' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'raffel2020t5' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'jiang2023mistral' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (3.20967pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 A. Q. Jiang [], ``Mistral 7B,'' \T5/ptm/m/it/13 arXiv preprint
- arXiv:2310.06825\T5/ptm/m/n/13 , 2023. 
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'dubey2024llama3' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (56.29779pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 A. Dubey [], ``The Llama 3 Herd of Models,'' \T5/ptm/m/it/13 a
-rXiv preprint arXiv:2407.21783\T5/ptm/m/n/13 ,
- []
-
-[55
-
-]
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'qwen2024qwen25' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (37.96776pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 A. Yang [], ``Qwen2.5 Technical Report,'' \T5/ptm/m/it/13 arXi
-v preprint arXiv:2412.15115\T5/ptm/m/n/13 ,
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'merity2016pointer' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'clark2018arc' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (3.37553pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 ARC, the AI2 Reasoning Challenge,'' \T5/ptm/m/it/13 arXiv prepri
-nt arXiv:1803.05457\T5/ptm/m/n/13 , 2018. 
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'clark2019boolq' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (8.95125pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 C. Clark, K. Lee, M.[]W. Chang, T. Kwiatkowski, M. Collins [] 
-K. Toutanova,
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'bisk2020piqa' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (32.69887pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 Physical Commonsense in Natural Language,'' \T5/ptm/m/it/13 Proc
-eedings of the AAAI Conference
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'wang2018glue' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (50.10349pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 A Multi-Task Benchmark and Analysis Platform for Natural Languag
-e Understanding,''
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'biderman2024reproducible' on input line 295
-.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (13.90662pt too wide) in paragraph at lines 296--296
-[]\T5/ptm/m/n/13 S. Biderman, H. Schoelkopf, L. Sutawika, L. Gao, J. Tow, B. Ab
-basi [],
- []
-
-
-Overfull \hbox (10.57053pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 ``Lessons from the Trenches on Reproducible Evaluation of Langua
-ge Models,''
- []
-
-
-Package biblatex Warning: Bibliography string 'andothers' untranslated
-(biblatex)                at entry 'jacob2018quantization' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-
-Overfull \hbox (28.98083pt too wide) in paragraph at lines 296--296
-\T5/ptm/m/n/13 Efficient Integer-Arithmetic-Only Inference,'' \T5/ptm/m/it/13 P
-roceedings of the IEEE Conference
- []
-
-
-Package biblatex Warning: Bibliography string 'and' untranslated
-(biblatex)                at entry 'nagel2020adaround' on input line 295.
-
-
-Package biblatex Warning: Using fallback definition for \mkbibdatelong.
-(biblatex)                The command should be defined in the .lbx file.
-(biblatex)                If you see this message, the .lbx file could not be
-(biblatex)                loaded, is faulty or does not contain a definition
-(biblatex)                for \mkbibdatelong.
-
-[56] (main.aux)
+[68] [69] (main.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
@@ -2605,7 +1946,7 @@ LaTeX Font Warning: Size substitutions with differences
 LaTeX Warning: There were undefined references.
 
 Package rerunfilecheck Info: File `main.out' has not changed.
-(rerunfilecheck)             Checksum: 3DEBDB9A049605362DE07BB33C785D9A;7233.
+(rerunfilecheck)             Checksum: 89DFC7861D6B30F0616690545269EDCA;7309.
 
 Package biblatex Warning: Please (re)run BibTeX on the file(s):
 (biblatex)                main
@@ -2616,13 +1957,13 @@ Package logreq Info: Writing requests to 'main.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 34565 strings out of 467509
- 648744 string characters out of 5418889
- 1380720 words of memory out of 5000000
- 62983 multiletter control sequences out of 15000+600000
- 670600 words of font info for 88 fonts, out of 8000000 for 9000
+ 35935 strings out of 467509
+ 672721 string characters out of 5418889
+ 1622543 words of memory out of 5000000
+ 64352 multiletter control sequences out of 15000+600000
+ 681881 words of font info for 93 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 108i,12n,107p,2630b,1521s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 108i,12n,107p,2507b,2338s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmbx12.pfb><C:/Progra
 m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Program Files/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKTeX/fonts/typ
@@ -2632,14 +1973,16 @@ b10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr12.pfb><C:/P
 rogram Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Files/M
 iKTeX/fonts/type1/public/amsfonts/cm/cmr9.pfb><C:/Program Files/MiKTeX/fonts/ty
 pe1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/a
-msfonts/cm/cmsy9.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbo
-ls/msbm10.pfb><C:/Program Files/MiKTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><C:/P
-rogram Files/MiKTeX/fonts/type1/vntex/urwvn/utmbi8v.pfb><C:/Program Files/MiKTe
-X/fonts/type1/urw/times/utmr8a.pfb><C:/Program Files/MiKTeX/fonts/type1/vntex/u
-rwvn/utmr8v.pfb><C:/Program Files/MiKTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
-Output written on main.pdf (65 pages, 806877 bytes).
+msfonts/cm/cmsy6.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cm
+sy9.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/symbols/msbm10.pfb
+><C:/Program Files/MiKTeX/fonts/type1/vntex/urwvn/ucrr8v.pfb><C:/Program Files/
+MiKTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><C:/Program Files/MiKTeX/fonts/type1/
+vntex/urwvn/utmbi8v.pfb><C:/Program Files/MiKTeX/fonts/type1/urw/times/utmr8a.p
+fb><C:/Program Files/MiKTeX/fonts/type1/vntex/urwvn/utmr8v.pfb><C:/Program File
+s/MiKTeX/fonts/type1/vntex/urwvn/utmri8v.pfb>
+Output written on main.pdf (79 pages, 923772 bytes).
 PDF statistics:
- 912 PDF objects out of 1000 (max. 8388607)
- 288 named destinations out of 1000 (max. 500000)
+ 971 PDF objects out of 1000 (max. 8388607)
+ 267 named destinations out of 1000 (max. 500000)
  341 words of extra memory for PDF output out of 10000 (max. 10000000)
 

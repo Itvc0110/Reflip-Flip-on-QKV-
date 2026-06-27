@@ -11,6 +11,18 @@ if str(ROOT) not in sys.path:
 
 
 class PlotQkvSummaryTest(unittest.TestCase):
+    def test_report_labels_match_standalone_qk_scope(self):
+        from tools.plot_qkv_summary import report_method_label, report_title_prefix
+
+        summary = {"xspot": {"layer_id": 8, "group_id": 3}}
+
+        self.assertEqual("RTN", report_method_label("Nearest"))
+        self.assertEqual("Flip + ReFlip", report_method_label("ReFlip"))
+        self.assertEqual(
+            "Standalone Q--K Surrogate: Layer 8, GQA Group 3",
+            report_title_prefix(summary),
+        )
+
     def test_writes_all_summary_plots(self):
         from tools.plot_qkv_summary import plot_summary
 
@@ -72,6 +84,7 @@ class PlotQkvSummaryTest(unittest.TestCase):
                 "error_waterfall_by_head.png",
                 "method_summary_errors.png",
                 "flip_cost_vs_error_reduction.png",
+                "manual_attention_error_by_head.png",
             }
             self.assertEqual(expected, {path.name for path in written})
             for path in written:

@@ -1,13 +1,9 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.10)  12 JUN 2026 15:39
+This is pdfTeX, Version 3.141592653-2.6-1.40.29 (MiKTeX 26.5) (preloaded format=pdflatex 2026.6.10)  12 JUN 2026 21:51
 entering extended mode
  restricted \write18 enabled.
- file:line:error style messages enabled.
  %&-line parsing enabled.
-**"c:/Users/Cuong/OneDrive - Hanoi University of Science and Technology/Documen
-ts/GitHub/My/Reflip-Flip-on-QKV-/Report_Thesis/Chapter/6_Conclusions.tex"
-
-(c:/Users/Cuong/OneDrive - Hanoi University of Science and Technology/Documents
-/GitHub/My/Reflip-Flip-on-QKV-/Report_Thesis/Chapter/6_Conclusions.tex
+**./6_Conclusions.tex
+(6_Conclusions.tex
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
 (C:\Program Files\MiKTeX\tex/latex/subfiles\subfiles.cls
@@ -1426,15 +1422,9 @@ Package hyperref Info: Link coloring OFF on input line 2.
 \openout5 = `6_Conclusions.out'.
 
 
-Underfull \hbox (badness 1635) in paragraph at lines 12--13
-\T5/ptm/m/n/13 language understanding metrics. This combination of local and en
-d-to-end
- []
-
-
-Underfull \hbox (badness 1616) in paragraph at lines 16--17
-[]\T5/ptm/m/n/13 The standalone QKV experiment provides the clearest evidence f
-or the
+Underfull \hbox (badness 1024) in paragraph at lines 12--13
+\T5/ptm/m/n/13 by Flip. Parameter-level score sensitivities are aggregated to i
+dentify query
  []
 
 
@@ -1444,85 +1434,123 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
 
 {C:/Users/Cuong/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Program Fi
 les/MiKTeX/fonts/enc/dvips/vntex/t5.enc}]
-Underfull \hbox (badness 1400) in paragraph at lines 22--23
-\T5/ptm/m/n/13 Flip primarily refines the aggregate activation-weighted project
-ion residual,
+Underfull \hbox (badness 1237) in paragraph at lines 20--21
+\T5/ptm/m/n/13 as interchangeable names for the same operation. Flip evaluates 
+the effect
  []
 
 
-Underfull \hbox (badness 1895) in paragraph at lines 26--27
-\T5/ptm/m/n/13 modeling perplexity, while ARC-Challenge, ARC-Easy, BoolQ, PIQA,
- and
+Underfull \hbox (badness 1852) in paragraph at lines 24--25
+[]\T5/ptm/m/n/13 At model level, the evaluated quantized variants display task-
+dependent
  []
 
 
-Underfull \hbox (badness 1152) in paragraph at lines 26--27
-\T5/ptm/m/n/13 RTE evaluate downstream accuracy. These metrics are useful, but 
-they do
+Underfull \hbox (badness 3826) in paragraph at lines 24--25
+\T5/ptm/m/n/13 differences in perplexity and downstream accuracy. Refined varia
+nts are
  []
 
 
-Underfull \hbox (badness 1253) in paragraph at lines 30--31
-[]\T5/ptm/m/n/13 Firstly, future experiments should evaluate a larger task suit
-e and more
- []
-
-
-Underfull \hbox (badness 7451) in paragraph at lines 30--31
-\T5/ptm/m/n/13 deployment-relevant metrics. Additional lm-evaluation tasks, lon
-g-context
+Underfull \hbox (badness 2057) in paragraph at lines 24--25
+\T5/ptm/m/n/13 evidence that the local corrections can coexist with multiple qu
+antization
  []
 
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
  [2]
-LaTeX Font Info:    Calculating math sizes for size <13> on input line 35.
+Underfull \hbox (badness 1194) in paragraph at lines 34--35
+\T5/ptm/m/n/13 a region of moderate dimension-level sensitivity, but a knee in 
+the sorted
+ []
 
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [3]
+Underfull \hbox (badness 1881) in paragraph at lines 38--39
+\T5/ptm/m/n/13 problem. Perplexity and downstream accuracy do not directly char
+acterize
+ []
+
+
+Underfull \hbox (badness 1048) in paragraph at lines 44--45
+\T5/ptm/m/n/13 local decisions. These extensions must retain explicit integer c
+onstraints so
+ []
+
+LaTeX Font Info:    Calculating math sizes for size <13> on input line 47.
 
 LaTeX Font Warning: Font shape `OT1/cmr/m/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 35.
+(Font)              size <6> substituted on input line 47.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <13> not available
-(Font)              size <12> substituted on input line 35.
+(Font)              size <12> substituted on input line 47.
 
 
 LaTeX Font Warning: Font shape `OML/cmm/m/it' in size <6.5> not available
-(Font)              size <6> substituted on input line 35.
+(Font)              size <6> substituted on input line 47.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <13> not available
-(Font)              size <12> substituted on input line 35.
+(Font)              size <12> substituted on input line 47.
 
 
 LaTeX Font Warning: Font shape `OMS/cmsy/m/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 35.
+(Font)              size <6> substituted on input line 47.
 
-LaTeX Font Info:    Trying to load font information for U+lasy on input line 35
+LaTeX Font Info:    Trying to load font information for U+lasy on input line 47
 .
 (C:\Program Files\MiKTeX\tex/latex/base\ulasy.fd
 File: ulasy.fd 1998/08/17 v2.2e LaTeX symbol font definitions
 )
 
 LaTeX Font Warning: Font shape `U/lasy/m/n' in size <13> not available
-(Font)              size <12> substituted on input line 35.
+(Font)              size <12> substituted on input line 47.
 
 
 LaTeX Font Warning: Font shape `U/lasy/m/n' in size <6.5> not available
-(Font)              size <6> substituted on input line 35.
+(Font)              size <6> substituted on input line 47.
 
-LaTeX Font Info:    Trying to load font information for U+msa on input line 35.
+LaTeX Font Info:    Trying to load font information for U+msa on input line 47.
 
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsa.fd
 File: umsa.fd 2013/01/14 v3.01 AMS symbols A
 )
-LaTeX Font Info:    Trying to load font information for U+msb on input line 35.
+LaTeX Font Info:    Trying to load font information for U+msb on input line 47.
 
 
 (C:\Program Files\MiKTeX\tex/latex/amsfonts\umsb.fd
 File: umsb.fd 2013/01/14 v3.01 AMS symbols B
-) [3] (6_Conclusions.aux)
+)
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [4]
+Underfull \hbox (badness 1571) in paragraph at lines 61--64
+\T5/ptm/m/n/13 The following integer-level loss-change derivation is exact unde
+r the local
+ []
+
+
+Underfull \hbox (badness 1067) in paragraph at lines 61--64
+\T5/ptm/m/n/13 correction setting in which $[]$, the quantization scale $\OML/c
+mm/m/it/12 []$\T5/ptm/m/n/13 , the associated
+ []
+
+
+Underfull \hbox (badness 2662) in paragraph at lines 84--85
+\T5/ptm/m/n/13 acceptance criteria for every integer-level adjustment. Such a f
+ormulation
+ []
+
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [5]
+[6] (6_Conclusions.aux)
  ***********
 LaTeX2e <2026-06-01>
 L3 programming layer <2026-05-26>
@@ -1539,23 +1567,24 @@ Package logreq Info: Writing requests to '6_Conclusions.run.xml'.
 
  ) 
 Here is how much of TeX's memory you used:
- 33670 strings out of 467509
- 627620 string characters out of 5418889
- 1351039 words of memory out of 5000000
+ 33671 strings out of 467509
+ 627241 string characters out of 5418889
+ 1350971 words of memory out of 5000000
  62426 multiletter control sequences out of 15000+600000
  638185 words of font info for 64 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
- 128i,6n,124p,2687b,575s stack positions out of 10000i,1000n,20000p,200000b,200000s
+ 128i,6n,124p,2556b,583s stack positions out of 10000i,1000n,20000p,200000b,200000s
 <C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Progra
 m Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/Program Files/MiKT
 eX/fonts/type1/public/amsfonts/cm/cmmi9.pfb><C:/Program Files/MiKTeX/fonts/type
 1/public/amsfonts/cm/cmr12.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsf
-onts/cm/cmsy10.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy
-9.pfb><C:/Program Files/MiKTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><C:/Program F
-iles/MiKTeX/fonts/type1/vntex/urwvn/utmr8v.pfb>
-Output written on 6_Conclusions.pdf (3 pages, 101383 bytes).
+onts/cm/cmr9.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10
+.pfb><C:/Program Files/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy9.pfb><C:/Prog
+ram Files/MiKTeX/fonts/type1/vntex/urwvn/utmb8v.pfb><C:/Program Files/MiKTeX/fo
+nts/type1/vntex/urwvn/utmr8v.pfb>
+Output written on 6_Conclusions.pdf (6 pages, 120904 bytes).
 PDF statistics:
- 79 PDF objects out of 1000 (max. 8388607)
- 8 named destinations out of 1000 (max. 500000)
+ 96 PDF objects out of 1000 (max. 8388607)
+ 11 named destinations out of 1000 (max. 500000)
  33 words of extra memory for PDF output out of 10000 (max. 10000000)
 

@@ -1,0 +1,3099 @@
+HANOI UNIVERSITY OF SCIENCE AND TECHNOLOGY
+
+
+
+
+          GRADUATION THESIS
+   Adaptive Weight-Only Quantization for QKV
+   Projections in Grouped Query Attention via
+                   Flip/Reflip
+
+                LƯU THIỆN VIỆT CƯỜNG
+               cuong.ltv225477@sis.hust.edu.vn
+
+                       Program: DS&AI
+
+
+
+
+Supervisor:   Dr. Ngô Văn Linh
+
+Department: DS&AI
+
+School:       School of Information and Communications Technology
+
+
+
+
+                        HANOI, 03/2026
+HANOI UNIVERSITY OF SCIENCE AND TECHNOLOGY
+
+
+
+
+      GRADUATION THESIS
+  Adaptive Weight-Only Quantization for QKV
+  Projections in Grouped Query Attention via
+                  Flip/Reflip
+
+           LƯU THIỆN VIỆT CƯỜNG
+          cuong.ltv225477@sis.hust.edu.vn
+
+                Program: DS&AI
+Supervisor:   Dr. Ngô Văn Linh
+
+                                                        Signature
+
+Department: DS&AI
+
+School:       School of Information and Communications Technology
+
+
+
+
+                        HANOI, 03/2026
+
+
+
+
+                                 2
+                      ACKNOWLEDGMENT
+
+   I would like to express my deepest and most sincere gratitude to my supervisor,
+Dr. Ngô Văn Linh, for his invaluable guidance, thoughtful feedback, and contin-
+uous support throughout the entire process of completing this thesis; his dedica-
+tion, patience, and academic rigor have not only helped shape the direction and
+quality of this work but have also greatly influenced my way of thinking and ap-
+proaching research problems. I would also like to extend my heartfelt appreciation
+to all the lecturers and faculty members whom I have had the privilege to learn
+from during my time at the School of Information and Communications Technol-
+ogy, Hanoi University of Science and Technology; their knowledge, passion for
+teaching, and commitment to academic excellence have built a strong foundation
+for my development, and I truly hope to have more opportunities in the future to
+continue learning from them and, if possible, to collaborate and work alongside
+them in a professional environment. I am deeply grateful to my parents for their
+unconditional love, unwavering support, and constant encouragement throughout
+my academic journey. I also sincerely thank my friends for their companionship,
+support, and shared experiences, which have made this journey both meaningful
+and memorable.
+                                ABSTRACT
+
+   Large Language Models (LLMs) require substantial parameter memory and
+memory bandwidth during inference, which limits their deployment under con-
+strained hardware and high-throughput serving conditions. Post-training weight-
+only quantization reduces these costs without full model retraining, but aggres-
+sive low-bit settings can introduce errors whose effects are not fully described by
+the isolated reconstruction error of each weight. In attention projections, signed
+weight errors interact with activations and may accumulate or cancel in the pro-
+jected query, key, and value representations. Grouped Query Attention (GQA) adds
+further structure because several query heads share one key-value head, making the
+roles of the three projections distinct.
+   This thesis studies post-training, group-wise asymmetric INT4 weight-only
+quantization for QKV projections and presents two separate discrete correction
+stages. Flip selectively changes round-to-nearest decisions when the change re-
+duces an aggregate activation-weighted projection residual, even if the isolated er-
+ror of an individual weight increases. ReFlip is a subsequent query-only correction.
+For each query head in a GQA group, it holds the shared quantized key projection
+fixed and evaluates candidate changes to the quantized query projection through
+an unscaled scalar Q–K score surrogate. Kneedle-based sensitivity partitioning is
+used to identify a moderate candidate region for ReFlip; this partition narrows the
+search but does not provide an optimality guarantee. Statistical shrinkage, includ-
+ing the motivation of James–Stein estimation, informs the construction of a stable
+representative activation but is not used to claim a classical estimation guarantee
+for either correction stage.
+   The experimental evaluation separates local score-level evidence from model-
+level behavior. A standalone GQA case study compares round-to-nearest quanti-
+zation, Flip, and Flip followed by ReFlip under a controlled INT4 setting, while
+full-model comparisons examine perplexity and selected downstream task metrics
+across several model and quantization families. The reported results show that the
+two correction objectives can reduce their targeted forms of quantization distor-
+tion in the evaluated settings, while the magnitude and consistency of model-level
+changes remain dependent on the model, baseline quantizer, and task. These find-
+ings support targeted post-quantization correction as a useful direction while also
+establishing clear limits: the scalar ReFlip objective is a surrogate rather than the
+complete attention operation, Kneedle performs candidate selection rather than
+global optimization, and local improvements do not guarantee universal down-
+stream gains.
+                                                             Student
+                                                    (Signature and full name)
+                                     TABLE OF CONTENTS
+
+
+
+CHAPTER 1. INTRODUCTION.............................................................                        1
+
+1.1 Problem Statement................................................................................       1
+
+1.2 Background and Research Motivation.....................................................                 2
+
+1.3 Research Questions and Objectives ........................................................              4
+
+1.4 Scope and Boundaries...........................................................................         5
+
+1.5 Contributions .......................................................................................   5
+
+1.6 Organization of the Thesis .....................................................................        6
+
+CHAPTER 2. LITERATURE REVIEW ..................................................                             7
+
+2.1 Scope of Research ................................................................................      7
+
+2.2 Quantization Concepts and Taxonomy ....................................................                 9
+
+2.3 Related Work and Evidence Boundaries.................................................. 11
+
+2.4 Group-wise Asymmetric Weight-only Quantization ................................. 14
+
+2.5 Attention Computation and Projection Perturbations................................ 16
+
+2.6 GQA and Dependent Error .................................................................... 19
+
+2.7 Outliers, Salience, and Candidate Selection............................................. 20
+
+2.8 Selective Adjacent-level Refinement....................................................... 22
+
+2.9 Statistical Interpretation and Its Limits ................................................... 23
+
+2.10 Synthesis and Research Gap ................................................................ 24
+
+CHAPTER 3. METHODOLOGY............................................................ 27
+
+3.1 Overview ............................................................................................. 27
+
+3.2 Notation and Calibration Representative ................................................. 28
+
+3.3 Problem Formulation ............................................................................ 30
+
+3.4 Group-Wise Asymmetric INT4 Quantization .......................................... 31
+
+3.5 Flip: Activation-Weighted Projection Refinement .................................... 34
+3.6 ReFlip: Scalar Query–Key Surrogate Refinement .................................... 37
+
+3.7 Unified Refinement Procedure ............................................................... 41
+
+3.8 Hyperparameters and Design Choices .................................................... 43
+
+3.9 Theoretical Discussion .......................................................................... 44
+
+3.10 Summary ........................................................................................... 46
+
+CHAPTER 4. EXPERIMENTAL EVALUATION.................................... 48
+
+4.1 Experimental Setup............................................................................... 48
+
+4.2 Standalone Q–K Surrogate Evaluation.................................................... 50
+
+4.3 Full-Model Evaluation .......................................................................... 53
+
+4.4 Discussion ........................................................................................... 55
+
+CHAPTER 5. CONCLUSIONS ............................................................... 59
+
+5.1 Summary ............................................................................................. 59
+
+5.2 Main Findings ...................................................................................... 60
+
+5.3 Limitations........................................................................................... 61
+
+5.4 Future Work ......................................................................................... 62
+
+REFERENCE .......................................................................................... 66
+                          LIST OF FIGURES
+
+
+Figure 4.1   Standalone Q–K surrogate error comparison . . . . . . . . . 52
+Figure 4.2   QKV correction behavior . . . . . . . . . . . . . . . . . . . . 52
+
+
+
+
+                                                                              i
+                            LIST OF TABLES
+
+
+Table 4.1   Standalone case-study configuration . . . . . . . . . . . . . .     49
+Table 4.2   Standalone scalar Q–K surrogate error . . . . . . . . . . . . .     51
+Table 4.3   Per-head scalar Q–K surrogate errors . . . . . . . . . . . . . .    51
+Table 4.4   4-bit evaluation for Mistral-7B . . . . . . . . . . . . . . . . .   54
+Table 4.5   4-bit evaluation for Llama-3.1-8B . . . . . . . . . . . . . . . .   54
+Table 4.6   4-bit evaluation for Qwen2.5-7B . . . . . . . . . . . . . . . .     55
+Table 4.7   4-bit evaluation for Llama-3-8B . . . . . . . . . . . . . . . . .   55
+
+
+
+
+                                                                                ii
+                       CHAPTER 1. INTRODUCTION
+
+
+1.1   Problem Statement
+   Large Language Models (LLMs) have achieved strong performance across a
+broad range of natural language processing tasks. Their practical deployment, how-
+ever, remains constrained by the memory capacity, memory bandwidth, and com-
+putational resources required during inference. These constraints are especially im-
+portant when a model must operate on limited hardware, serve many concurrent
+requests, or satisfy strict latency and energy budgets. Reducing the storage and
+data-movement cost of model parameters is therefore an important direction for
+making LLM inference more accessible and efficient.
+   Post-training quantization (PTQ) reduces these costs by representing pretrained
+model parameters with lower-precision numerical formats after training, without
+requiring full model retraining. Weight-only PTQ is particularly attractive be-
+cause it compresses the stored model weights while retaining higher-precision ac-
+tivations, thereby reducing parameter memory and data movement while limiting
+changes to the surrounding inference computation. Nevertheless, aggressive low-
+bit quantization can introduce substantial approximation error. At INT4 precision,
+the errors contributed by many weights may accumulate under the activations ob-
+served during inference, and the resulting aggregate projection residual can vary
+considerably across model components even when every individual weight has
+been rounded to its nearest representable level.
+   This thesis studies group-wise asymmetric INT4 weight-only quantization of
+the query, key, and value projection matrices in Transformer attention. In this set-
+ting, each weight matrix is partitioned into groups, and each group is represented
+by its own scale and asymmetric zero-point. The group-wise formulation can adapt
+to local weight distributions more effectively than a single matrix-wide quantizer,
+but it does not eliminate quantization error. Attention projections are a consequen-
+tial target because perturbations to queries and keys alter attention scores, while
+perturbations to values alter the information aggregated by attention.
+   The notation used throughout this thesis treats a representative activation token
+x as a row vector. The corresponding projected row vectors are
+
+                     q = xWQT ,           T
+                                    k = xWK ,       v = xWVT .
+
+                                                        ˆ︁ , the activation-weighted
+For a projection matrix W and its quantized counterpart W
+
+
+                                                                                  1
+                                                   CHAPTER 1. INTRODUCTION
+
+
+projection residual for a token is x(Wˆ︁ − W )T . Each output coordinate of this resid-
+ual aggregates the signed contributions of many individual weight errors after they
+have been weighted by the corresponding activation values. Consequently, the iso-
+lated error of each quantized scalar is not, by itself, a complete measure of the func-
+tional projection error. Changes to WQ additionally change the query representa-
+tion and the scores formed with keys. These observations motivate two targeted but
+distinct correction procedures. Flip reduces an aggregate activation-weighted pro-
+jection residual. ReFlip subsequently updates only the quantized query projection
+and evaluates each candidate through an unscaled scalar Q–K score surrogate for a
+representative activation. The central problem is therefore to determine whether
+lightweight, structure-aware corrections can improve the fidelity of group-wise
+asymmetric INT4 QKV quantization without expanding the correction objectives
+into full model retraining or claiming to optimize the complete attention operation.
+1.2   Background and Research Motivation
+   The Transformer architecture relies on attention to determine how token rep-
+resentations exchange information. Standard multi-head attention assigns separate
+query, key, and value heads. Multi-query attention and Grouped Query Attention
+(GQA) reduce key-value redundancy by allowing multiple query heads to share a
+key-value head. A GQA group therefore contains several query heads associated
+with one shared key head and one shared value head. This structure can reduce
+key-value storage and improve decoding efficiency, but it also creates an asymmet-
+ric error relationship: a perturbation in a shared key or value representation may
+influence several query heads, whereas a perturbation in one query head remains
+local to that query head. Quantization methods applied to GQA should therefore
+account for the distinct roles and shapes of the QKV projections rather than treating
+them as interchangeable matrices.
+   Low-bit quantization must balance representational range against resolution.
+Asymmetric quantization can better represent groups whose distributions are not
+centered at zero, while group-wise quantization limits the effect of distribution dif-
+ferences across a large matrix. A standard round-to-nearest (RTN) decision selects
+the nearest representable quantization level for each weight and therefore mini-
+mizes the isolated scalar quantization error for that weight under the fixed quan-
+tizer. RTN does not, however, directly minimize the aggregate activation-weighted
+residual because signed scalar errors can reinforce or cancel after multiplication
+by the calibration activations. Static criteria for identifying consequential round-
+ing decisions are not always appropriate because activation patterns and residual
+contributions can differ between matrices, layers, and groups. This thesis conse-
+
+                                                                                     2
+CHAPTER 1. INTRODUCTION
+
+
+quently considers adaptive candidate-region identification based on the Kneedle
+algorithm [1], which identifies a knee in an ordered sensitivity curve. For ReFlip,
+the detected knee provides a data-dependent boundary between extremely sensitive
+query dimensions that are protected and a moderate post-knee region considered
+for correction. This partition narrows the search; it neither proves that the selected
+region contains the globally best correction nor gives an optimality guarantee for
+the resulting discrete updates.
+   The proposed framework distinguishes two correction stages. Flip changes se-
+lected RTN rounding decisions after group-wise asymmetric INT4 quantization
+in order to reduce the aggregate activation-weighted projection residual under a
+representative activation constructed from calibration data. Because RTN already
+minimizes each isolated scalar error, a flipped decision may move an individual
+quantized weight farther from its original full-precision value. Flip accepts such
+an increase only when the changed signed contribution helps reduce the combined
+residual produced by the relevant weights under that representative activation. It
+therefore targets cancellation and accumulation in the aggregate residual rather
+than seeking uniformly smaller individual weight errors. Flip preserves the INT4
+representation and the broader quantization configuration, and it does not use the
+attention-score objective described below.
+   ReFlip is a separate, subsequent correction stage. ReFlip operates per query
+head within a GQA group and updates only the corresponding query projection
+WQ ; it does not update the shared WK , the shared WV , or the other query heads
+while evaluating that head’s correction. The update is guided by a scalar score loss
+that measures disagreement between reference and quantized Q–K dot products for
+a representative activation. This unscaled scalar surrogate isolates a specific bilin-
+ear effect of query-projection error, but it is not the complete attention-logit matrix,
+the softmax attention distribution, or the final attention output. The method is also
+informed by the general motivation of statistical shrinkage: in high-dimensional
+estimation, carefully regularized adjustments can reduce aggregate error relative
+to unregularized estimates [2]. This connection motivates the construction of a sta-
+ble representative activation; it is not a claim that Flip or ReFlip is a James–Stein
+estimator or inherits a classical risk guarantee.
+   Together, Flip and ReFlip address different aspects of the same problem. Flip
+changes selected rounding decisions across QKV projections to reduce an aggre-
+gate activation-weighted projection residual, whereas ReFlip focuses narrowly on
+one query head at a time and uses scalar Q–K score disagreement as its signal. A
+candidate that benefits ReFlip may therefore fail to reduce the projection residual
+
+3
+                                                  CHAPTER 1. INTRODUCTION
+
+
+targeted by Flip, just as a candidate that benefits Flip need not reduce the score-
+level surrogate. Keeping the two stages conceptually separate is important for eval-
+uating their individual effects and for avoiding claims that improvements under
+one objective necessarily imply improvements under the other or under end-to-end
+evaluation.
+1.3   Research Questions and Objectives
+   The overall objective of this thesis is to investigate whether targeted corrections
+can improve the fidelity of group-wise asymmetric INT4 weight-only quantization
+for QKV projections, particularly in attention modules using GQA. The study is
+guided by the following research questions:
+  1. Why can RTN’s isolated scalar-error objective leave an aggregate activation-
+     weighted projection residual or scalar Q–K score error after group-wise asym-
+     metric INT4 weight-only quantization?
+  2. Can selectively accepted Flip decisions reduce aggregate activation-weighted
+     residuals for selected attention projections—specifically the Q and K projec-
+     tions examined in the standalone study—even when some changed decisions
+     increase their individual scalar weight errors, without changing the prescribed
+     INT4 weight-only setting?
+  3. Can query-only ReFlip corrections, evaluated per query head through a scalar
+     Q–K score surrogate, reduce the score error remaining after Flip?
+  4. What patterns are observed when RTN, Flip, and Flip followed by ReFlip are
+     compared in the standalone score-level case study and in the reported full-
+     model evaluations?
+   To answer these questions, the thesis develops a controlled framework that first
+establishes the INT4 quantization setting, then evaluates Flip and ReFlip as dis-
+tinct interventions. The analysis distinguishes isolated scalar quantization error,
+aggregate activation-weighted projection residual, scalar score-surrogate error, and
+downstream evaluation. This distinction is necessary because RTN can minimize
+each isolated scalar error while leaving a larger combined projection residual, be-
+cause a reduction in that residual does not by itself guarantee a reduction in score
+error, and because a local score reduction does not by itself guarantee improved
+model-level behavior. The reported comparisons are consequently interpreted as
+empirical evidence within the stated settings rather than as universal performance
+guarantees.
+
+
+
+
+                                                                                    4
+CHAPTER 1. INTRODUCTION
+
+
+1.4    Scope and Boundaries
+    This work is limited to post-training, group-wise asymmetric INT4 weight-only
+quantization. Activations remain outside the low-bit quantization scope, and the
+thesis does not propose quantization-aware training or full model retraining. The
+primary objects of study are the WQ , WK , and WV projection matrices in Trans-
+former attention, with particular attention to GQA structure. A quantization group
+refers to the subset of weights sharing quantization parameters, whereas a GQA
+group refers to multiple query heads sharing one key-value head; these two forms
+of grouping serve different purposes. Other model components may still affect end-
+to-end behavior, but they are not the central correction targets considered here.
+   Flip and ReFlip are deliberately bounded procedures. Flip changes only selected
+RTN rounding decisions within the quantized QKV projections and selects those
+changes according to their effect on the aggregate activation-weighted projection
+residual under a representative activation constructed from calibration data. It may
+worsen individual scalar weight errors and is not intended to minimize a weight-
+wise error metric. ReFlip updates only WQ , one query head at a time, and is opti-
+mized using an unscaled scalar Q–K score surrogate under the same representative
+activation; it does not update WK , WV , or the remaining model parameters. The
+surrogate does not represent the full sequence-to-sequence attention matrix, soft-
+max normalization, or value aggregation. Kneedle identifies a moderate candidate
+region rather than an optimal solution, and the subsequent accepted updates re-
+main a local discrete correction. The thesis evaluates these procedures empirically
+and does not claim universal improvement across all architectures, tasks, datasets,
+group sizes, activation distributions, or calibration choices. Likewise, adaptive se-
+lection, representative-activation construction, and shrinkage-inspired reasoning
+are treated as practical design principles whose usefulness must be established by
+the reported experiments.
+1.5    Contributions
+    Within the stated scope, this thesis makes the following contributions:
+    1. It formulates a targeted study of QKV projections under group-wise asymmet-
+       ric INT4 weight-only quantization, with explicit consideration of the sharing
+      structure present in GQA.
+    2. It defines Flip as a selective change to RTN rounding decisions that may in-
+       crease individual scalar weight errors while reducing an aggregate activation-
+       weighted projection residual, and it evaluates this objective on the selected Q
+       and K projections considered in the standalone study while distinguishing it
+
+5
+                                                CHAPTER 1. INTRODUCTION
+
+
+      from ReFlip.
+ 3. It defines ReFlip as a per-query-head correction that updates WQ using an
+    unscaled scalar Q–K score surrogate while leaving the shared WK , shared
+    WV , and other model parameters unchanged.
+
+ 4. It incorporates Kneedle-based partitioning of query-dimension sensitivities
+    so that ReFlip protects the extreme pre-knee region and evaluates candidates
+    from a moderate post-knee region, while explicitly treating this partition as
+    candidate selection rather than an optimality guarantee.
+ 5. It provides an empirical assessment at both a standalone score-surrogate
+    level and a reported full-model level, explicitly distinguishing RTN’s isolated
+    scalar-error objective, Flip’s aggregate activation-weighted residual objective,
+    and ReFlip’s scalar score objective rather than assuming that improvement
+    under any one objective necessarily produces better end-to-end performance.
+   These contributions are intended as a focused investigation of attention-
+projection correction under a specific low-bit setting. They do not establish that
+QKV projections are always the dominant source of quantization degradation or
+that the proposed procedures replace broader post-training quantization methods.
+1.6   Organization of the Thesis
+The remainder of this thesis is organized as follows. Chapter 2 reviews
+Transformer attention, GQA, and relevant approaches to neural network and LLM
+quantization. Chapter 3 presents the proposed methodology, including group-wise
+asymmetric INT4 weight-only quantization, the aggregate residual objective of
+Flip, sensitivity-based candidate selection, and the per-query-head scalar Q–K
+surrogate used by ReFlip. Chapter 4 reports the experimental evaluation through a
+standalone GQA score-level case study and full-model comparisons based on
+perplexity and selected downstream tasks, while discussing the boundaries of the
+evidence. Chapter 5 summarizes the findings and limitations and identifies
+directions for future research.
+
+
+
+
+                                                                                  6
+                     CHAPTER 2. LITERATURE REVIEW
+
+
+    This chapter establishes the conceptual and empirical context for low-bit quanti-
+zation of attention projection weights in large language models. The discussion first
+defines the scope of the thesis and then distinguishes the principal quantization tax-
+onomies that are often conflated in the literature. It subsequently reviews represen-
+tative post-training quantization methods, develops the mathematical background
+of attention and Grouped Query Attention (GQA), and analyzes how projection-
+weight perturbations enter attention scores and outputs. The final sections separate
+weight outliers, activation outliers, and functional salience; clarify the limited roles
+of Kneedle and James–Stein reasoning; and identify the research gap addressed by
+the thesis. Throughout the chapter, claims about sensitivity and error propagation
+are qualified by the relevant operating conditions. This distinction is important be-
+cause structural reuse creates dependencies, but does not by itself prove that errors
+will be amplified in every input, head, layer, or task.
+2.1   Scope of Research
+   This thesis studies post-training quantization of the query, key, and value pro-
+jection weights in Transformer-based large language models, with particular atten-
+tion to models that use GQA. The target setting is group-wise asymmetric INT4
+weight-only quantization. The original pretrained model is not retrained or fine-
+tuned. Activations remain in higher precision, and the study does not attempt to
+optimize every layer or every inference-system component. This restricted scope
+makes it possible to examine how the statistical structure of QKV weights and the
+computational structure of attention jointly affect quantization error.
+   The models motivating the study include contemporary Transformer families
+such as LLaMA [3] and Qwen [4]. Their parameter counts make memory capacity
+and memory bandwidth important deployment constraints. Weight-only quantiza-
+tion directly reduces the storage and transfer cost of model parameters while avoid-
+ing the additional dynamic-range difficulties introduced by quantizing activations.
+The resulting inference process still uses higher-precision token representations,
+but each linear projection is formed from an approximation of its original weight
+matrix. Consequently, the quality of the projection depends on both the quantized
+weights and the activations that multiply them.
+   The thesis quantizer is consistently defined as group-wise asymmetric weight-
+only quantization. For a projection matrix, each row corresponds to an output chan-
+nel and each column corresponds to an input channel. Contiguous weights along
+
+                                                                                      7
+                                           CHAPTER 2. LITERATURE REVIEW
+
+
+the input-channel dimension are partitioned into numerical quantization groups.
+Every such group receives its own scale and zero-point. These numerical groups
+are unrelated to GQA groups. A GQA group is an architectural association in
+which several query heads share a key head and a value head; a quantization group
+is merely a local partition of weights represented by common affine parameters.
+Maintaining this distinction prevents ambiguity when discussing group size, error
+sharing, or head structure.
+   The study also considers a lightweight post-quantization refinement referred to
+as bit-level adjustment. In this thesis, the term has a precise operational mean-
+ing: a selected stored integer weight value is changed to an adjacent integer code,
+and therefore to an adjacent representable quantization level, while retaining the
+group’s scale, zero-point, and assigned bit width. Bit-level adjustment is not a lit-
+eral flip of a particular binary digit. A literal binary-digit flip can move an integer
+by a large and representation-dependent distance, whereas the intended operation
+changes the quantized value by one neighboring level. The term is preserved be-
+cause it emphasizes discrete low-bit refinement, but every subsequent use refers to
+adjacent integer-code adjustment.
+   Calibration data may be used to characterize the effects of quantized weights
+under representative inputs and to evaluate candidate adjustments. Such use does
+not constitute training: no gradient-based optimization of the original model pa-
+rameters is required. The study also excludes hardware-specific kernel design and
+activation or KV-cache quantization. These topics are relevant to complete deploy-
+ment systems, but separating them from projection-weight quantization keeps the
+evidence boundaries clear. In particular, results about quantized KV caches can
+motivate attention-aware analysis, yet they do not directly establish how QKV pro-
+jection weights behave under group-wise asymmetric weight-only quantization.
+   The resulting research question is deliberately narrow. Given low-bit group-wise
+asymmetric representations of QKV projection weights, can selective adjacent-
+level adjustment reduce consequential residual errors while respecting the struc-
+ture of attention and GQA? Answering this question requires more than reporting
+weight reconstruction error. It requires a taxonomy of quantization choices, a per-
+turbation model that connects weight error to attention computations, and careful
+interpretation of statistical heuristics. These foundations are developed in the re-
+mainder of the chapter.
+
+
+
+
+                                                                                     8
+CHAPTER 2. LITERATURE REVIEW
+
+
+2.2   Quantization Concepts and Taxonomy
+    Quantization maps values from a high-precision domain to a finite representable
+set. For neural-network weights, this mapping reduces memory consumption and
+can reduce data-transfer cost, but it introduces approximation error. The literature
+classifies quantizers along several independent dimensions, including uniform ver-
+sus non-uniform level spacing, symmetric versus asymmetric ranges, tensor gran-
+ularity, weight-only versus weight-and-activation quantization, and post-training
+versus training-aware procedures [5], [6]. A precise account must keep these di-
+mensions separate because a quantizer can, for example, be uniform, asymmetric,
+group-wise, weight-only, and post-training at the same time.
+Uniform and Non-uniform Levels
+   A uniform quantizer uses a constant step size between adjacent dequantized val-
+ues. If the step size is s > 0, moving from one integer code to its neighbor changes
+the dequantized value by exactly s, except where clipping prevents movement be-
+yond the representable endpoints. Uniformity refers only to spacing. It does not
+require the range to be centered at zero, nor does it require all weights in a tensor
+to share one scale.
+   A non-uniform quantizer places representable values at unequal intervals. Such
+placement can allocate more levels to dense regions of a distribution and fewer
+levels to sparse regions, potentially improving representation for a specified distor-
+tion measure. The trade-off is that irregular levels can complicate representation
+and arithmetic. The thesis does not use a non-uniform quantizer. Its asymmetric
+affine quantization remains uniformly spaced within every quantization group.
+Symmetric and Asymmetric Affine Quantization
+   Symmetry concerns the location of the represented range relative to zero. A
+symmetric quantizer ordinarily uses a range centered at or approximately centered
+at zero. This choice can simplify some arithmetic and is appropriate when positive
+and negative magnitudes are balanced. An asymmetric affine quantizer introduces
+a zero-point that shifts the represented interval. The shift can use the available
+integer range more effectively when a local weight group is skewed or has unequal
+positive and negative extrema.
+   Let a quantization group contain real-valued weights wi , and let the available in-
+teger interval be [cmin , cmax ]. Following the standard integer-arithmetic formulation
+[7], affine quantization and dequantization with scale s > 0 and zero-point z can
+
+
+
+
+9
+                                              CHAPTER 2. LITERATURE REVIEW
+
+
+be written as
+                    (︂       (︂ w )︂                  )︂
+                                 i
+           ci = clip round             + z, cmin , cmax ,   ŵi = s(ci − z).   (2.1)
+                               s
+
+The representable dequantized values are separated by the constant distance s.
+Thus, asymmetric affine quantization is still uniform quantization. Its asymme-
+try shifts the represented range through z ; it does not create unequal spacing. For
+INT4, at most 24 = 16 integer codes are available per group, so the choice of range
+and the treatment of extreme weights strongly influence the resolution assigned to
+the remaining weights.
+   The quantization error for an individual weight is ∆wi = ŵi − wi . Before clip-
+ping, nearest rounding bounds its magnitude by approximately s/2. Clipping can
+produce a larger error because a value outside the selected range is mapped to an
+endpoint. This elementary distinction is important when interpreting candidate re-
+finement: adjacent-level adjustment changes ŵi by s, whereas changing the scale
+or clipping range changes the representable set for every weight in the group.
+Granularity: Tensor, Output Channel, and Quantization Group
+   Quantization granularity identifies which weights share affine parameters. Per-
+tensor quantization assigns one scale and, where applicable, one zero-point to an
+entire tensor. It is economical but forces heterogeneous regions to share one range.
+Per-channel quantization, as a taxonomy comparator, assigns separate parameters
+to complete channels. It can adapt to differences across channels but still treats
+every weight within one channel as a single range.
+   The thesis instead uses group-wise quantization. Within each output-channel
+row, contiguous columns along the input-channel dimension are divided into quan-
+tization groups. Each group has an independent scale and zero-point. This arrange-
+ment provides finer local adaptation than per-tensor or complete-channel granular-
+ity while preserving a regular partition. The phrase “group-wise” always refers to
+this numerical partition unless “GQA group” is explicitly stated.
+   The distinction between input and output channels follows the orientation of
+the projection matrices used throughout this chapter. For one token representation
+x ∈ Rdin and a weight matrix W ∈ Rdout ×din , the projection is xW ⊤ . A row of W
+produces one output-channel component; a column multiplies one input feature.
+Grouping along the input-channel dimension therefore divides each row into con-
+tiguous sets of contributing input features. It does not combine multiple attention
+heads merely because those heads belong to the same GQA group.
+
+
+                                                                                 10
+CHAPTER 2. LITERATURE REVIEW
+
+
+Weight-only and Post-training Quantization
+   Weight-only quantization stores weights at reduced precision while leaving run-
+time activations in higher precision. The approximation error arises from the quan-
+tized weights, but its realized effect depends on the activations that multiply those
+weights. For a linear projection y = xW ⊤ and quantized weights Ŵ = W + ∆W ,
+
+                                   ŷ − y = x∆W ⊤ .                              (2.2)
+
+The same weight perturbation can therefore have different output effects for dif-
+ferent inputs. A large-magnitude weight error aligned with rarely active input di-
+rections may have limited realized influence, whereas a smaller error aligned with
+frequently large or task-relevant activations may matter more. This relationship mo-
+tivates the use of representative calibration inputs without changing the definition
+of the method as weight-only quantization.
+   Post-training quantization operates on a pretrained model without repeating the
+original training process. It can use weight statistics, calibration activations, local
+reconstruction objectives, or approximate second-order information. Quantization-
+aware training instead exposes model optimization to quantization effects and up-
+dates parameters accordingly. The post-training setting is attractive for large lan-
+guage models because full retraining is expensive, but the absence of retraining
+also makes the initial quantizer and any discrete refinement particularly important.
+   A basic post-training baseline is round-to-nearest (RTN). Once a quantization
+group’s representable grid, scale, zero-point, and clipping interval have been fixed,
+RTN assigns each scalar weight to a nearest valid grid point. For any scalar and
+a fixed valid grid, including a value mapped to a representable endpoint, this as-
+signment minimizes that scalar’s absolute and squared reconstruction errors among
+the available levels. This statement is deliberately local: it does not imply that in-
+dependent nearest assignments minimize an activation-weighted projection error, a
+coupled attention-score error, or a downstream task objective. Those broader objec-
+tives contain activation-dependent weighting, correlations, and interactions among
+multiple quantized parameters.
+2.3   Related Work and Evidence Boundaries
+General Post-training Weight Quantization
+   Post-training quantization methods differ in how they define the representable
+grid, select ranges, account for activations, choose rounding assignments, and com-
+pensate for local error. RTN provides the simplest reference point: after the grid is
+
+
+11
+                                           CHAPTER 2. LITERATURE REVIEW
+
+
+fixed, it independently selects a nearest representable value for each scalar weight.
+More adaptive methods deliberately move beyond this independent fixed-grid de-
+cision because a set of scalar-nearest assignments need not minimize the error of a
+layer output or a downstream computation.
+   AdaRound [8] makes this distinction explicit by learning adaptive rounding de-
+cisions under a local reconstruction objective instead of retaining deterministic
+nearest rounding for every weight. It demonstrates that the choice between neigh-
+boring quantization levels can be optimized jointly with respect to layer behavior
+rather than only individual scalar distance. AdaRound is therefore an important
+conceptual predecessor for discrete post-quantization refinement. Its learned soft-
+to-hard rounding procedure and layer-reconstruction objective nevertheless differ
+from a restricted adjacent-level correction evaluated under explicitly defined pro-
+jection or query–key interaction objectives.
+   GPTQ [9] formulates one-shot weight quantization using approximate second-
+order information and sequential error compensation. It processes weights in
+blocks and uses calibration-informed curvature information to reduce the recon-
+struction impact of decisions as quantization proceeds. It is consequently more
+precise to describe GPTQ as an approximate-second-order, block-wise reconstruc-
+tion method than as a method that treats an entire layer with one homogeneous
+scale or independently applies RTN without compensation. Its reconstruction ob-
+jective is a strong general baseline, but it is not specifically formulated as a post
+hoc correction of a scalar query–key interaction surrogate within a GQA group.
+   AWQ [10] uses activation statistics to identify salient weight channels and ap-
+plies equivalent scaling transformations intended to protect their contributions dur-
+ing weight-only quantization. Here, “channel” denotes a projection feature direc-
+tion, not a numerical quantization group and not a GQA group. AWQ therefore
+does not ignore channel differences, and criticism of it must not imply that it uses
+only a global layer scale or lacks activation awareness. Its salience criterion and
+scaling strategy address a different problem from explicitly evaluating coupled
+query–key score perturbations or the consequences of shared K/V heads in GQA.
+The existence of this difference motivates investigation of attention-specific refine-
+ment, but does not establish that AWQ is generally inadequate.
+   SmoothQuant [11] addresses weight-and-activation quantization by applying a
+mathematically equivalent channel-wise rescaling that transfers quantization diffi-
+culty from activations to weights. It is especially relevant to the distinction between
+activation outliers and weight outliers: large activation features can be made easier
+
+
+                                                                                    12
+CHAPTER 2. LITERATURE REVIEW
+
+
+to quantize at the cost of altering the weight-side range before quantization. The
+present thesis leaves activations in higher precision and refines already quantized
+projection weights, so SmoothQuant provides conceptual context rather than a di-
+rectly matched weight-only or post-rounding baseline.
+    These methods demonstrate that rounding objectives, reconstruction criteria,
+activation statistics, curvature approximations, and equivalent transformations can
+all inform low-precision representation. They also illustrate why broad statements
+that existing methods are merely layer-wise, statistically unaware, or limited to in-
+dependent RTN are inaccurate. The narrower research gap considered by this thesis
+concerns two explicit correction mechanisms after initial group-wise asymmetric
+weight-only quantization: aggregate activation-weighted projection-residual cor-
+rection and query-only correction under a scalar query–key interaction surrogate.
+The gap is not the general idea of adaptive rounding or activation-aware quanti-
+zation. It is the use of these particular objectives, their restricted adjacent-level
+actions, and their interpretation within the shared K/V structure of GQA. Whether
+these choices are useful is an empirical question rather than an assumption.
+Adjacent Evidence from KV-cache Quantization
+    KVQuant [12] and QAQ [13] examine quantization associated with key and
+value cache representations. Their results are relevant because the KV cache par-
+ticipates directly in attention over previously processed tokens, and long contexts
+repeatedly reuse stored representations. However, KV-cache quantization and QKV
+projection-weight quantization intervene at different locations and quantize differ-
+ent mathematical objects. Cache quantization approximates token-dependent key
+and value representations after projection and stores those approximations across
+decoding steps. Projection-weight quantization approximates the persistent matri-
+ces WQ , WK , and WV that generate new queries, keys, and values from each input
+representation. The former changes stored activations; the latter changes the linear
+maps applied whenever projections are formed.
+   The two settings share downstream attention equations, so KV-cache evidence
+supports the general proposition that perturbations to keys and values can matter.
+Their error structures nevertheless differ. A cached-representation error is tied to
+particular tokens and decoding states, whereas one projection-weight error can af-
+fect every newly produced representation whose activation has a component along
+the corresponding input channel. Conversely, cache reuse across many decoding
+steps creates a temporal persistence that is not equivalent to repeatedly applying a
+quantized projection matrix. KV-cache results therefore do not directly prove that
+projection weights are more sensitive than other weights, that a specific QKV pro-
+
+13
+                                          CHAPTER 2. LITERATURE REVIEW
+
+
+jection must receive special treatment, or that a cache-oriented technique transfers
+to group-wise asymmetric weight-only quantization. Such conclusions require di-
+rect analysis or evaluation in the projection-weight setting. Treating KVQuant and
+QAQ as adjacent rather than direct evidence preserves their relevance without ex-
+tending their claims beyond their experimental object.
+Attention Architectures
+   Standard multi-head attention (MHA) gives each attention head its own query,
+key, and value head [14]. The separate heads can learn different relations and pro-
+duce different attention distributions. This structure does not guarantee that per-
+turbations remain isolated, because head outputs are later combined and trans-
+formed, but head-specific K/V representations do limit direct sharing at the score-
+computation stage.
+  Multi-query attention (MQA) shares one key head and one value head across
+many query heads [15]. GQA occupies an intermediate design point: several query
+heads are assigned to each shared key/value pair [16]. This reduces KV-cache
+size and can improve inference efficiency while retaining more K/V diversity than
+MQA. In GQA terminology, the query heads assigned to one shared key/value pair
+form a GQA group.
+   Sharing changes the dependency structure of perturbations. If a shared key is
+perturbed, every query head associated with that key computes scores using the
+same perturbed representation. Likewise, a shared value perturbation enters the
+weighted aggregation for every associated query head. The resulting errors are de-
+pendent because they contain a common component. Dependence does not imply
+that their magnitudes add monotonically or that the final model error is necessar-
+ily larger than in MHA. Query directions can make the shared key perturbation
+influential for some heads and nearly orthogonal for others; softmax can attenu-
+ate or redistribute score changes; value effects can cancel after output projection;
+and later layers can suppress or compound the perturbation. GQA therefore cre-
+ates a pathway for conditional amplification and coordinated error, not a universal
+amplification law.
+2.4   Group-wise Asymmetric Weight-only Quantization
+Local Representation and Residual Error
+  The purpose of group-wise quantization is to adapt the affine range to local
+weight statistics. A projection matrix can contain rows and regions with different
+minima, maxima, variances, and tail behavior. If all regions share one scale, a
+few extreme values can enlarge the step size for many otherwise compact weights.
+
+
+                                                                                 14
+CHAPTER 2. LITERATURE REVIEW
+
+
+Partitioning each output-channel row along input channels reduces the number of
+weights competing for one range. Asymmetric parameters further permit a local
+interval that is not centered at zero, while the levels remain uniformly spaced.
+   This granularity does not eliminate quantization error. Within a group, every
+weight still uses the same step size and endpoints. A single extreme weight can
+expand the range of its group. Alternatively, clipping or range selection can pre-
+serve finer resolution for the bulk of the group while producing larger endpoint
+errors for excluded values. The preferable trade-off depends on the objective. Min-
+imizing unweighted element-wise error may favor one range, whereas minimiz-
+ing calibration-output error may favor another because input features weight the
+columns unequally.
+   For a group g with scale sg and zero-point zg , adjacent-level adjustment changes
+a selected integer ci to ci + 1 or ci − 1, provided the result remains within the
+representable interval. The corresponding dequantized weight changes by +sg or
+−sg . The operation leaves all other integer values and the group’s affine parameters
+unchanged. This local discreteness makes the effect easy to define, but not auto-
+matically beneficial. Moving away from a nearest valid grid point to an adjacent
+level increases the selected weight’s scalar reconstruction error, including when the
+nearest point is a clipped endpoint. The only scalar-distance exceptions are an ex-
+act tie between neighboring levels or an initial assignment selected by an objective
+other than nearest scalar reconstruction. Its justification must therefore come from
+a broader reconstruction or interaction-aware criterion.
+   The phrase bit-level adjustment is used for this adjacent-level operation through-
+out the thesis. It does not mean toggling a literal binary bit, changing INT4 to an-
+other bit width, or introducing a special high-precision exception. A binary repre-
+sentation is only an encoding of the integer level; the semantic operation is move-
+ment to a neighboring integer code. This definition also makes adjustment inde-
+pendent of whether signed integers, offset integers, or another equivalent low-bit
+encoding is used.
+Local and Downstream Objectives
+   Quantization quality can be measured at several levels. Weight reconstruction
+compares Ŵ with W , often using a norm such as ∥∆W ∥2F . Projection reconstruc-
+tion evaluates ∥X∆W ⊤ ∥2F on calibration inputs. Attention-aware objectives can
+compare score matrices, probability matrices, or attention outputs. These objec-
+tives are related but not equivalent.
+     An element-wise objective treats every weight error equally. A projection-output
+
+15
+                                            CHAPTER 2. LITERATURE REVIEW
+
+
+objective weights errors according to the calibration activations and their correla-
+tions. A score objective couples Q and K errors because the score matrix is bi-
+linear. An attention-output objective additionally includes softmax sensitivity and
+value perturbations. Moving to a more downstream objective can better represent
+the target behavior, but it also becomes more input-dependent and may be more
+expensive or susceptible to calibration overfitting. A selective refinement method
+therefore needs an explicitly stated objective and cannot assume that reducing one
+error measure reduces every later error measure.
+    The initial group-wise asymmetric quantizer supplies a regular low-bit represen-
+tation. Selective adjacent-level refinement can then revisit a restricted set of integer
+assignments under a chosen criterion. Selection is necessary because exhaustively
+evaluating both neighboring levels for every weight, especially in many large pro-
+jection matrices, is expensive. Candidate selection may use rounding proximity,
+local error, distribution summaries, or estimated downstream influence. None of
+these indicators alone proves that an adjustment will improve model behavior; they
+narrow the search space for subsequent evaluation.
+2.5   Attention Computation and Projection Perturbations
+Notation and Projection Orientation
+ Let X ∈ Rn×din contain n token representations as rows. Let WQ ∈ RdQ ×din ,
+WK ∈ RdK ×din , and WV ∈ RdV ×din . For a single row vector x, the projections are
+
+                      q = xWQ⊤ ,            ⊤
+                                      k = xWK ,        v = xWV⊤ .                 (2.3)
+
+Applied to all tokens, the corresponding matrices are
+
+                   Q = XWQ⊤ ,              ⊤
+                                     K = XWK ,           V = XWV⊤ .               (2.4)
+
+This orientation is used consistently: rows of each weight matrix are output chan-
+nels, columns are input channels, and group-wise quantization partitions columns
+within each row.
+   For one attention head, scaled dot-product attention is
+
+                    QK ⊤
+                 S= √ ,            P = softmaxrow (S),       O = P V,             (2.5)
+                     dk
+
+where dk is the head dimension, S is the score matrix, P contains row-wise atten-
+tion probabilities, and O is the weighted aggregation of values [14]. Multi-head
+variants apply this process across heads and subsequently combine their outputs.
+
+
+                                                                                     16
+CHAPTER 2. LITERATURE REVIEW
+
+
+From Weight Error to Projection Error
+     Let the quantized projection weights be
+
+      ŴQ = WQ + ∆WQ ,            ŴK = WK + ∆WK ,          ŴV = WV + ∆WV .     (2.6)
+
+The induced projection perturbations are
+
+              ∆Q = X∆WQ⊤ ,                    ⊤
+                                      ∆K = X∆WK ,            ∆V = X∆WV⊤ ,        (2.7)
+
+so that Q̂ = Q + ∆Q, K̂ = K + ∆K , and V̂ = V + ∆V . The transpose is essential
+because the rows of each weight matrix are output channels. These equations also
+make the role of activations explicit: the same ∆WQ , ∆WK , or ∆WV produces
+different projection errors for different X .
+     The perturbed unscaled score product expands as
+
+                    Q̂K̂ ⊤ = QK ⊤ + ∆QK ⊤ + Q∆K ⊤ + ∆Q∆K ⊤ .                     (2.8)
+
+                    √
+After division by       dk , the score perturbation is therefore
+
+                                  ∆QK ⊤ + Q∆K ⊤ + ∆Q∆K ⊤
+                           ∆S =            √             .                       (2.9)
+                                             dk
+
+The first two terms are first order in the projection perturbations, while the last
+term is second order. When perturbations are small, the second-order term may be
+less influential, but low bit widths, clipping, large activation directions, or aligned
+errors can make it non-negligible. The expansion shows why independently small
+Q and K reconstruction errors do not determine score error by themselves: orien-
+tation and interaction with the unperturbed projections also matter.
+     A norm bound illustrates possibilities without predicting realized behavior:
+
+                              ∥∆Q∥ ∥K∥ + ∥Q∥ ∥∆K∥ + ∥∆Q∥ ∥∆K∥
+                  ∥∆S∥ ≤                    √                 ,                 (2.10)
+                                              dk
+
+for compatible submultiplicative norms. This upper bound can be loose because it
+discards direction and cancellation. It establishes that large projection errors can
+permit large score error, but it does not prove that the bound is attained or that
+QKV weights are universally more sensitive than other model parameters.
+
+
+
+
+17
+                                           CHAPTER 2. LITERATURE REVIEW
+
+
+Local Sensitivity of Softmax
+   Softmax converts each score row into a probability distribution. For a score
+vector s and p = softmax(s), the Jacobian is
+
+                            Jsoftmax (s) = diag(p) − pp⊤ .                      (2.11)
+
+For a sufficiently small score perturbation δs, the local first-order probability
+change is approximately
+
+                              δp ≈ diag(p) − pp⊤ δs.
+                                    (︁             )︁
+                                                                                (2.12)
+
+This expression provides a more precise account than the blanket statement that
+softmax amplifies errors. Softmax is invariant to adding the same constant to all
+elements of one score row, so that perturbation direction has no effect. When one
+probability is already close to one, some perturbations may be strongly attenuated.
+When several scores are close and receive substantial probability, perturbations that
+alter their relative differences can redistribute attention meaningfully. The effect is
+therefore local, directional, and dependent on the current score distribution.
+   For finite perturbations, a change can cross a region in which the local Jacobian
+itself changes. A small score error near a narrow decision margin may alter which
+token receives the largest probability, but even a ranking change need not cause a
+large output change if the corresponding value vectors are similar. Conversely, a
+modest probability redistribution can matter if it transfers weight between very dif-
+ferent values. Softmax is thus one conditional link in the propagation chain rather
+than a universal amplifier.
+Value Error and Attention-output Error
+   With P̂ = P + ∆P and V̂ = V + ∆V , the attention-output perturbation is
+
+                          Ô − O = ∆P V + P ∆V + ∆P ∆V.                         (2.13)
+
+The term ∆P V reflects changes in attention probabilities, P ∆V reflects direct
+value-projection error under the original probabilities, and ∆P ∆V couples both
+effects. This decomposition distinguishes the roles of Q/K and V. Q and K affect
+scores and probabilities; V affects the content being aggregated. A large score per-
+turbation can have limited output effect when relevant values are similar, while a
+small value perturbation can matter when it is repeatedly assigned high attention
+probability.
+
+
+                                                                                    18
+CHAPTER 2. LITERATURE REVIEW
+
+
+   Later operations, including head concatenation, output projection, residual ad-
+dition, normalization, and subsequent layers, can attenuate, preserve, or compound
+the attention-output perturbation. It is therefore defensible to say that QKV quan-
+tization creates structured pathways for downstream error, but not that every lo-
+cal QKV error necessarily produces a proportionally larger final error. Claims of
+comparative sensitivity require direct measurements under specified models, data,
+quantizers, and evaluation tasks.
+2.6   GQA and Dependent Error
+  GQA changes how query heads are mapped to key and value heads. Suppose
+query heads h ∈ Gr belong to GQA group r and share Kr and Vr . For each associ-
+ated query head,
+
+                        Qh Kr⊤
+                    Sh = √     ,      Oh = softmaxrow (Sh )Vr .             (2.14)
+                           dk
+
+If the shared key is perturbed by ∆Kr , then every h ∈ Gr contains the score-error
+term
+                                    Qh ∆Kr⊤
+                                       √      .                             (2.15)
+                                         dk
+These errors are dependent because the same ∆Kr appears in every term. Their
+realized magnitudes and signs differ because the Qh differ. Similarly, a shared ∆Vr
+enters the output of every associated query head, but each head weights that value
+perturbation with its own attention probabilities.
+   Dependence matters for analysis because an independence assumption would
+overlook common error sources. It does not imply coherent accumulation. If query
+directions differ, some products with ∆Kr may be small or oppose one another
+after later transformations. If attention distributions differ, the same ∆Vr may be
+weighted differently. The output projection can mix heads in a manner that can-
+cels or compounds their errors. Consequently, GQA can increase the reach of a
+shared perturbation and can conditionally amplify its downstream effect, yet the
+architecture alone does not determine the final magnitude.
+   Comparisons among MHA, GQA, and MQA should therefore be stated struc-
+turally. MHA uses more independent K/V heads; MQA shares K/V most broadly;
+GQA shares within intermediate-sized architectural groups. Broader sharing cre-
+ates more query heads that depend on each shared K/V perturbation. Whether this
+produces worse model quality after quantization depends on the learned weights,
+input activations, quantization errors, softmax operating points, and downstream
+mixing. The thesis focuses on GQA because shared K/V makes interaction-aware
+
+19
+                                            CHAPTER 2. LITERATURE REVIEW
+
+
+analysis especially relevant, not because GQA is assumed to be universally fragile.
+   The numerical quantization groups used in the thesis remain independent of this
+architecture. A quantization group lies inside one output-channel row and spans
+contiguous input channels. A GQA group associates several query heads with a
+shared key/value head. The two kinds of groups can interact indirectly because
+quantization error in weights contributing to a shared head is reused architecturally,
+but neither group definition determines the other.
+2.7   Outliers, Salience, and Candidate Selection
+Weight Outliers and Quantization Range
+   A weight outlier is a weight whose magnitude or value is extreme relative to
+an explicitly specified reference population, such as its quantization group. The
+reference population matters: a value can be ordinary at the layer level but extreme
+within a small local group, or the reverse. Under min–max affine quantization,
+extreme endpoints influence the scale. Preserving a distant endpoint can enlarge
+the step size and increase rounding error for many central values. Clipping the
+endpoint can reduce the step size but incurs a potentially large clipping error for
+the excluded weight [5], [17].
+   At INT4, the limited number of levels makes this trade-off visible. Neverthe-
+less, the presence of a weight outlier does not establish that it should be clipped,
+preserved exactly, or selected for adjustment. Its functional effect depends on the
+input feature multiplying it, correlations with other errors, and the downstream ob-
+jective. Group-wise affine quantization localizes the range trade-off, but a single
+extreme weight can still affect every weight sharing its numerical group.
+Activation Outliers and Functional Salience
+    An activation outlier is an unusually large or otherwise extreme activation fea-
+ture under a specified input distribution. It is conceptually distinct from a weight
+outlier. Weight-only quantization does not directly approximate activations, but ac-
+tivation magnitude influences how weight errors are expressed because projection
+error equals X∆W ⊤ . A modest weight error in a frequently large activation di-
+rection can have a substantial projection effect. SmoothQuant [11] and AWQ [10]
+illustrate, in different settings, why activation statistics are relevant to quantization
+decisions.
+   Salience refers to functional importance under a stated criterion. A weight can
+be salient because changing it strongly affects calibration outputs or another objec-
+tive, even if its magnitude is ordinary. Conversely, a large weight or activation can
+have limited effect under a particular data distribution or can be compensated else-
+
+                                                                                      20
+CHAPTER 2. LITERATURE REVIEW
+
+
+where. Outlier status is distributional; salience is objective-dependent. Treating the
+terms as synonyms would obscure the difference between selecting extreme values
+and selecting influential values.
+   Candidate-selection heuristics can combine these signals, but their roles should
+remain explicit. Distance to a quantization boundary indicates rounding ambiguity.
+Magnitude indicates extremeness relative to a reference set. Calibration-weighted
+error estimates realized projection influence on the calibration sample. Interaction-
+aware measures estimate effects on score or attention-output objectives. Each sig-
+nal can narrow the candidate set, but final benefit must be assessed using the se-
+lected refinement objective and, ultimately, model evaluation.
+Kneedle as a Heuristic
+   Kneedle was introduced as a general method for locating knee points in suitable
+curves [1]. A knee is a region where the curve’s rate of improvement or growth
+changes markedly after normalization and comparison with a reference line. The
+algorithm’s general literature role is curve-based transition-point identification. It
+is not inherently an outlier detector, a quantization algorithm, or a proof that a
+selected threshold is optimal.
+  In a quantization context, one may construct a monotone summary from sorted
+weight magnitudes, cumulative energy, reconstruction error, parameter sensitivity,
+or another quantity and apply Kneedle to propose a transition point. For interaction-
+aware refinement, a particularly relevant construction is a descending sequence of
+dimension-level sensitivity values. Sorting separates dimensions by the magnitude
+of a stated sensitivity measure, while Kneedle proposes where the shape of that
+ordered sequence changes. The resulting knee can distinguish a small extreme-
+sensitivity prefix from a subsequent moderate-sensitivity region that remains po-
+tentially useful for controlled adjustment. This interpretation depends on the sensi-
+tivity definition supplied by the methodology; Kneedle itself neither defines sensi-
+tivity nor determines whether any candidate change improves the objective.
+   The proposed transition also depends on the constructed curve, normalization,
+curve direction, smoothing, and sensitivity or tolerance parameters. A different
+summary or normalization can produce a different knee, and some curves may con-
+tain no stable knee at all. Applying the algorithm to a sorted dimension-sensitivity
+curve can therefore yield a reproducible heuristic boundary or candidate budget,
+but dimensions before or after that boundary are not thereby proven to be harmful
+outliers, safe adjustment targets, or functionally salient.
+     This distinction separates the general literature claim from the later methodol-
+
+21
+                                              CHAPTER 2. LITERATURE REVIEW
+
+
+ogy of the thesis. The literature supports Kneedle as a knee-point heuristic. Any
+use of its output to protect extreme-sensitivity dimensions or to choose moderate-
+sensitivity candidates for adjacent-level adjustment is a methodological design
+choice that must be evaluated under the stated quantization objective. The method
+may help avoid a fixed global threshold when sensitivity profiles differ across
+heads or groups, but it does not guarantee a better scale, a better candidate set,
+a globally optimal discrete solution, or improved downstream accuracy.
+2.8   Selective Adjacent-level Refinement
+   After initial group-wise asymmetric quantization, each weight is represented by
+an integer level and a group-specific affine transformation. A selective refinement
+stage can evaluate whether moving a candidate integer to an adjacent level improves
+a chosen objective. If ci is the stored integer for weight i in group g , the candidate
+set is restricted to valid neighbors,
+
+                        N (ci ) = {ci − 1, ci + 1} ∩ [cmin , cmax ].              (2.16)
+
+Changing ci to an element of N (ci ) is the bit-level adjustment considered by this
+thesis. It moves the dequantized value by exactly one local step sg . It is not a literal
+binary-digit flip and does not alter sg , zg , group membership, or bit width.
+   Restricting adjustment to adjacent levels has several conceptual advantages. It
+bounds the local change, preserves the original quantizer, and permits a clear com-
+parison between the current assignment and its immediate alternatives. It also
+avoids interpreting a large jump caused by flipping a high-order binary digit as
+a small refinement. However, adjacency is a constraint, not evidence of improve-
+ment. A neighbor can reduce an interaction-aware objective even while increasing
+element-wise weight error, or it can worsen both. Every accepted adjustment there-
+fore requires an explicit acceptance criterion.
+   Sequential adjustment also introduces interactions among decisions. The benefit
+estimated for one candidate can change after another candidate is moved because
+projection, score, and attention-output errors contain sums and cross terms. Evalu-
+ating candidates independently is efficient but may miss coordinated effects. Eval-
+uating all combinations is generally impractical. A selective procedure occupies
+the middle ground: use heuristics to restrict candidates, evaluate adjacent alterna-
+tives according to a stated objective, and recognize that the resulting solution is a
+local discrete refinement rather than a proven global optimum.
+   The choice of objective determines what the refinement preserves. A weight-
+
+
+                                                                                      22
+CHAPTER 2. LITERATURE REVIEW
+
+
+space objective is inexpensive and input-independent but ignores activation direc-
+tions. A projection-space objective uses calibration inputs and directly measures
+X∆W ⊤ . A score-space objective couples Q and K but omits the conditional trans-
+formation through softmax and values. An attention-output objective includes more
+of the relevant computation but is more input-dependent. No single objective guar-
+antees improvement on all downstream tasks. The rationale for interaction-aware
+refinement is therefore that it measures a quantity closer to attention behavior, not
+that it universally dominates simpler reconstruction.
+2.9   Statistical Interpretation and Its Limits
+James–Stein Estimation
+   The James–Stein result concerns estimation of a multivariate normal mean un-
+der specific assumptions [2]. In its classical form, one observes
+
+                                  x ∼ N (θ, σ 2 Id ),                         (2.17)
+
+with known common variance, squared-error risk, and dimension d ≥ 3. The
+James–Stein estimator shrinks the observation vector toward a chosen center, com-
+monly the origin:
+                                           (d − 2)σ 2
+                                  (︃             )︃
+                            θ̂ JS =   1−                x.                    (2.18)
+                                             ∥x∥2
+
+Under the classical conditions and the relevant risk definition, shrinkage can domi-
+nate the component-wise maximum-likelihood estimator in total expected squared
+error. The result demonstrates that accepting coordinated bias can reduce aggregate
+estimation risk in a particular statistical model.
+   Quantized neural-network weights do not generally satisfy these assumptions.
+Their errors are discrete, bounded or clipped by a quantizer, grouped under shared
+affine parameters, multiplied by data-dependent activations, and evaluated through
+nonlinear model behavior. The unknown-mean Gaussian model, known isotropic
+variance, and classical squared-error risk do not directly describe this setting.
+James–Stein theory therefore does not prove that adjacent-level adjustment, Flip,
+or ReFlip improves a quantized model. It also does not prescribe which weights to
+adjust or which attention-aware objective to use.
+   The valid role of James–Stein reasoning in this literature review is modest and
+analogical. It cautions against assuming that independently optimal component de-
+cisions must minimize an aggregate criterion, and it illustrates how controlled bias
+can improve total risk under suitable assumptions. A representative activation es-
+timate that is shrunk toward a shared center may consequently be described as
+
+23
+                                           CHAPTER 2. LITERATURE REVIEW
+
+
+James–Stein-inspired: the inspiration is the stabilization of a multivariate estimate
+through shrinkage, not the transfer of the classical estimator or its dominance theo-
+rem to neural activations. In particular, estimating the shrinkage center or variance
+from calibration observations changes the statistical setting. Such a heuristic must
+be justified by its stated construction and evaluated empirically.
+    James–Stein-inspired shrinkage can therefore motivate a more stable represen-
+tative activation vector for an activation-weighted objective, but it does not deter-
+mine the correct shrinkage target, guarantee lower attention-score error, or prove
+that Flip or ReFlip improves a quantized model. The analogy is useful precisely
+when its limits are retained: it motivates coordinated estimation and aggregate ob-
+jectives without replacing quantization-specific analysis.
+Connecting Heuristics to Evaluation
+   Kneedle and James–Stein reasoning occupy different roles. Kneedle is an algo-
+rithmic heuristic for proposing a transition point on a constructed curve. James–
+Stein is a statistical theorem under a specific probabilistic model that offers a lim-
+ited analogy about aggregate risk. Neither establishes that a selected quantization
+candidate is salient, that an adjacent-level move is beneficial, or that a downstream
+model metric will improve.
+   A defensible refinement framework therefore separates proposal, acceptance,
+and validation. A heuristic may propose candidate weights or a candidate budget.
+A specified reconstruction or interaction-aware objective determines whether an
+adjacent-level alternative is accepted. Model-level evaluation determines whether
+the resulting quantized model preserves behavior on relevant data. This separa-
+tion prevents a selection heuristic from being interpreted as proof and prevents an
+analogy from being interpreted as an optimization guarantee.
+2.10   Synthesis and Research Gap
+   The literature establishes several relevant facts while leaving a focused gap.
+First, post-training quantization can compress large language models without full
+retraining, and AdaRound, GPTQ, and AWQ demonstrate distinct ways to use
+reconstruction objectives, approximate curvature, and activation statistics rather
+than relying only on independent scalar-nearest assignments [8], [9], [10]. Second,
+affine asymmetry and group-wise granularity address different aspects of repre-
+sentation: asymmetry shifts a uniformly spaced local range, while grouping local-
+izes the parameters shared by weights. Third, attention couples projection errors
+through a bilinear score product, a locally sensitive softmax transformation, and
+value aggregation. Fourth, GQA causes several query heads to depend on shared
+
+
+                                                                                   24
+CHAPTER 2. LITERATURE REVIEW
+
+
+K/V perturbations, creating dependent errors whose eventual amplification, atten-
+uation, or cancellation is conditional.
+   The evidence does not support several stronger claims. KV-cache studies do not
+directly prove projection-weight sensitivity. Weight magnitude does not establish
+salience. Softmax does not universally amplify score perturbations. GQA sharing
+does not guarantee coherent accumulation. Kneedle does not prove that a threshold
+separates harmful outliers, and James–Stein theory does not prove the value of a
+discrete quantization refinement. Preserving these boundaries narrows the thesis
+claim but makes it testable.
+    Within these boundaries, the research gap is not adaptive rounding in general.
+It is the selective refinement of group-wise asymmetric low-bit QKV projection
+weights through two narrowly defined correction mechanisms after initial quan-
+tization. The first evaluates adjacent integer-code changes against an aggregate
+activation-weighted projection residual. The second restricts correction to query
+weights and evaluates adjacent changes against a scalar query–key interaction sur-
+rogate within a GQA setting. Sorted dimension sensitivity and Kneedle can restrict
+the candidate region, but exact objective changes determine acceptance. These ob-
+jectives and restrictions distinguish the proposed refinement from RTN, general
+layer-reconstruction methods, and channel-scaling methods without implying uni-
+versal superiority.
+   The initial quantizer provides a regular, efficient representation, while bit-level
+adjustment provides a restricted discrete action after quantization. The resulting
+procedures remain local searches: they do not alter the bit width or affine parame-
+ters, do not guarantee a global optimum, and do not ensure improvement on every
+downstream metric. Their motivation follows from the mismatch between scalar-
+nearest assignments and aggregate or interaction-aware objectives; their usefulness
+must be established empirically.
+Conclusion
+   This chapter has defined the thesis setting as post-training, group-wise asym-
+metric INT4 weight-only quantization of QKV projection weights. It distinguished
+input channels, output channels, numerical quantization groups, and architectural
+GQA groups; clarified that asymmetric affine quantization remains uniformly
+spaced; and defined bit-level adjustment as movement to an adjacent integer code
+and quantization level rather than a literal binary-digit flip.
+ The perturbation analysis showed that projection-weight errors induce ∆Q =
+X∆WQ⊤ , ∆K = X∆WK   ⊤ , and ∆V = X∆W ⊤ . Query and key errors interact in the
+                                       V
+
+
+25
+                                          CHAPTER 2. LITERATURE REVIEW
+
+
+score product, after which softmax transforms score perturbations according to its
+local, directional sensitivity. GQA reuses shared K/V perturbations across asso-
+ciated query heads and therefore creates dependent errors, but their downstream
+accumulation or amplification remains conditional on queries, score margins, val-
+ues, output mixing, and later computations.
+   Finally, the chapter established careful evidence boundaries. KVQuant and QAQ
+provide adjacent evidence about the KV cache rather than direct proof about pro-
+jection weights. AdaRound, GPTQ, and AWQ are structured post-training methods,
+but their objectives differ from the two explicit correction objectives considered
+here. Kneedle can guide selection on a sorted sensitivity curve, but it does not cer-
+tify outliers, optimal thresholds, or beneficial adjustments. James–Stein estimation
+motivates shrinkage only by analogy. A James–Stein-inspired activation estimate
+does not inherit the classical dominance guarantee. These conclusions motivate the
+later methodology while leaving its effectiveness to direct empirical evaluation.
+
+
+
+
+                                                                                  26
+                       CHAPTER 3. METHODOLOGY
+
+
+3.1   Overview
+   This chapter presents a post-training, weight-only quantization methodology for
+the query, key, and value projections of transformer attention. The methodology
+is designed for asymmetric group-wise INT4 quantization: projection weights are
+stored on a four-bit integer grid with group-specific scales and zero points, whereas
+activations remain in their original precision [6], [7]. The central premise is that
+nearest rounding is a strong starting point but not necessarily the best final choice
+when the quantized weights are evaluated through the activations and interactions
+that determine attention.
+   The proposed refinement has two complementary stages. The first stage, called
+Flip, treats a projection matrix independently and reduces its activation-weighted
+output residual. Flip is deliberately distinguished from ordinary round-to-nearest
+(RTN) quantization. RTN already minimizes the isolated scalar reconstruction er-
+ror of each weight on a fixed quantization grid. Consequently, changing a rounded
+integer to a neighboring level generally cannot improve that isolated scalar objec-
+tive. Flip instead accepts a neighboring level only when the resulting change re-
+duces the aggregate projected residual. Such a change may increase the error of an
+individual weight while improving the output of the complete projection through
+cancellation among activation-weighted errors.
+   The second stage, called ReFlip, addresses the coupling between query and
+key projections within grouped-query attention (GQA). For each query head, Re-
+Flip holds its group’s shared quantized key head fixed and updates only that query
+head’s quantized query matrix. It evaluates how a legal one-step integer change
+affects an unscaled representative-vector query–key surrogate. The resulting ob-
+jective is exact for this scalar surrogate: no Taylor approximation or full-matrix
+gradient surrogate is used. ReFlip can therefore compensate for a surrogate resid-
+ual jointly caused by query and key quantization, even though only query weights
+are modified. This compensation is useful, but its scope must be stated precisely:
+preservation of one representative scalar surrogate does not imply preservation of
+the full pairwise attention-score matrix over all token pairs.
+   Both refinement stages use a representative activation row vector obtained from
+calibration data and stabilized by James–Stein shrinkage. This produces a compact,
+data-dependent signal for evaluating discrete changes without retraining. Kneedle-
+based selection is used in ReFlip to identify an extreme high-sensitivity region that
+
+                                                                                  27
+                                                       CHAPTER 3. METHODOLOGY
+
+
+should be protected and a moderate-sensitivity region immediately after the knee
+in which correction is permitted. Kneedle is an adaptive heuristic rather than an
+optimality guarantee.
+   The overall procedure remains fully post-training. It requires neither gradient-
+based optimization nor modification of the model architecture. The refinement is
+performed before deployment, and the resulting matrices retain the same group-
+wise asymmetric INT4 representation used by the initial quantizer. Thus, the
+method aims to improve the functional fidelity of quantized attention projections
+while preserving the principal memory motivation of low-bit weight storage and
+without making claims about measured runtime.
+3.2   Notation and Calibration Representative
+Projection Convention
+  Let a representative activation be a row vector
+
+                                         x ∈ Rdin .                            (3.1)
+
+For a generic projection, let the full-precision weight matrix have shape
+
+                                      W ∈ Rdout ×din ,                         (3.2)
+
+so that the projected row vector is
+
+                                 y = xW ⊤ ∈ Rdout .                            (3.3)
+
+This row-vector convention is used throughout the chapter. In particular, matrix row
+a identifies an output dimension and matrix column b identifies an input dimension.
+
+  The quantized and dequantized approximation is denoted by
+
+                                      Ŵ ∈ Rdout ×din ,                        (3.4)
+
+with projected vector
+                                        ŷ = xŴ ⊤ .                           (3.5)
+
+Although the stored representation is integer-valued, the hat notation refers to the
+dequantized value represented by those integers, scales, and zero points.
+  For GQA [16], let HQ be the set of query-head indices and HKV the set of
+
+
+
+
+                                                                                 28
+CHAPTER 3. METHODOLOGY
+
+
+key/value-head indices. The query heads are partitioned into GQA groups
+                                                            ⋃︂
+                         {Gr : r ∈ HKV },                          Gr = HQ ,                 (3.6)
+                                                           r∈HKV
+
+
+where every query head h ∈ Gr shares key/value head r. With common head di-
+mension dh , the head-specific projection matrices are
+
+                              (h)   (r)     (r)
+                        WQ , WK , WV ∈ Rdh ×din ,                      h ∈ Gr .              (3.7)
+
+Their representative projected vectors are
+
+                         (h)                               (r)                       (r)
+            q (h) = x(WQ )⊤ ,             k (r) = x(WK )⊤ ,             v (r) = x(WV )⊤ ,    (3.8)
+
+and the corresponding dequantized vectors are written q̂ (h) , k̂ (r) , and v̂ (r) . This nota-
+tion distinguishes a GQA group, which describes head sharing, from a quantization
+group, which describes columns sharing quantization parameters.
+James–Stein-Shrunk Activation
+   Calibration activations can be noisy when only a limited post-training sample is
+available. A single unregularized statistic may overemphasize accidental extremes,
+whereas a simple global average may suppress meaningful differences between
+input dimensions. To obtain a stable representative row vector, this work uses a
+James–Stein-inspired positive-part shrinkage rule, while retaining the distinction
+between this calibration heuristic and the assumptions of the classical estimator
+[2].
+   Let x̃ ∈ Rdin be an empirical activation statistic computed from the calibration
+set, and let m ∈ Rdin be a shrinkage target. A common target is a constant vector
+whose entries equal the grand mean of x̃, although another predetermined calibra-
+tion target may be used. The representative activation is
+
+                                      x = m + λ(x̃ − m),                                     (3.9)
+
+where the positive-part shrinkage factor has the form
+
+                          (din − 2)σ̂ 2
+                         [︃                       ]︃
+                    λ= 1−                              ,         [u]+ = max(u, 0).          (3.10)
+                           ∥x̃ − m∥22              +
+
+
+Here, σ̂ 2 estimates calibration noise. If the observed dimension-wise variation is
+weak relative to the estimated noise, λ moves the statistic toward m; if the observed
+variation is strong, more of the empirical structure is retained. When m or σ̂ 2 is
+
+29
+                                                      CHAPTER 3. METHODOLOGY
+
+
+estimated from the same calibration observations, this construction is treated as a
+shrinkage heuristic inspired by the classical estimator, rather than as an invocation
+of its classical risk-dominance theorem. The resulting x is not claimed to represent
+every token or every sequence. It is a compact calibration summary used to define
+the exact objectives evaluated by Flip and ReFlip.
+   This distinction is important. The refinement stages optimize behavior under
+the chosen representative activation. Their objectives can improve a targeted cali-
+bration criterion, but they do not provide a universal guarantee over the complete
+activation distribution.
+3.3   Problem Formulation
+   The goal is to construct group-wise asymmetric INT4 approximations of the
+attention projection matrices while limiting functionally relevant quantization er-
+ror. Conventional RTN quantization primarily considers each scalar weight on its
+own. Attention, however, is determined by projected activations and by interactions
+between the resulting query and key vectors.
+   For a generic projection matrix W , define the dequantization error
+
+                                    E = Ŵ − W.                                 (3.11)
+
+Under the representative activation, the corresponding projection residual is
+
+                           r = xE ⊤ = x(Ŵ − W )⊤ ∈ Rdout .                     (3.12)
+
+The residual in output dimension j is therefore
+
+                                          din
+                                          ∑︂
+                                   rj =         xi Eji .                        (3.13)
+                                          i=1
+
+
+This expression makes the relevant error aggregation explicit. Individual signed
+weight errors are multiplied by activation coordinates and then summed. Two
+nonzero scalar weight errors can partially cancel in the projected output, while
+a small scalar error can matter substantially when multiplied by a large activation
+coordinate.
+   The local functional objective used by Flip is
+                                                           ⃦2
+                       J(W, Ŵ ; x) = ∥r∥22 = ⃦x(Ŵ − W )⊤ ⃦2 .
+                                                ⃦
+                                                                                (3.14)
+
+This objective is applicable independently to WQ , WK , and WV . It measures pro-
+
+                                                                                   30
+CHAPTER 3. METHODOLOGY
+
+
+jection fidelity for the representative activation and does not claim to optimize the
+full attention computation.
+   The interaction-aware objective used by ReFlip is narrower and more explicit.
+For query head h ∈ Gr , define the original unscaled representative-vector query–
+key surrogate            [︂          ]︂ [︂         ]︂
+                               (h) ⊤         (r) ⊤
+                   sh,r = x(WQ ) · x(WK ) = q (h) · k (r) ,
+                    ⋆
+                                                                            (3.15)
+
+and the current quantized surrogate
+                                [︂              ]︂ [︂              ]︂
+                                         (h)                (r)
+                      ŝh,r =        x(ŴQ )⊤     ·     x(ŴK )⊤        = q̂ (h) · k̂ (r) .   (3.16)
+
+ReFlip minimizes the per-query-head loss
+
+                                             1
+                                       Lh,r = (ŝh,r − s⋆h,r )2 .                             (3.17)
+                                             2
+
+The scalar residual
+                                          eh,r = ŝh,r − s⋆h,r                                (3.18)
+
+contains the combined effect of quantizing query head h and its shared key head
+                    (r)                         (h)
+r. ReFlip holds ŴK fixed and changes only ŴQ , using the latter as the available
+degree of freedom for reducing this joint surrogate residual. The word “unscaled”
+                                                        √
+is deliberate: this compact surrogate omits the usual 1/ dh factor because multi-
+plication by a positive constant would not change which exact one-step candidate
+decreases the squared residual. It is not presented as a general or complete attention
+logit.
+  These two objectives establish a progression from projection-level fidelity to
+query–key interaction fidelity. Flip minimizes an activation-weighted residual for
+one matrix at a time. ReFlip then compensates the remaining per-query-head scalar
+Q–K surrogate residual through legal integer changes to ŴQ(h) . Neither objective is
+presented as an exact surrogate for all downstream model behavior.
+3.4    Group-Wise Asymmetric INT4 Quantization
+Integer Representation
+     For a generic projection matrix
+
+                                           W ∈ Rdout ×din ,                                   (3.19)
+
+the input dimension is partitioned into contiguous quantization groups of at most G
+columns. Let γ(b) map input column b to its quantization-group index. Each output
+
+
+31
+                                                                     CHAPTER 3. METHODOLOGY
+
+
+row and quantization group has a scale
+
+                                                  αa,γ(b) > 0                                             (3.20)
+
+and a zero point
+                                                  ζa,γ(b) ∈ Z4 .                                          (3.21)
+
+The stored INT4 value at row a and column b is
+
+                                     zab ∈ Z4 = {0, 1, . . . , 15}.                                       (3.22)
+
+Its dequantized value is
+                                                        (︁                 )︁
+                                    Ŵab = αa,γ(b) zab − ζa,γ(b) .                                        (3.23)
+
+
+   For row a and quantization group t, let It = {b : γ(b) = t} be its input-column
+set. The real range is enlarged to include zero:
+                      (︃                 )︃                               (︃                     )︃
+          −                                              +
+         wa,t = min        0, min Wab         ,         wa,t = max             0, max Wab             .   (3.24)
+                             b∈It                                                b∈It
+
+
+When the augmented range is nondegenerate, the asymmetric parameters are
+                                                                    (︄          (︄          )︄)︄
+                   +      −                                                           −
+                  wa,t − wa,t                                                        wa,t
+         αa,t =                 ,        ζa,t = clip[0,15]            round      −                    .   (3.25)
+                      15                                                             αa,t
+
+Including zero handles one-sided groups explicitly. If all weights in a group are
+                     −                                                  +
+nonnegative, then wa,t  = 0 and ζa,t = 0; if all are nonpositive, then wa,t = 0 and the
+zero point is placed at the upper end of the integer range, up to the stated rounding
+and clipping rule. For a mixed-sign group, the zero point lies inside the legal range.
+   The initial RTN integer is
+                                              (︃             (︃                       )︃)︃
+                     RTN                                           Wab
+                    zab  = clip[0,15]              round                  + ζa,γ(b)          .            (3.26)
+                                                                  αa,γ(b)
+
+                                                              −       +
+Under the zero-inclusive range, a degenerate group satisfies wa,t  = wa,t = 0 and
+therefore contains only zeros. Such a group is represented exactly by the explicit
+convention
+                αa,t = 1,     ζa,t = 0,   zab = 0 for all b ∈ It ,         (3.27)
+
+and is frozen during refinement because every useful target value in the group
+
+
+                                                                                                             32
+CHAPTER 3. METHODOLOGY
+
+
+is already represented exactly. This convention avoids division by zero without
+assigning an arbitrary effective step to an active nonzero group.
+What RTN Optimizes
+   For fixed αa,γ(b) and ζa,γ(b) , RTN chooses the legal quantization level closest
+to Wab . Including legal endpoint levels, it solves the isolated scalar problem, with
+non-uniqueness only at exact ties:
+                                ⃓       (︁             )︁        ⃓
+                         min ⃓αa,γ(b) z − ζa,γ(b) − Wab ⃓ .                   (3.28)
+                         z∈Z4
+
+
+Equivalently, it minimizes the squared scalar reconstruction error on the fixed grid.
+Therefore, a neighboring integer change should not be described as improving the
+isolated scalar weight error that RTN already minimizes.
+   The limitation of RTN is instead an objective mismatch. The projected residual
+in output row a depends on the signed sum
+                                    ∑︂
+                             ra =            xb (Ŵab − Wab ),                (3.29)
+                                    b
+
+
+not on each absolute scalar error separately. A neighboring integer can increase
+
+                                    |Ŵab − Wab |                             (3.30)
+
+yet reduce |ra | because its signed activation-weighted contribution better cancels
+the contributions of other weights. Flip exploits precisely this possibility.
+Memory and Inference Motivation
+   INT4 storage provides the theoretical basis for reducing the weight memory of
+QKV projections. Ignoring metadata, four-bit weights require one quarter of the
+storage of FP16 weights and one eighth of the storage of FP32 weights. Group-
+wise scales and zero points introduce overhead, so the exact compression ratio
+depends on group size and metadata precision. Smaller groups can improve local
+representational fidelity but increase this overhead.
+    The refinement stages do not change the deployed tensor shapes or the mathe-
+matical dequantization rule. They modify legal stored integers while retaining the
+same scales and zero points. Consequently, the refined model remains compatible
+with the same class of group-wise weight-only inference procedure as its RTN ini-
+tialization. Because the present methodology does not report a measured runtime
+study, it makes no empirical latency or throughput claim. Its inference motivation is
+structural: low-bit weight storage can reduce memory traffic and capacity require-
+
+33
+                                                           CHAPTER 3. METHODOLOGY
+
+
+ments, while the offline refinement seeks to recover fidelity without introducing a
+new runtime objective or a new projection operator.
+3.5   Flip: Activation-Weighted Projection Refinement
+Flip Objective
+  For one projection matrix W and its current quantized approximation Ŵ , Flip
+minimizes
+                    J = ∥r∥22 ,       r = xE ⊤ ,            E = Ŵ − W.      (3.31)
+
+The objective separates across output rows:
+
+                                            dout
+                                            ∑︂
+                                       J=          rj2 .                     (3.32)
+                                            j=1
+
+
+Nevertheless, it does not separate across the weights within a row because all input
+coordinates contribute to the same scalar residual rj . This within-row coupling is
+the source of useful error cancellation.
+   Suppose a legal candidate changes only the dequantized weight at row j and
+column i by
+                                δ = Ŵji′ − Ŵji .                     (3.33)
+
+For a one-step integer move,
+
+                        δ = αj,γ(i) ∆z,          ∆z ∈ {−1, +1},              (3.34)
+
+provided that zji + ∆z ∈ Z4 . The candidate changes only residual component rj :
+
+                                      rj′ = rj + xi δ.                       (3.35)
+
+All other residual components remain unchanged. The exact objective change is
+consequently
+
+                                  ∆J = J ′ − J                               (3.36)
+                                     = (rj + xi δ)2 − rj2                    (3.37)
+                                     = 2rj xi δ + (xi δ)2 .                  (3.38)
+
+No approximation is required. A legal candidate is accepted only if
+
+                                         ∆J < 0.                             (3.39)
+
+
+
+                                                                                 34
+CHAPTER 3. METHODOLOGY
+
+
+After acceptance, the scalar residual for that output row is updated as
+
+                                    rj ← rj + xi δ.                             (3.40)
+
+This incremental update preserves exact agreement with the current quantized ma-
+trix while avoiding repeated reconstruction of the full residual.
+Interpretation as Error Cancellation
+   The sign of the first term in ∆J determines whether a candidate initially moves
+against the current residual:
+                                     2rj xi δ < 0.                              (3.41)
+
+The second term,
+                                        (xi δ)2 ,                               (3.42)
+
+penalizes an excessively large move and prevents a candidate from being accepted
+merely because it has the correct direction. The exact acceptance condition can
+also be written as
+                                 |rj + xi δ| < |rj |.                     (3.43)
+
+Thus, Flip selects a neighboring quantization level only when its activation-
+weighted contribution reduces the magnitude of the aggregate row residual.
+     This interpretation resolves an apparent contradiction between RTN and Flip.
+RTN is already optimal for the isolated scalar reconstruction error on the fixed
+grid. Flip does not overturn that fact. Instead, it changes the objective from isolated
+scalar error to activation-weighted projection error. Consider a row containing two
+signed weight errors whose activation-weighted contributions reinforce one an-
+other. Moving one weight away from its nearest level can reverse or weaken one
+contribution, producing greater cancellation in their sum. The modified weight can
+be less accurate in isolation while the projected output becomes more accurate.
+    Accordingly, Flip must not be characterized as a second nearest-rounding
+search. It is a discrete coordinate refinement under the exact aggregate objective J .
+Its benefit depends on the representative activation and on the signed configuration
+of errors within each output row.
+Candidate Evaluation and Acceptance
+   Flip begins from the RTN-quantized matrix and its exact residual r. For each
+eligible integer zji , it evaluates the legal directions in
+
+                      Dji = {∆z ∈ {−1, +1} : zji + ∆z ∈ Z4 } .                  (3.44)
+
+
+35
+                                                        CHAPTER 3. METHODOLOGY
+
+
+For each direction, it obtains δ = αj,γ(i) ∆z and evaluates the exact ∆J . If neither
+direction decreases J , the integer remains unchanged. When both symmetric direc-
+tions are legal and xi αj,γ(i) ̸= 0, at most one can strictly reduce J : adding their two
+exact objective changes yields the positive quantity 2(xi αj,γ(i) )2 . Thus, the method
+accepts the unique strictly improving direction when one exists. Once a change is
+accepted, both zji and rj are updated before subsequent candidates are evaluated.
+   Updating the residual after every accepted change is essential. Candidate gains
+are not independent: a previous change alters the cancellation needed in row j ,
+and therefore alters the exact value of every later ∆J in that row. Evaluating all
+candidates against a stale initial residual would not implement the stated greedy
+objective.
+   Candidate order is a heuristic choice. One option is to evaluate coordinates in
+descending order of the magnitude of their possible activation-weighted step,
+
+                                       |xi |αj,γ(i) .                             (3.45)
+
+Another is to scan deterministically by row and column. The acceptance equation
+remains exact under either ordering, but the final discrete configuration can differ
+because accepted changes modify later residuals. A pass budget and an acceptance
+budget are therefore explicit hyperparameters rather than hidden assumptions.
+Scope and Limitations of Flip
+   Flip can be applied independently to the query, key, and value projection matri-
+ces because its objective requires only a matrix, its quantized approximation, and
+the representative activation. For WQ and WK , reducing the projection residual can
+indirectly improve the vectors used in query–key scoring. For WV , it can improve
+the representative value projection. However, Flip does not directly optimize the
+interaction between query and key, the softmax operation, or the final attention
+output.
+   The objective is also calibration-dependent. A change that reduces J under the
+representative James–Stein-shrunk vector may not reduce projection error for ev-
+ery activation row. The shrinkage estimate and conservative integer neighborhood
+are intended to limit sensitivity to calibration noise, but they do not constitute a
+distribution-wide guarantee. Finally, the greedy coordinate procedure can stop at a
+discrete local configuration even when a coordinated multi-weight change would
+yield a lower objective.
+
+
+
+
+                                                                                      36
+CHAPTER 3. METHODOLOGY
+
+
+3.6   ReFlip: Scalar Query–Key Surrogate Refinement
+Per-Query-Head Fixed-Key Objective
+  After initial quantization and optional Flip refinement, ReFlip treats each query
+head h ∈ Gr separately while using the fixed shared key head r. The full-precision
+and current quantized unscaled representative-vector Q–K surrogates are
+
+                                    s⋆h,r = q (h) · k (r)                       (3.46)
+
+and
+                                    ŝh,r = q̂ (h) · k̂ (r) .                   (3.47)
+
+Define the per-head scalar residual and loss
+
+                                                             1
+                        eh,r = ŝh,r − s⋆h,r ,         Lh,r = e2h,r .           (3.48)
+                                                             2
+
+
+    During the correction of query head h, ŴK(r) is fixed. ReFlip updates ŴQ(h) only;
+it does not update any key or value matrix. Although the available changes belong
+only to one query head, eh,r includes quantization effects from both that query
+head and its shared key head. ReFlip may therefore use a query-weight change to
+compensate part of the joint Q–K surrogate residual.
+   This scalar is explicitly an unscaled representative-vector surrogate. It is nar-
+rower than a transformer’s complete attention computation: it uses one calibration
+representative on both projection paths, omits cross-token query–key pairs, and
+does not include softmax or value aggregation. Consequently, reducing Lh,r does
+not assert preservation of the full attention-score matrix or of a general attention
+logit.
+Exact Effect of an Integer Change
+                     (h)
+   Consider integer zab  representing query-head weight (a, b). ReFlip directly
+changes
+                   (h)     (h)     (h)       (h)
+                  zab ← zab + ∆zab ,      ∆zab ∈ {−1, +1},              (3.49)
+
+subject to
+                                    (h)          (h)
+                                   zab + ∆zab ∈ Z4 .                            (3.50)
+
+Because the query-head scale and zero point remain fixed, the dequantized weight
+change is
+                                (h)     (h)     (h)
+                            ∆ŴQ,ab = αa,γ(b) ∆zab .                      (3.51)
+
+
+
+37
+                                                                      CHAPTER 3. METHODOLOGY
+
+
+Only query coordinate q̂a(h) changes:
+
+                                        (h)               (h)            (h)
+                                ∆q̂a = xb αa,γ(b) ∆zab .                                (3.52)
+
+Since k̂ (r) is fixed, the exact surrogate change is
+
+                                    (h,r)         (r)           (h)            (h)
+                              ∆sab          = k̂a xb αa,γ(b) ∆zab .                     (3.53)
+
+
+  This expression is exact for the stated scalar surrogate, rather than a first-order
+approximation. Its exact loss change is
+
+                                      1
+                                            (︂              2    1
+                                                                         )︂
+                            (h,r)                    (h,r)
+                        ∆Lab        =      eh,r + ∆sab        − e2h,r                   (3.54)
+                                      2                          2
+                                                      1
+                                                        (︂          )︂2
+                                               (h,r)          (h,r)
+                                    = eh,r ∆sab +          ∆sab         .               (3.55)
+                                                      2
+
+A candidate is accepted only if
+
+                                                      (h,r)
+                                              ∆Lab            < 0.                      (3.56)
+
+After acceptance, the query coordinate, scalar surrogate, and residual are updated
+immediately:
+                    (h)   (h)     (h)                        (h,r)
+                  q̂a ← q̂a + ∆q̂a ,       ŝh,r ← ŝh,r + ∆sab ,           (3.57)
+                                                                      (h,r)
+                                    eh,r ← eh,r + ∆sab .                                (3.58)
+
+The immediate residual update is necessary because every subsequent exact loss
+change is evaluated against the current quantized state.
+Integer-Level and Dimension Sensitivity
+   The magnitude of surrogate change per unit change in the integer parameter
+directly modified by ReFlip defines the integer-level sensitivity:
+                                 ⃓         ⃓
+                                 ⃓ ∆s(h,r) ⃓ ⃓              ⃓
+                           (h,r)           ⃓ ⃓ (r) (h) ⃓
+                          Sab = ⃓ ab(h) ⃓ = ⃓k̂a xb αa,γ(b) ⃓ .                         (3.59)
+                                 ⃓
+                                 ⃓ ∆z ⃓
+                                                 ab
+
+This quantity combines the participation of key coordinate a in the fixed shared
+head, the representative activation coordinate b, and the actual dequantized dis-
+tance associated with a one-level query-integer move. Including the group scale is
+essential: |k̂a(r) xb | alone is not the sensitivity with respect to the integer parameter.
+
+
+
+
+                                                                                           38
+CHAPTER 3. METHODOLOGY
+
+
+     Integer-level sensitivities are aggregated over input columns with an ℓ2 norm:
+
+                                                       )︂2 1/2
+                                      (︄ d                )︄
+                                           in (︂
+                          (h,r)
+                                        ∑︂       (h,r)
+                        Sa        =             Sab                              (3.60)
+                                        b=1
+                                            (︄ d                   )︄1/2
+                                    ⃓ ⃓ ∑︂       in (︂        )︂2
+                                    ⃓ (r) ⃓             (h)
+                                  = ⃓k̂a ⃓             αa,γ(b) x2b       .       (3.61)
+                                                 b=1
+
+
+This dimension-level quantity is an ℓ2 -aggregated sensitivity heuristic used to
+choose where to search. It is not the exact benefit of a legal move and is not an
+optimal correction-capacity measure. Every admitted integer candidate must still
+satisfy the exact loss-decrease condition.
+Kneedle-Based Protection and Candidate Region
+   For each pair (h, r), let πh,r (t) be the original query-output index at sorted posi-
+tion t, with sensitivities ordered decreasingly:
+
+                             (h,r)          (h,r)                 (h,r)
+                           Sπh,r (1) ≥ Sπh,r (2) ≥ · · · ≥ Sπh,r (dh ) .         (3.62)
+
+Before applying Kneedle [1], both axes are normalized to the unit interval. For
+dh > 1, define normalized rank
+
+                                       t−1
+                             ut =            ,         t = 1, . . . , dh ,       (3.63)
+                                      dh − 1
+
+and, when the sensitivity range is nonzero, normalized decreasing sensitivity
+
+                                              (h,r)       (h,r)
+                                           Sπh,r (t) − Sπh,r (dh )
+                                   yt =       (h,r)       (h,r)
+                                                                     .           (3.64)
+                                           Sπh,r (1) − Sπh,r (dh )
+
+Kneedle is configured for a decreasing, convex curve (ut , yt ) with sensitivity pa-
+rameter κ. Let ρh,r denote the detected knee position. The knee itself is included in
+the protected extreme region:
+
+                             Ph,r = {πh,r (1), . . . , πh,r (ρh,r )}.            (3.65)
+
+With moderate-region width HR , the allowed query-output rows are
+
+                Mh,r = {πh,r (ρh,r + 1), . . . , πh,r (min(ρh,r + HR , dh ))}.   (3.66)
+
+
+     This definition makes the normalization, curve direction, and treatment of the
+
+
+39
+                                                                CHAPTER 3. METHODOLOGY
+
+
+knee explicit. If dh ≤ 1, all dimension sensitivities are equal, the normalized sen-
+sitivity denominator is zero, or Kneedle reports no knee under the selected κ, the
+conservative fallback is to skip ReFlip for query head h. The fallback avoids invent-
+ing an arbitrary moderate region when the sensitivity curve supplies no defensible
+transition.
+   Kneedle determines only a candidate region. It does not certify that the pro-
+tected set, moderate set, or final integer configuration is optimal. Within Mh,r ,
+integer-level sensitivities may order candidates, but the exact ∆L(h,r)
+                                                                  ab    remains the
+sole acceptance criterion.
+Greedy ReFlip Procedure
+   ReFlip proceeds query head by query head. For h ∈ Gr , it begins from current
+  (h)         (r)
+ŴQ , fixed ŴK , and exact residual eh,r . It computes integer-level and dimension-
+level sensitivities, applies the normalized decreasing-curve Kneedle rule, protects
+Ph,r , and searches only Mh,r when a valid knee exists.
+                                     (h)
+   For each legal candidate (a, b, ∆zab  ), the method evaluates
+
+                                     (h,r)       (r)      (h)        (h)
+                               ∆sab          = k̂a xb αa,γ(b) ∆zab                (3.67)
+
+and
+                                                              1
+                                                                (︂      2  )︂
+                             (h,r)                (h,r)           (h,r)
+                        ∆Lab         = eh,r ∆sab          +     ∆sab      .       (3.68)
+                                                              2
+Candidates with nonnegative exact loss change are rejected. When both symmetric
+                           (h,r)
+directions are legal and Sab     > 0, at most one can strictly reduce the quadratic
+                                                         (︂        )︂2
+                                                             (h,r)
+loss because the sum of the two exact loss changes is Sab              > 0. The unique
+improving direction, when it exists, is accepted and all affected current-state quan-
+tities are updated before another candidate is evaluated. The procedure stops at its
+accepted-change budget, its pass budget, or a pass with no accepted candidate.
+   The exact acceptance condition has the equivalent form
+                                 ⃓               ⃓
+                                           (h,r) ⃓
+                                 ⃓eh,r + ∆sab ⃓ < |eh,r |.                        (3.69)
+                                 ⃓
+
+
+Thus, ReFlip accepts a change only when it moves the current per-head surrogate
+closer to its full-precision scalar target. The quadratic term rejects a step that over-
+shoots the target by more than it corrects.
+Scope and Limitations of ReFlip
+   ReFlip directly targets a query–key interaction that Flip does not model. A resid-
+ual caused partly by ŴK(r) −WK(r) can be reduced by a compensating change in ŴQ(h) .
+
+                                                                                     40
+CHAPTER 3. METHODOLOGY
+
+
+This is a functional correction: the selected query weight need not become closer
+to its full-precision value. In particular, an accepted ReFlip change may increase
+the query-head projection residual
+
+                                                           ⃦2
+                                   ⃦ (︂                )︂⊤ ⃦
+                             (h) ⃦          (h)  (h)
+                                 ⃦x
+                            JQ = ⃦        ŴQ − WQ         ⃦
+                                                           ⃦                 (3.70)
+                                                           2
+
+while strictly reducing Lh,r . The two objectives measure different quantities, so
+ReFlip makes no monotonicity claim for JQ(h) .
+   The candidate surrogate change and loss change are exact only for the defined
+unscaled representative-vector scalar. ReFlip does not directly preserve scores be-
+tween distinct token rows, scaled logits, the softmax distribution, or the value-
+weighted attention output. A lower per-head scalar loss is evidence only for that
+targeted criterion.
+   ReFlip is also greedy and discrete. Candidate ordering and the Kneedle-selected
+region can affect the endpoint, and a sequence of individually rejected changes
+may be beneficial if applied jointly. Kneedle does not remove this limitation and
+does not provide an optimality certificate. ReFlip therefore guarantees strict local
+improvement only for every accepted change under the stated scalar objective; it
+does not guarantee a globally optimal query matrix.
+3.7    Unified Refinement Procedure
+   The complete methodology follows a consistent sequence from initialization to
+local projection correction and then to scalar interaction correction.
+Stage 1: Calibration and Quantization
+   First, calibration activations are summarized into the empirical statistic x̃ and
+then shrunk toward target m to obtain the representative activation x. Next, each
+selected projection matrix is partitioned along the input dimension into quantiza-
+tion groups using the mapping γ . Group-specific asymmetric INT4 scales and zero
+points are computed from zero-inclusive ranges, and RTN initializes the stored
+integers. This stage produces dequantized query-, key-, and value-head approxi-
+mations under a common legal integer representation while preserving the distinct
+GQA head-sharing structure.
+Stage 2: Flip
+     For each projection selected for Flip, compute
+
+                     E = Ŵ − W,          r = xE ⊤ ,     J = ∥r∥22 .         (3.71)
+
+
+
+41
+                                                           CHAPTER 3. METHODOLOGY
+
+
+Evaluate legal one-step integer candidates. For a candidate at (j, i), use
+
+                      ∆J = 2rj xi δ + (xi δ)2 ,            δ = αj,γ(i) ∆z.                     (3.72)
+
+Accept only a strictly negative exact objective change and immediately update rj .
+Repeat until the Flip stopping rule is met. The result is a projection matrix whose
+aggregate residual under x is no larger than at the beginning of the accepted se-
+quence.
+Stage 3: ReFlip
+   After the chosen Flip refinements, process every query head h ∈ Gr against its
+fixed shared key head r. Compute
+         [︂          ]︂ [︂          ]︂                     [︂               ]︂ [︂         ]︂
+               (h)            (r)                                  (h)              (r)
+  s⋆h,r = x(WQ )⊤ · x(WK )⊤ ,                    ŝh,r = x(ŴQ )⊤ · x(ŴK )⊤ ,                 (3.73)
+
+
+and set eh,r = ŝh,r − s⋆h,r . Hold ŴK(r) fixed for every query head in Gr . Compute
+integer-level and dimension-level sensitivities from current k̂ (r) , apply the normal-
+ized decreasing-curve Kneedle configuration, include the detected knee in the pro-
+tected region, and admit the moderate region immediately after it. If the curve has
+no valid knee, skip ReFlip for that query head.
+   For every allowed query candidate, evaluate
+
+                                 (h,r)       (r)    (h)           (h)
+                             ∆sab        = k̂a xb αa,γ(b) ∆zab                                 (3.74)
+
+and                                                                       )︂2
+                                            1
+                                                           (︂
+                          (h,r)       (h,r)                       (h,r)
+                        ∆Lab = eh,r ∆sab +                      ∆sab            .              (3.75)
+                                            2
+
+Accept only ∆L(h,r)
+                ab   < 0, update the per-head scalar residual after each accepted
+change, and terminate under the ReFlip stopping rule. No key or value integer is
+modified during this stage.
+Monotonicity of Accepted Changes
+   The two stages have simple monotonicity properties under their own stated ob-
+jectives. Every accepted Flip change satisfies
+
+                                     Jafter < Jbefore ,                                        (3.76)
+
+and every accepted ReFlip change satisfies
+
+                                         (h,r)     (h,r)
+                                    Lafter < Lbefore .                                         (3.77)
+
+
+                                                                                                  42
+CHAPTER 3. METHODOLOGY
+
+
+These properties follow from exact objective differences and immediate residual
+updates. They do not imply monotonic improvement in a different metric, such as
+unweighted weight reconstruction error, the complete attention matrix, language-
+model loss, or downstream task quality.
+   The order of the stages matters conceptually. Flip first improves each selected
+projection under an activation-weighted output objective. ReFlip then observes
+each per-query-head surrogate residual left by the current quantized query and
+shared key heads and uses query-only compensation. Reversing the stages would
+change the scalar residual and sensitivity profile against which ReFlip operates.
+3.8    Hyperparameters and Design Choices
+     The methodology exposes its principal choices as explicit hyperparameters.
+     • Bit width B . The present formulation fixes B = 4, giving the legal unsigned
+       integer set Z4 = {0, . . . , 15}. The symbol B is distinct from input-column
+       index b.
+     • Quantization-group size G. The group size determines the column-to-group
+       mapping γ(b) and the granularity of scales and zero points. Smaller groups
+       increase quantization metadata but can better adapt to local weight ranges.
+       This quantity is distinct from the GQA head set Gr .
+     • Calibration sample count Ncal . This controls the amount of activation data
+       used to estimate x̃, the shrinkage target, and the noise level.
+     • James–Stein target m and noise estimate σ̂ 2 . These determine the shrinkage
+       factor λ and therefore the representative activation used by both exact objec-
+      tives.
+     • Flip pass budget TF . This is the maximum number of scans over eligible Flip
+       coordinates.
+     • Flip acceptance budget BF . This limits the total number of accepted integer
+       changes for a projection or layer.
+     • Flip improvement tolerance εF . In finite precision, the strict mathematical
+       condition ∆J < 0 may be implemented conservatively as ∆J < −εF .
+     • ReFlip Kneedle sensitivity κ. This controls how the knee detector responds
+      to curvature in the sorted dimension-sensitivity curve.
+     • Moderate-region width HR . This determines how many sorted dimensions
+       immediately after the knee are eligible for ReFlip.
+     • ReFlip pass budget TR and acceptance budget BR . These bound the greedy
+
+43
+                                                    CHAPTER 3. METHODOLOGY
+
+
+      search over legal query-integer changes.
+   • ReFlip improvement tolerance εR . A conservative finite-precision rule ac-
+     cepts only ∆L(h,r)
+                  ab    < −εR .
+
+   • Candidate order. Flip candidates may be ordered by potential activation-
+                                                                               (h,r)
+     weighted step magnitude, while ReFlip candidates may be ordered by Sab          .
+     Ordering affects the greedy path but never replaces the exact acceptance tests.
+    The one-step neighborhood ∆z ∈ {−1, +1} is part of the method rather than
+an unconstrained hyperparameter. It keeps changes local on the existing INT4 grid
+and makes both objective differences exact and inexpensive to evaluate. Multiple
+accepted one-step changes may eventually move an integer by more than one level
+if the candidate is revisited and every intermediate change remains legal and strictly
+beneficial.
+   Hyperparameter selection should respect the distinction between refinement op-
+portunity and refinement risk. Very large budgets or a wide post-knee region cre-
+ate more opportunities to reduce the calibration objective but can increase depen-
+dence on the representative activation. Conservative budgets, shrinkage, protected
+extreme dimensions, and positive improvement tolerances provide regularization
+against such over-specialization.
+3.9   Theoretical Discussion
+From Scalar Reconstruction to Functional Residuals
+   The methodology is motivated by a hierarchy of objectives. RTN minimizes
+isolated scalar weight error for fixed quantization parameters. Flip moves to a
+projection-level functional residual,
+
+                                    x(Ŵ − W )⊤ ,                              (3.78)
+
+which accounts for activation magnitude, error sign, and cancellation within each
+output row. For query head h ∈ Gr , ReFlip then moves to the per-head scalar surro-
+gate objective
+                               1 (h) (r)
+                                [︂                        ]︂2
+                        Lh,r =     q̂ · k̂ − q (h) · k (r) ,                 (3.79)
+                                2
+which accounts for the coupling between one query head and its shared GQA key
+head while constraining changes to the quantized query-head matrix.
+   Each level deliberately sacrifices breadth for tractability. The objectives are
+compact enough to permit exact evaluation of every legal one-step candidate. This
+avoids the ambiguity of claiming that a local scalar change optimizes a large down-
+
+
+                                                                                   44
+CHAPTER 3. METHODOLOGY
+
+
+stream object through an unverified approximation. The trade-off is that exactness
+applies only to the specified representative objectives.
+Why Query-Only Compensation Can Help
+   The surrogate residual can be expanded conceptually as the difference between a
+dot product of two quantized projected vectors and the corresponding full-precision
+dot product. Its value reflects errors in both vectors and their interaction. Once
+  (r)                      (h)
+ŴK is fixed, changing ŴQ alters one side of the dot product while leaving the
+other side as the reference direction for correction. A suitable query-head change
+can therefore offset part of the surrogate error associated with the fixed shared
+quantized key head.
+   This compensation does not require the modified query weight to approach its
+original value. It requires only that the exact change in ŝh,r reduce |ŝh,r − s⋆h,r |. Re-
+Flip is thus aligned with the same general principle as Flip: a functional aggregate
+can improve even when an individual scalar reconstruction becomes worse. The
+query projection residual can likewise become worse because it is not the ReFlip
+acceptance objective.
+Role of Sensitivity Protection
+   Sensitivity has two competing interpretations. A high-sensitivity parameter can
+correct a residual with a small number of integer changes, but it can also overshoot
+the target or make the result fragile to calibration variation. ReFlip therefore does
+not simply choose the largest sensitivities. It protects dimensions in the extreme
+pre-knee region and searches the moderate region immediately after the knee.
+    This policy is intentionally risk-aware rather than optimal. The Kneedle parti-
+tion adapts to the shape of each query head’s dimension-sensitivity distribution,
+while the exact loss test ensures that an admitted candidate is accepted only when
+it improves the current scalar objective. The separation between heuristic admis-
+sion and exact acceptance is central: sensitivity controls where to search, whereas
+   (h,r)
+∆Lab determines whether to change an integer.
+
+Boundaries of the Claims
+    Several boundaries follow directly from the formulation. First, the represen-
+tative activation is a James–Stein-shrunk calibration summary, not the complete
+activation distribution. Second, Flip exactly reduces only its projection residual
+objective for accepted changes. Third, ReFlip exactly reduces only its per-query-
+head representative-vector Q–K surrogate loss for accepted changes. Fourth, Re-
+Flip modifies ŴQ(h) only and makes no update to ŴK(r) or ŴV(r) .
+     Most importantly, the ReFlip scalar surrogate does not preserve the full pairwise
+
+45
+                                                  CHAPTER 3. METHODOLOGY
+
+
+attention matrix. In a complete sequence, queries and keys arise from different
+token rows, and attention computation includes many cross-token dot products. A
+single unscaled surrogate based on x cannot constrain all of them. The method
+also does not directly optimize the softmax transformation or the value-weighted
+attention output. These limitations do not invalidate the targeted objectives, but
+they prevent stronger claims than the mathematics supports.
+Discrete Search and Optimality
+  Both Flip and ReFlip perform greedy coordinate search on a finite integer grid.
+Their accepted changes are monotonic under their respective objectives, and ter-
+mination is guaranteed under finite budgets. Without an explicit budget, strict de-
+crease on a finite state space also rules out cycles, although repeated scans may be
+undesirable.
+   Neither procedure guarantees a globally optimal quantized matrix. Flip can miss
+coordinated changes that are beneficial only when applied together. ReFlip can
+miss a sequence whose first step is neutral or unfavorable but whose combined
+effect is favorable. Candidate ordering, budget choices, and the Kneedle-selected
+region can all influence the endpoint. Kneedle itself is a heuristic detector, not an
+optimality guarantee. The methodological claim is therefore limited to exact evalu-
+ation and strict improvement of accepted local changes under the stated objectives.
+3.10   Summary
+   This chapter has defined a post-training refinement methodology for group-
+wise asymmetric INT4 attention projections under a consistent row-vector conven-
+tion. A representative James–Stein-shrunk activation x provides the calibration sig-
+nal. The initial RTN quantizer assigns legal integers zab with quantization-group-
+specific scales αa,γ(b) and zero points ζa,γ(b) . Zero-inclusive ranges define one-sided
+groups without ambiguity, while all-zero degenerate groups use an explicit exact
+frozen representation.
+   Flip refines a projection matrix through the exact objective
+                                                   ⃦2
+                                J = ⃦x(Ŵ − W )⊤ ⃦2 .
+                                     ⃦
+                                                                                 (3.80)
+
+For a legal dequantized change δ at (j, i), it evaluates
+
+                                ∆J = 2rj xi δ + (xi δ)2                          (3.81)
+
+and accepts only strict reductions. RTN remains the minimizer of isolated scalar
+weight error; Flip can improve the aggregate activation-weighted residual by al-
+
+                                                                                     46
+CHAPTER 3. METHODOLOGY
+
+
+lowing signed error cancellation, even when an individual weight becomes less
+accurate.
+   For each query head h ∈ Gr , ReFlip holds shared ŴK(r) fixed and updates ŴQ(h)
+only. It targets the unscaled representative-vector Q–K surrogate loss
+
+                                      1 (h) (r)
+                                         [︂                    2                  ]︂
+                            Lh,r =      q̂ · k̂ − q (h) · k (r) .                           (3.82)
+                                      2
+
+A legal unit integer change has exact surrogate effect
+
+                                     (h,r)        (r)        (h)            (h)
+                              ∆sab            = k̂a xb αa,γ(b) ∆zab ,                       (3.83)
+
+integer-level sensitivity                        ⃓                      ⃓
+                                  (h,r) ⃓ (r) (h) ⃓
+                                 Sab = ⃓k̂a xb αa,γ(b) ⃓ ,                                  (3.84)
+
+and dimension sensitivity
+                                        (︄             )︄1/2
+                                ⃓ ⃓ ∑︂ (︂         )︂2
+                        (h,r)   ⃓ (r) ⃓     (h)
+                       Sa     = ⃓k̂a ⃓     αa,γ(b) x2b       .                              (3.85)
+                                                     b
+
+
+Kneedle is applied per query head to a unit-normalized decreasing, convex sensi-
+tivity curve. It includes the detected knee in the protected extreme region, admits
+a moderate region immediately after it, and conservatively skips a head when no
+valid knee exists. Each admitted candidate is evaluated using the exact loss change
+
+                                                                 1
+                                                                   (︂      2           )︂
+                             (h,r)                   (h,r)           (h,r)
+                        ∆Lab         = eh,r ∆sab             +     ∆sab      ,              (3.86)
+                                                                 2
+
+and the per-head scalar residual is updated after every accepted change. Such a
+change may worsen query projection residual while reducing the targeted scalar
+loss.
+The resulting procedure retains the theoretical memory advantages and
+deployment form of group-wise INT4 weight-only quantization. Its guarantees are
+deliberately limited to the stated objectives. Kneedle is heuristic, greedy
+refinement is not globally optimal, and the scalar ReFlip surrogate does not
+preserve the full pairwise attention matrix. Within these boundaries, Flip first
+corrects the projection residual under the representative activation, and ReFlip
+then performs exact per-query-head compensation of the unscaled
+representative-vector Q–K surrogate.
+
+
+
+
+47
+               CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+4.1   Experimental Setup
+   This chapter evaluates whether the proposed Flip and ReFlip refinements are
+accompanied by lower quantization distortion than standard round-to-nearest quan-
+tization and established post-training quantization baselines. The evaluation is or-
+ganized into two complementary levels. The first is a tightly bounded standalone
+case study that exposes the local scalar Q–K score distortion for one grouped-
+query-attention setting. The second compares full-model perplexity and down-
+stream task accuracy after 4-bit quantization. The local study directly examines
+the surrogate objective targeted by the refinements, whereas the full-model com-
+parison describes end-to-end behavior without isolating a single projection, layer,
+or correction decision.
+   The standalone case study follows the Transformer attention formulation [14]
+and the grouped-query-attention (GQA) structure used by modern decoder-only
+language models [16]. Its scope is deliberately narrow: one representative acti-
+vation vector is evaluated at Llama-3-8B layer 8, GQA group 3, which contains
+four query heads sharing one key/value head. The representative vector is formed
+from C4 calibration activations [18]: 128 samples of sequence length 512 pro-
+vide 65536 token-level activation observations over 4096 hidden dimensions, and
+James–Stein-inspired shrinkage [2] stabilizes the channel-wise mean used as the
+representative vector. The study evaluates the unscaled scalar Q–K surrogate for
+the four query heads. It does not evaluate an attention matrix, a complete attention
+block, or the value projection WV .
+
+
+
+
+                                                                                 48
+CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+     Table 4.1: Configuration and evidence boundary of the standalone Q–K case study.
+     Item                Configuration
+     Evaluated setting   Llama-3-8B, layer 8, GQA group 3
+     GQA structure       Four query heads sharing one key/value head
+     Calibration obser-  128 C4 samples, sequence length 512; 65536 × 4096 ac-
+     vations             tivations
+     Evaluation input    One James–Stein-shrunk representative activation vec-
+                         tor
+     Weight    quantiza- Asymmetric INT4, group size 128
+     tion
+     Evaluated projec- WQ and WK
+     tions
+     Evaluated quantity Unscaled scalar Q–K surrogate per query head
+     Not evaluated      WV , attention matrices, and complete attention outputs
+
+
+
+   The full-model comparison covers Mistral-7B [19], Llama-3/Llama-3.1 8B
+[20], and Qwen2.5-7B [21]. Only the metrics considered in this thesis are reported:
+WikiText-2 perplexity, C4 perplexity, ARC-Challenge, ARC-Easy, BoolQ, PIQA,
+RTE, and the average of the five accuracy tasks. WikiText-2 is a language mod-
+eling benchmark introduced with the WikiText corpus [22], while C4 originates
+from the T5 work [18]. ARC-Challenge and ARC-Easy measure science-question
+reasoning [23]; BoolQ measures natural yes/no question answering [24]; PIQA
+measures physical commonsense reasoning [25]; and RTE is included through
+the GLUE benchmark family [26]. A reproducible language-model evaluation
+framework supports consistent task definitions across models [27]. Only reported
+metric values are compared; unavailable values are neither inferred nor substituted.
+   For WikiText-2 and C4, lower perplexity is better. For ARC-Challenge, ARC-
+Easy, BoolQ, PIQA, RTE, and their average, higher accuracy is better. The reported
+average is computed over the five selected downstream accuracy metrics:
+
+                               arc-c + arc-e + boolq + piqa + rte
+                       avg =                                      .
+                                                5
+
+Full precision is shown as a reference baseline rather than as a competitor in the
+quantized-method ranking. It is not assumed to be an absolute ceiling because a
+finite evaluation can occasionally favor a quantized model on an individual metric.
+In the full-model tables, bold values indicate the best reported quantized result for
+a metric within the same model, and underlined values indicate the second-best
+reported quantized result. Ties at the second-best value are all underlined. Full-
+
+49
+                                  CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+precision values are not highlighted.
+    The method names are normalized for clarity. The full-precision model is de-
+noted as Full precision. Standard round-to-nearest quantization is denoted as RTN;
+it is the direct rounding baseline commonly used before more data-aware recon-
+struction is considered [5], [7], [8]. GPTQ uses approximate second-order informa-
+tion to quantize pretrained Transformer weights [9]. AWQ is an activation-aware
+weight-only quantization method that protects salient channels using calibration
+statistics [10]. A method labelled “+ Flip” applies the Flip refinement to its named
+baseline, while “+ ReFlip” denotes the corresponding result after the ReFlip re-
+finement. In the standalone case study, where ReFlip explicitly begins from the
+Flip-refined state, the complete third stage is labelled Flip + ReFlip.
+   These two evaluation levels answer different questions. The standalone case
+study measures the exact quantity selected for its local comparison, so it can show
+how the three successive quantized states differ for the representative vector. The
+full-model tables instead report aggregate behavioral metrics influenced by all
+model components. They can establish which reported model–method combina-
+tions have lower perplexity or higher task accuracy, but they cannot by themselves
+attribute a full-model difference exclusively to a particular local correction.
+4.2   Standalone Q–K Surrogate Evaluation
+  The standalone case study compares three successive quantized states under
+the same INT4 group-wise quantization setting. RTN performs direct round-to-
+nearest quantization. Flip then adjusts selected integer levels to reduce the ag-
+gregate activation-weighted projection residual. Finally, ReFlip begins from the
+Flip-refined state, keeps the quantized key projection fixed, and updates selected
+query-weight integer levels according to the remaining scalar Q–K surrogate loss.
+The resulting third state is therefore denoted as Flip + ReFlip, rather than ReFlip
+alone.
+   For query head h, let s⋆h be the full-precision scalar Q–K surrogate and let ˆ︁
+                                                                                sh,m
+be the score obtained by quantized state m. The reported absolute and relative
+errors are
+                           ⃓            ⃓            eh,m
+                  eh,m = ⃓ˆ︁ sh,m − s⋆h ⃓ ,  erel
+                                               h,m =      × 100%.
+                                                     |s⋆h |
+Across the four query heads, mean absolute error (MAE) and maximum absolute
+error are
+                                4
+                             1 ∑︂
+                   MAEm =               eh,m ,   emax
+                                                  m = max eh,m .
+                              4                               h
+                                  h=1
+
+
+
+
+                                                                                 50
+CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+Two reduction summaries are reported because they weight heads differently. The
+mean of per-head percentage reductions gives equal importance to every head after
+normalizing by its own RTN error:
+
+                                                                 4
+                                             100 ∑︂ eh,RTN − eh,m
+                           Rhead (RTN → m) =                      .
+                                              4         eh,RTN
+                                                               h=1
+
+
+The aggregate-MAE reduction first aggregates absolute errors and then computes
+one percentage:
+
+                                                              MAERTN − MAEm
+                          RMAE (RTN → m) = 100                              .
+                                                                 MAERTN
+
+Consequently, Rhead gives a relatively small-error head the same influence as a
+large-error head, whereas RMAE places more influence on heads contributing more
+absolute error.
+
+Table 4.2: Standalone scalar Q–K surrogate error on Llama-3-8B layer 8, GQA group 3.
+Method        Mean abs. error Max abs. error Mean rel. error (%) Rhead (%) RMAE (%) Incremental flips Cumulative flips
+RTN                0.142806       0.253523               0.5330          –        –                 0                0
+Flip               0.070070       0.113184               0.2666      41.63    50.93          20,889           20,889
+Flip + ReFlip      0.047939       0.068937               0.1934      56.63    66.43                64         20,953
+
+
+
+
+   Table 4.2 separates the number of changes introduced at each stage from
+the cumulative number present in the final state. Flip introduces 20,889 integer
+changes across the selected Q and K projections, corresponding to approximately
+0.7969% of the involved weights. ReFlip then introduces 64 additional query-
+weight changes; therefore, the final Flip + ReFlip state contains 20,953 cumulative
+changes relative to RTN. The additional stage is accompanied by a decrease in
+mean absolute scalar-score error from 0.070070 to 0.047939. Relative to RTN, the
+final state has a 56.63% mean per-head reduction and a 66.43% aggregate-MAE
+reduction. Relative to Flip itself, the corresponding incremental reductions are
+27.14% and 31.58%, respectively.
+
+
+       Table 4.3: Per-head scalar Q–K surrogate errors in the standalone case study.
+Head RTN error          Flip error Flip + ReFlip error RTN to Flip (%) RTN to Flip + ReFlip (%)
+0     0.092831          0.062511            0.034649             32.66                    62.68
+1     0.253523          0.113184            0.068937             55.36                    72.81
+2     0.192633          0.078560            0.063698             59.22                    66.93
+3     0.032239          0.026023            0.024472             19.28                    24.09
+
+
+
+     The per-head results in Table 4.3 show lower absolute scalar-score error for
+
+51
+                                     CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+the Flip + ReFlip state than for RTN or Flip on all four query heads in this case
+study. The magnitude is not uniform across heads: head 1 has the largest RTN-to-
+Flip + ReFlip percentage reduction, while head 3 has the smallest. The arithmetic
+distinction between the two reduction summaries is visible here. Head 3 has the
+smallest RTN absolute error and therefore contributes little to aggregate MAE, yet
+its comparatively modest percentage reduction receives equal weight in Rhead . This
+is why the 56.63% mean per-head reduction is lower than the 66.43% aggregate-
+MAE reduction.
+
+
+
+
+   (a) Mean and maximum attention errors.            (b) Attention error by query head.
+
+Figure 4.1: Standalone scalar Q–K surrogate error comparison across RTN, Flip, and Flip
++ ReFlip.
+
+
+
+
+(a) Error reduction from RTN to Flip + ReFlip.      (b) Flip cost versus error reduction.
+
+            Figure 4.2: Per-head correction behavior and cost-benefit analysis.
+
+
+   Figures 4.1 and 4.2 visualize the same bounded case study. The bars compare
+independent query heads; adjacency on the horizontal axis does not imply an or-
+dering relationship or a trend between heads. Flip is associated with the larger first
+decrease in absolute scalar-score error and changes a small fraction of the selected
+projection weights. The subsequent ReFlip stage is associated with a further de-
+crease while introducing 64 additional changes, so within this representative-vector
+comparison it behaves as a targeted correction rather than a broad re-quantization
+pass.
+
+                                                                                            52
+CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+   The evidence boundary is important. These numbers characterize one repre-
+sentative activation vector at one layer and one GQA group. They do not mea-
+sure token-to-token attention matrices, softmax-normalized attention probabilities,
+value-projection distortion, or final attention outputs. In particular, WV is not eval-
+uated in this standalone study. The results therefore demonstrate the behavior of
+the selected scalar Q–K surrogate in this case, but they do not establish that ev-
+ery activation, head group, layer, or complete attention output changes by the same
+proportion.
+4.3   Full-Model Evaluation
+   The full-model results describe end-to-end behavior for four model families:
+Mistral-7B, Llama-3.1-8B, Qwen2.5-7B, and Llama-3-8B. For each model, the ta-
+bles report available 4-bit quantization results for RTN, AWQ, GPTQ, and their
+Flip/ReFlip variants. Perplexity and downstream accuracy reflect the complete
+model and therefore complement, rather than directly validate, the isolated scalar
+Q–K case study. A lower perplexity indicates that the evaluated model assigns
+higher probability to the observed language sequence on average. Higher down-
+stream accuracy indicates a larger proportion of correct task predictions. The five-
+task average gives each selected accuracy task equal weight, regardless of dataset
+size.
+    The tables are interpreted descriptively. A difference between a baseline and its
+Flip or ReFlip variant is an observed association for the reported model and metric;
+it does not isolate which layer, projection, or individual correction produced the
+difference. No unavailable metric is filled or inferred. Bold and underline identify
+the first- and second-ranked quantized values within each model after excluding
+the full-precision reference baseline.
+
+
+
+
+53
+                                 CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+Table 4.4: Full-model 4-bit evaluation for Mistral-7B. Bold marks the best quantized re-
+sult; underline marks the second-best quantized result.
+Method           Wiki     C4 arc-c arc-e boolq piqa          rte   avg
+Full precision  4.845 7.535 0.509 0.802 0.837 0.800 0.686 0.7268
+RTN            4.9917 7.8047 0.4761 0.7875 0.8248 0.7992 0.6643 0.7104
+RTN + ReFlip 4.9704 7.7167 0.4804 0.7934 0.8202 0.8014 0.6751 0.7141
+RTN + Flip     4.9948 7.738 0.4744 0.7887 0.8275 0.7987 0.6606 0.7100
+AWQ             4.975 7.727 0.493 0.794 0.817 0.797 0.671 0.7144
+AWQ + ReFlip 4.965 7.711 0.495 0.795 0.818 0.802 0.690 0.7200
+AWQ + Flip      4.975 7.726 0.493 0.793 0.815 0.798 0.678 0.7154
+GPTQ            4.978 7.744 0.480 0.795 0.820 0.798 0.675 0.7136
+GPTQ + ReFlip 4.967 7.736 0.483 0.796 0.821 0.800 0.678 0.7156
+GPTQ + Flip     4.979 7.745 0.480 0.795 0.819 0.798 0.675 0.7134
+
+
+
+
+Table 4.5: Full-model 4-bit evaluation for Llama-3.1-8B. Bold marks the best quantized
+result; underline marks the second-best quantized result.
+Method           Wiki     C4 arc-c arc-e boolq piqa          rte   avg
+Full precision  5.522 8.409 0.522 0.822 0.830 0.791 0.711 0.7352
+RTN            6.0248 9.4397 0.4898 0.8064 0.7990 0.7835 0.6351 0.7028
+RTN + ReFlip 5.9727 9.3692 0.5051 0.8068 0.7928 0.7867 0.6531 0.7089
+RTN + Flip     6.0815 9.6308 0.4872 0.8009 0.8075 0.7845 0.6315 0.7023
+AWQ             5.968 9.321 0.511 0.806 0.794 0.798 0.635 0.7088
+AWQ + ReFlip 5.949 9.294 0.512 0.808 0.796 0.796 0.671 0.7166
+AWQ + Flip      5.968 9.316 0.507 0.803 0.790 0.796 0.632 0.7056
+GPTQ            5.995 9.304 0.505 0.804 0.795 0.793 0.651 0.7096
+GPTQ + ReFlip 5.989 9.300 0.507 0.806 0.790 0.797 0.663 0.7126
+GPTQ + Flip     5.992 9.304 0.499 0.803 0.792 0.793 0.659 0.7092
+
+                                                                                     54
+CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+Table 4.6: Full-model 4-bit evaluation for Qwen2.5-7B. Bold marks the best quantized
+result; underline marks the second-best quantized result.
+ Method             Wiki      C4    arc-c    arc-e boolq    piqa       rte      avg
+ Full precision 6.0839 10.8166 0.477 0.804 0.846 0.787             0.815     0.7458
+ RTN              6.6915 12.2029 0.4506 0.7784 0.8302 0.7662 0.8016          0.7254
+ RTN + ReFlip 6.6366 11.8779 0.45162 0.77125 0.83264 0.76782 0.816018 0.7278696
+ RTN + Flip       6.6427 12.1076 0.44138 0.76832 0.82685 0.7651 0.823258 0.7249816
+ AWQ              6.4677 11.4443 0.469 0.786 0.842 0.780            0.805    0.7364
+ AWQ + ReFlip 6.438 11.363 0.473 0.792 0.847 0.782                 0.819     0.7426
+ AWQ + Flip        6.467 11.450 0.459 0.787 0.843 0.787             0.815    0.7382
+ GPTQ              6.708 11.539 0.454 0.781 0.805 0.780            0.769     0.7178
+ GPTQ + ReFlip 6.702 11.534 0.459 0.779 0.814 0.779                0.787     0.7236
+ GPTQ + Flip       6.709 11.538 0.451 0.779 0.805 0.778            0.769     0.7164
+
+
+
+
+Table 4.7: Full-model 4-bit evaluation for Llama-3-8B. Bold marks the best quantized
+result; underline marks the second-best quantized result.
+Method           Wiki     C4 arc-c arc-e boolq piqa        rte   avg
+Full precision  5.442 8.346 0.505 0.800 0.813 0.796 0.696 0.7220
+RTN            6.0572 9.5846 0.4789 0.780 0.791 0.784 0.628 0.6924
+RTN + ReFlip 6.0236 9.2523 0.490 0.781 0.796 0.7818 0.6679 0.7033
+RTN + Flip     6.0711 9.3279 0.4806 0.782 0.794 0.7802 0.6390 0.6952
+AWQ             5.910 9.240 0.488 0.784 0.795 0.791 0.646 0.7008
+AWQ + ReFlip 5.885 9.199 0.493 0.788 0.799 0.788 0.679 0.7094
+AWQ + Flip      5.906 9.234 0.489 0.784 0.796 0.792 0.617 0.6956
+GPTQ            6.011 9.370 0.487 0.783 0.798 0.788 0.689 0.7090
+GPTQ + ReFlip 6.013 9.354 0.489 0.790 0.795 0.788 0.693 0.7110
+GPTQ + Flip     6.014 9.371 0.486 0.783 0.795 0.787 0.686 0.7074
+
+
+4.4   Discussion
+   The standalone case study provides the most direct comparison with the local
+scalar surrogate considered in this thesis. For the selected representative activation
+vector, independent quantization errors in Q and K combine through their dot prod-
+uct. The reported states show a decrease in mean absolute scalar-score error from
+0.142806 under RTN to 0.070070 after Flip and to 0.047939 after Flip + ReFlip.
+However, the numerical size of a percentage reduction depends on the aggregation
+rule. Equal weighting of the four per-head percentages gives reductions of 41.63%
+for Flip and 56.63% for Flip + ReFlip relative to RTN. Computing the percentage
+after aggregating absolute errors gives larger reductions of 50.93% and 66.43%,
+respectively, because the heads with larger RTN errors also receive larger absolute
+
+55
+                                 CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+corrections. Reporting both prevents the smaller-error heads from being hidden by
+the aggregate while retaining a direct account of total absolute distortion.
+   The correction counts provide a second perspective on the same local compari-
+son. Flip accounts for 20,889 changes in the selected Q and K projections. The Re-
+Flip stage contributes 64 additional query-weight changes, bringing the cumulative
+count to 20,953. The final error is therefore observed after the complete sequence
+of Flip followed by ReFlip; the 64 changes should not be interpreted as the total
+distance between RTN and the final state. Within this case study, the additional 64
+changes coincide with a 27.14% mean per-head reduction, or a 31.58% aggregate-
+MAE reduction, relative to the Flip state. These observations are consistent with
+ReFlip acting as a narrower second-stage adjustment for the selected scalar objec-
+tive, but they do not establish the same cost–benefit relationship outside this layer,
+group, and representative vector.
+   The full-model task results are more heterogeneous because each metric de-
+pends on the complete network rather than on one scalar score in one GQA group.
+On Mistral-7B, AWQ + ReFlip has the best quantized WikiText-2 and C4 per-
+plexities, ARC-Challenge, PIQA, RTE, and five-task average. GPTQ + ReFlip has
+the highest quantized ARC-Easy score, while RTN + Flip has the highest quan-
+tized BoolQ score. The best quantized method therefore varies by task even though
+AWQ + ReFlip leads the average. Relative to their named baselines, all three + Re-
+Flip variants have a higher five-task average: RTN changes from 0.7104 to 0.7141,
+AWQ from 0.7144 to 0.7200, and GPTQ from 0.7136 to 0.7156.
+    On Llama-3.1-8B, AWQ + ReFlip is the best quantized method for both per-
+plexity metrics, ARC-Challenge, ARC-Easy, RTE, and the five-task average of
+0.7166. GPTQ + ReFlip is second on the average with 0.7126. The recalculated
+RTN-family averages are 0.7028 for RTN, 0.7089 for RTN + ReFlip, and 0.7023
+for RTN + Flip. Thus, RTN + ReFlip is observed above RTN on the selected-task
+average and below it on both perplexity measures, while RTN + Flip has the high-
+est quantized BoolQ score but a slightly lower average than RTN. This contrast
+illustrates why an isolated winning task score and an across-task average should be
+interpreted separately.
+   On Qwen2.5-7B, AWQ + ReFlip is the best quantized method for WikiText-
+2, C4, ARC-Challenge, ARC-Easy, BoolQ, and the selected-task average. AWQ +
+Flip is second on the average and has the best quantized PIQA score. RTN + Flip
+has the best quantized RTE score, whereas RTN + ReFlip has the higher RTN-
+family average, changing from 0.7254 for RTN to 0.7279. These reported values
+
+
+                                                                                   56
+CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+again show that the ranking of a refinement can depend on whether the comparison
+concerns one task, perplexity, or an unweighted task average.
+   On Llama-3-8B, AWQ + ReFlip has the best quantized WikiText-2 and C4 per-
+plexity and the highest quantized ARC-Challenge and BoolQ scores. GPTQ + Re-
+Flip has the highest quantized ARC-Easy, RTE, and average score. The named-
+baseline comparisons for average accuracy are 0.6924 to 0.7033 for RTN and RTN
++ ReFlip, 0.7008 to 0.7094 for AWQ and AWQ + ReFlip, and 0.7090 to 0.7110
+for GPTQ and GPTQ + ReFlip. In this model, the highest average and the lowest
+perplexity are therefore obtained by different quantized method families.
+   Across the four models, every reported + ReFlip variant has a higher five-task
+average than its corresponding RTN, AWQ, or GPTQ baseline. The + ReFlip vari-
+ants also have lower perplexity than their named baselines in all reported pair-
+ings except the Llama-3-8B GPTQ WikiText-2 comparison, where 6.013 is slightly
+higher than 6.011. By contrast, the + Flip averages are more variable: some exceed
+their named baseline and others do not. These are descriptive regularities in the
+reported comparisons, not proof that one refinement causes a universal improve-
+ment or that the same ranking will hold for unreported tasks, models, quantization
+settings, or random variations.
+Evidence Boundaries and Limitations
+   Several limitations constrain the conclusions that can be drawn. First, the stan-
+dalone evaluation uses one representative activation vector rather than a distribu-
+tion of token-dependent query and key activations. Its scalar Q–K surrogate does
+not include the usual attention scaling, token-to-token score matrix, causal mask,
+softmax normalization, or value aggregation. It therefore measures a specific lo-
+cal distortion, not complete attention behavior. Second, only one layer, one GQA
+group, and four query heads are examined in the standalone case study. Variation
+across layers, groups, and activation contexts remains outside its scope.
+   Third, the standalone comparison does not evaluate WV . Consequently, it can-
+not measure whether a lower scalar Q–K surrogate error produces a lower final
+attention-output error after value mixing. Fourth, the full-model tables aggregate
+effects from the entire network. They do not expose which local changes contribute
+to a perplexity or task-accuracy difference, and they do not constitute an ablation
+that isolates Flip or ReFlip from every other source of variation. Finally, task ac-
+curacy is discrete and benchmark-specific, while the five-task average gives each
+selected task equal weight. A higher average can coexist with a lower score on an
+individual task, as several tables demonstrate.
+
+
+57
+                               CHAPTER 4. EXPERIMENTAL EVALUATION
+
+
+   Within these boundaries, the two evaluation levels remain complementary. The
+standalone results describe how RTN, Flip, and Flip + ReFlip differ for the exact
+representative-vector scalar surrogate under examination. The full-model results
+describe the perplexity and selected-task accuracy associated with the reported
+4-bit model variants. Taken together, they support a cautious conclusion: the re-
+finements are associated with lower local scalar-score distortion in the bounded
+case study and with frequently improved full-model metrics, while neither level
+establishes a universal guarantee across all attention states or downstream tasks.
+
+
+
+
+                                                                               58
+                         CHAPTER 5. CONCLUSIONS
+
+
+5.1   Summary
+   This thesis studied post-training weight quantization for large language models,
+with particular attention to the query, key, and value projections within grouped-
+query attention. Low-bit weight-only quantization can substantially reduce model
+storage and the memory traffic associated with inference. However, replacing full-
+precision weights with values on a coarse integer grid also perturbs the projection
+responses that participate in attention. The resulting distortion is not determined
+solely by the reconstruction error of each individual weight: it also depends on the
+activation multiplying that weight and on the interaction between the query and
+key projections.
+   To address these coupled effects, the thesis formulated two distinct refinement
+stages, Flip and ReFlip. Flip is an aggregate residual correction applied after round-
+to-nearest quantization. It revisits admissible integer levels and accepts a one-level
+change only when that change reduces the activation-weighted projection residual.
+Consequently, Flip does not require every modified weight to become individually
+closer to its full-precision value. A local reconstruction error may increase while
+the weighted errors within a projection row cancel more effectively, producing a
+smaller aggregate response error.
+   ReFlip addresses a different objective. It holds the quantized key projection
+fixed and updates only the quantized query projection to reduce a scalar query–
+key score surrogate. This query-only restriction makes the correction direction ex-
+plicit and separates the score-level objective from the projection-level objective
+used by Flip. Parameter-level score sensitivities are aggregated to identify query
+dimensions with moderate correction potential, while Kneedle is used only to de-
+limit a candidate region. Every proposed integer-level change must still be assessed
+against its exact change in the scalar surrogate loss. Thus, neither the candidate
+selection rule nor the greedy sequence of accepted changes is presented as a guar-
+antee of global optimality.
+   The experimental evaluation considered both a narrowly controlled standalone
+setting and broader model-level metrics. The standalone analysis isolates the local
+quantity targeted by ReFlip and makes the behavior of the two refinement stages
+observable. The broader evaluation describes how quantized model variants behave
+on language-modeling and downstream tasks. Together, these two perspectives pro-
+vide complementary evidence: the first examines the intended local correction
+
+                                                                                   59
+                                                     CHAPTER 5. CONCLUSIONS
+
+
+mechanism, while the second indicates whether the resulting quantized variants
+remain competitive at model level. The evidence is interpreted descriptively and
+within the boundaries of the evaluated settings.
+5.2   Main Findings
+   The standalone case study provides the most direct evidence for the local mecha-
+nisms examined in this thesis. Relative to the initial quantized projection, the results
+show smaller activation-weighted projection residuals after Flip and smaller scalar
+query–key score mismatches after the subsequent ReFlip stage. This observed or-
+dering is consistent with the objectives assigned to the two stages: Flip operates
+on an aggregate projection residual, whereas ReFlip operates on the residual of a
+scalar bilinear surrogate. The result does not establish that either stage minimizes
+a general attention loss, but it shows that the selected discrete corrections can be
+aligned with their respective local objectives.
+   The case study also illustrates why Flip and ReFlip should not be treated as in-
+terchangeable names for the same operation. Flip evaluates the effect of a candidate
+integer change through the projection residual induced by a representative activa-
+tion vector. ReFlip begins from the Flip-refined state, fixes the key projection, and
+evaluates query-weight candidates through their exact effect on the current scalar
+score residual. A correction that is attractive under one objective is not necessarily
+attractive under the other. In particular, a ReFlip update may reduce the scalar sur-
+rogate loss while increasing the query projection residual. The observed improve-
+ments must therefore be understood as objective-specific rather than as uniform
+improvements of every reconstruction criterion.
+   The accepted corrections are sparse relative to a complete re-quantization of the
+selected projections. This behavior is compatible with the intended role of both
+methods as post-quantization refinements: they preserve the established quantiza-
+tion grid and alter only admissible integer levels whose evaluated loss changes are
+favorable. Sparsity alone does not establish efficiency on a particular hardware
+platform, but it indicates that the correction mechanism does not require replacing
+the quantization representation or optimizing every weight jointly.
+   At model level, the evaluated quantized variants display task-dependent differ-
+ences in perplexity and downstream accuracy. Refined variants are competitive in
+several comparisons, while the relative ordering varies across models, baselines,
+and metrics. These results are best interpreted as descriptive evidence that the lo-
+cal corrections can coexist with multiple quantization baselines. They do not, by
+themselves, isolate the contribution of every design choice or demonstrate that a re-
+
+
+                                                                                     60
+CHAPTER 5. CONCLUSIONS
+
+
+duced scalar score mismatch necessarily causes an improvement on a downstream
+task. Such a causal conclusion would require broader controlled ablations and re-
+peated evaluations.
+   Taken together, the findings support a careful conclusion. Aggregate activation-
+weighted residuals and scalar query–key score residuals provide meaningful al-
+ternatives to individual weight reconstruction error when selecting discrete post-
+quantization corrections. Flip and ReFlip offer two complementary ways to ex-
+ploit these objectives. Their usefulness, however, remains conditional on the cho-
+sen representative statistics, candidate-selection policy, quantization configuration,
+and evaluation setting.
+5.3    Limitations
+   The first limitation concerns the representative activation vector. Both the
+activation-weighted Flip objective and the scalar ReFlip surrogate summarize a
+broader activation distribution through a single representative vector. This makes
+the discrete loss changes tractable and interpretable, but it cannot preserve every
+token-specific or sequence-specific projection response. A correction that is
+favorable for the representative vector may have a smaller benefit, no benefit,
+or an adverse effect for other activations. The conclusions therefore apply to the
+evaluated representative objective rather than to all possible inputs.
+     Second, the scalar query–key score surrogate is not the full attention matrix. It
+considers an unscaled bilinear interaction for a selected query head and its associ-
+ated key head under grouped-query attention. It does not model all token-to-token
+logits, softmax normalization, causal masking, interactions among sequence po-
+sitions, or the subsequent multiplication by value representations. Reducing this
+scalar mismatch is a focused local objective; it is not equivalent to preserving the
+complete attention operation.
+   Third, the optimization procedures are local and greedy. Kneedle identifies a
+region of moderate dimension-level sensitivity, but a knee in the sorted sensitiv-
+ity curve does not certify that the selected region contains the globally best cor-
+rections. Within that region, integer-level candidates are accepted sequentially ac-
+cording to their current exact local loss change. Earlier accepted changes alter the
+residual used to evaluate later candidates, and the resulting path may differ from a
+joint optimum. Neither Kneedle selection nor greedy acceptance provides a global
+optimality guarantee.
+  Fourth, the standalone analysis has a deliberately narrow scope. It examines
+one selected attention layer, one grouped-query attention group, a small collec-
+
+61
+                                                   CHAPTER 5. CONCLUSIONS
+
+
+tion of query heads, and a single representative activation statistic. This scope is
+valuable for inspecting the correction mechanism without conflating it with the
+many transformations in a complete model, but it limits generalization across lay-
+ers, head groups, architectures, calibration distributions, and quantization settings.
+Broader repeated studies are required before drawing claims about consistent be-
+havior throughout an entire model.
+   Finally, the selected model-level metrics cover only part of the deployment prob-
+lem. Perplexity and downstream accuracy do not directly characterize long-context
+behavior, generation quality, robustness, latency, memory bandwidth, energy con-
+sumption, or hardware-specific inference throughput. Likewise, the present com-
+parisons do not constitute a complete ablation of the representative statistic, sen-
+sitivity aggregation, candidate budget, or knee-selection policy. These dimensions
+remain necessary for a more comprehensive assessment.
+5.4   Future Work
+   Future evaluation should extend both the controlled and model-level settings.
+Repeating the standalone analysis across layers, GQA groups, query heads, cali-
+bration samples, and model families would reveal whether the observed correction
+patterns are stable or localized. A larger task suite, long-context benchmarks, re-
+peated trials, and deployment measurements would provide a stronger account of
+quality, variance, memory behavior, and inference efficiency. Controlled ablations
+should separately examine the representative-vector estimator, the sensitivity ag-
+gregation rule, the Kneedle configuration, and the correction budget.
+   The correction strategy can also be generalized. ReFlip currently uses exact
+scalar-surrogate loss changes inside a heuristically selected candidate region and
+modifies only the query projection while holding the key projection fixed. Future
+work may study alternating query and key corrections, group-level objectives that
+aggregate several query heads sharing one key head, and objectives defined over
+multiple representative activations. Joint or beam-search procedures could also be
+compared with greedy acceptance to measure the quality lost through local deci-
+sions. These extensions must retain explicit integer constraints so that an apparent
+continuous improvement corresponds to a valid change on the quantization grid.
+   A particularly important direction is to formulate a value-projection correction
+through a fixed-attention value-output objective rather than through a query–key
+score. This objective evaluates the output after value mixing while deliberately
+holding the attention matrix fixed; it therefore targets the value path without im-
+plying end-to-end optimization of the complete attention operation. Let the full-
+
+
+                                                                                   62
+CHAPTER 5. CONCLUSIONS
+
+
+precision target output and a quantized value-path output be
+
+                                                           1 ⃦ ˆ︁    ⃦2
+                                                            ⃦         ⃦
+               O⋆ = A⋆ V ⋆ ,     O
+                                 ˆ︁ = A Vˆ︁ ,       LV =     ⃦O − O⋆ ⃦ ,
+                                                           2          F
+
+
+where A⋆ is the full-precision attention matrix, A is the attention matrix held fixed
+while evaluating a value-only correction, V ⋆ = XWV⊤ , and Vˆ︁ = X W  ˆ︁ V⊤ . The fixed
+matrix A may be chosen according to the evaluation objective, but that choice must
+be stated explicitly because it determines which attention-path error is attributed to
+the value projection.
+  For a proposed one-level integer change ∆zab ∈ {−1, +1} in a quantized value
+weight, the corresponding dequantized weight change is
+
+                                ˆ︁ V,ab = αa,g(b) ∆zab .
+                               ∆W
+
+The following integer-level loss-change derivation is exact under the local correc-
+tion setting in which A, the quantization scale αa,g(b) , the associated zero-point,
+and every weight other than the selected value weight are held fixed throughout
+evaluation of the candidate. This produces a structured value-response change ∆Vˆ︁
+and an output change
+                 (︂    )︂⊤
+           ∆V = X ∆WV
+            ˆ︁      ˆ︁     = αa,g(b) ∆zab (Xeb )e⊤
+                                                 a,
+                                                                  ˆ︁ = A ∆Vˆ︁ .
+                                                                 ∆O
+
+Here, ea and eb denote standard basis vectors for the output and input dimensions,
+respectively. The rank-one form makes the effect of a legal integer move explicit
+before it is propagated through the fixed attention matrix. Writing the current out-
+put residual as RO = Oˆ︁ − O⋆ , the exact loss change for that admissible integer move
+is
+                                                   1 ⃦ ˆ︁⃦2
+                                   ⟨︂          ⟩︂    ⃦ ⃦
+                         ∆LV = RO , ∆O      ˆ︁    + ⃦∆O⃦ .
+                                                F   2        F
+
+An output-aware value correction could accept the candidate only when ∆LV < 0,
+update RO , and then evaluate the next candidate against the new residual. This
+formulation preserves the discrete, exact-loss-change principle used by Flip and
+ReFlip while aligning the value-weight objective with the representation produced
+after attention mixing. As with the query-only formulation, a greedy sequence of
+value corrections would remain a local procedure rather than a guarantee of global
+optimality.
+  More broadly, future work should investigate how projection-level, score-level,
+and output-level objectives can be combined without obscuring their distinct mean-
+
+
+63
+                                                  CHAPTER 5. CONCLUSIONS
+
+
+ings. A unified method could allocate correction budgets according to the residual
+that each projection can directly influence, while retaining transparent acceptance
+criteria for every integer-level adjustment. Such a formulation would provide a
+principled path from local quantization-error correction toward preservation of the
+complete attention computation.
+
+
+
+
+                                                                                64
+                                  REFERENCE
+
+
+ [1] V. Satopaa, J. Albrecht, D. Irwin, and B. Raghavan, “Finding a kneedle in
+     a haystack: Detecting knee points in system behavior,” in 2011 31st Inter-
+     national Conference on Distributed Computing Systems Workshops, 2011,
+     pp. 166–171. DOI: 10.1109/ICDCSW.2011.20
+ [2] W. James and C. Stein, “Estimation with quadratic loss,” in Proceedings of
+     the Fourth Berkeley Symposium on Mathematical Statistics and Probability,
+     vol. 1, University of California Press, 1961, pp. 361–379.
+ [3] H. Touvron et al., “Llama: Open and efficient foundation language models,”
+     arXiv preprint arXiv:2302.13971, 2023.
+ [4] J. Bai et al., “Qwen technical report,” arXiv preprint arXiv:2309.16609,
+       2023.
+ [5]   A. Gholami et al., “A survey of quantization methods for efficient neural
+       network inference,” arXiv preprint arXiv:2103.13630, 2021.
+ [6]   M. Nagel et al., “A white paper on neural network quantization,” arXiv
+       preprint arXiv:2106.08295, 2021.
+ [7]   B. Jacob et al., “Quantization and training of neural networks for efficient
+       integer-arithmetic-only inference,” in Proceedings of the IEEE Conference
+       on Computer Vision and Pattern Recognition, 2018, pp. 2704–2713.
+ [8]   M. Nagel, R. A. Amjad, M. Van Baalen, C. Louizos, and T. Blankevoort, “Up
+       or down? adaptive rounding for post-training quantization,” in Proceedings
+       of the 37th International Conference on Machine Learning, ser. Proceedings
+       of Machine Learning Research, vol. 119, 2020, pp. 7197–7206.
+ [9] E. Frantar, S. Ashkboos, T. Hoefler, and D. Alistarh, “Gptq: Accurate post-
+     training quantization for generative pre-trained transformers,” in Interna-
+     tional Conference on Learning Representations, 2023.
+[10] J. Lin et al., “Awq: Activation-aware weight quantization for llm compres-
+     sion and acceleration,” in Proceedings of Machine Learning and Systems,
+     vol. 6, 2024.
+[11] G. Xiao, J. Lin, M. Seznec, H. Wu, J. Demouth, and S. Han, “Smoothquant:
+     Accurate and efficient post-training quantization for large language models,”
+     in Proceedings of the 40th International Conference on Machine Learning,
+     ser. Proceedings of Machine Learning Research, vol. 202, 2023, pp. 38 087–
+     38 099.
+[12] C. Hooper et al., “Kvquant: Towards 10 million context length llm inference
+       with kv cache quantization,” arXiv preprint arXiv:2401.18079, 2024.
+
+                                                                                65
+                                                                        REFERENCE
+
+
+[13] S. Dong, W. Cheng, J. Qin, and W. Wang, “Qaq: Quality adaptive quantiza-
+     tion for llm kv cache,” arXiv preprint arXiv:2403.04643, 2024.
+[14] A. Vaswani et al., “Attention is all you need,” in Advances in Neural Infor-
+       mation Processing Systems, vol. 30, 2017, pp. 5998–6008.
+[15]   N. Shazeer, “Fast transformer decoding: One write-head is all you need,”
+       arXiv preprint arXiv:1911.02150, 2019.
+[16]   J. Ainslie, J. Lee-Thorp, M. de Jong, Y. Zemlyanskiy, F. Lebrón, and S. Sang-
+       hai, “Gqa: Training generalized multi-query transformer models from multi-
+       head checkpoints,” arXiv preprint arXiv:2305.13245, 2023.
+[17]   R. Banner, Y. Nahshan, and D. Soudry, “Post training 4-bit quantization of
+       convolutional networks for rapid-deployment,” in Advances in Neural Infor-
+       mation Processing Systems (NeurIPS), 2019.
+[18]   C. Raffel et al., “Exploring the limits of transfer learning with a unified text-
+       to-text transformer,” JMLR, 2020.
+[19]   A. Q. Jiang et al., “Mistral 7b,” arXiv preprint arXiv:2310.06825, 2023.
+[20] A. Dubey et al., “The llama 3 herd of models,” arXiv preprint
+     arXiv:2407.21783, 2024.
+[21] A. Yang et al., “Qwen2.5 technical report,” arXiv preprint arXiv:2412.15115,
+     2024.
+[22] S. Merity, C. Xiong, J. Bradbury, and R. Socher, “Pointer sentinel mixture
+     models,” arXiv preprint arXiv:1609.07843, 2016.
+[23] P. Clark et al., “Think you have solved question answering? try arc, the ai2
+     reasoning challenge,” arXiv preprint arXiv:1803.05457, 2018.
+[24] C. Clark, K. Lee, M.-W. Chang, T. Kwiatkowski, M. Collins, and K.
+     Toutanova, “Boolq: Exploring the surprising difficulty of natural yes/no
+     questions,” arXiv preprint arXiv:1905.10044, 2019.
+[25] Y. Bisk, R. Zellers, R. Le Bras, J. Gao, and Y. Choi, “Piqa: Reasoning about
+     physical commonsense in natural language,” Proceedings of the AAAI Con-
+     ference on Artificial Intelligence, 2020.
+[26] A. Wang, A. Singh, J. Michael, F. Hill, O. Levy, and S. R. Bowman, “Glue:
+     A multi-task benchmark and analysis platform for natural language under-
+     standing,” arXiv preprint arXiv:1804.07461, 2018.
+[27] S. Biderman, H. Schoelkopf, L. Sutawika, L. Gao, J. Tow, B. Abbasi, et al.,
+     “Lessons from the trenches on reproducible evaluation of language models,”
+     arXiv preprint arXiv:2405.14782, 2024.
+
+
+
+
+                                                                                     66
+
