@@ -60,15 +60,52 @@ class RTNGQAQuantizer(AWQGQAQuantizer):
     run unmodified on top via plain inheritance.
     """
 
+    def _weight_device(self, module):
+        """Device the module's weight actually lives on (multi-GPU device_map support).
+
+        With device_map="auto" on multi-GPU boxes (e.g. Kaggle T4 x2) the model is
+        sharded across cuda:0/cuda:1. The parent quantizer creates helper tensors on
+        self.device (cuda:0), which raises "Expected all tensors to be on the same
+        device" for every layer placed on cuda:1 — silently leaving those layers
+        UNQUANTIZED. All overrides below therefore follow the weight's own device.
+        """
+        w = module.weight
+        if getattr(w, "is_meta", False):
+            return self.device
+        return w.device
+
     def search_best_scale(self, name, module):
         in_features = module.weight.shape[1]
-        scales = torch.ones(in_features, device=self.device, dtype=module.weight.dtype)
+        scales = torch.ones(in_features, device=self._weight_device(module),
+                            dtype=module.weight.dtype)
         return scales, 0.0, 0.0
 
     def search_best_scale_lmhead_half(self, name, module, out_start, out_end, debug=False):
         in_features = module.weight.shape[1]
-        scales = torch.ones(in_features, device=self.device, dtype=module.weight.dtype)
+        scales = torch.ones(in_features, device=self._weight_device(module),
+                            dtype=module.weight.dtype)
         return scales, 0.0, 0.0
+
+    def quantize_layer(self, name, module):
+        # Temporarily point self.device at this layer's device so every
+        # ".to(self.device)" inside the inherited quantization path lands on the
+        # same GPU as the weight. refine_attention_group already uses the module's
+        # own device and needs no hop.
+        prev_device = self.device
+        try:
+            self.device = self._weight_device(module)
+            super().quantize_layer(name, module)
+        finally:
+            self.device = prev_device
+
+    def quantize_lmhead_half_by_half(self, name, module, debug=False, num_chunks=4):
+        prev_device = self.device
+        try:
+            self.device = self._weight_device(module)
+            super().quantize_lmhead_half_by_half(name, module, debug=debug,
+                                                 num_chunks=num_chunks)
+        finally:
+            self.device = prev_device
 
 
 def main():
