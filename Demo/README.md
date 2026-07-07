@@ -20,8 +20,11 @@ evaluations, so the video stays within 7–10 minutes.
 ## Prerequisites
 
 - **Hugging Face token** with access to the gated `meta-llama/Meta-Llama-3-8B`
-  (request access on its model page first). Add it in Kaggle:
-  *Add-ons → Secrets → label `HF_TOKEN`*.
+  (request access on its model page first). When a notebook reaches the model-download
+  cell it **prompts you to paste the token** (input hidden). For non-interactive
+  **Save & Run All** runs the prompt cannot appear — add the token as a Kaggle Secret
+  named `HF_TOKEN` instead (*Add-ons → Secrets*), which is used automatically as the
+  fallback.
 - Kaggle account with GPU quota (~30 h/week). Budget: ~4–6 GPU-hours total for
   notebook `00` (both runs), well under one week's quota.
 - This repository pushed to GitHub (public, or use a token to clone).
