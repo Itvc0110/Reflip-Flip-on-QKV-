@@ -62,18 +62,20 @@ The notebook runs, in order (timings on T4 x2):
 
 | Segment | What the committee sees | Time |
 |---------|------------------------|------|
-| 1. Setup | clone repo, attach checkpoints, versions printed | ~3 min (cut from video) |
-| 2. Demo 1 | standalone pipeline output: per-head Q–K error table (RTN → Flip → Flip+ReFlip), Kneedle sensitivity figure, Flip activation-mask figure — regenerated live from the saved npz (or fully re-run with `RUN_DEMO1_FROM_SCRATCH=True`) | ~1 min (from npz) |
-| 3. Demo 2a — perplexity | `lm_eval --tasks wikitext` on the three models, sequentially (full precision → RTN → RTN+ReFlip), word-perplexity table | ~3 × 6 min |
-| 4. Demo 2b — accuracy | `lm_eval --tasks arc_easy --limit 250 --log_samples` on the three models | ~3 × 7 min |
-| 5. Demo 2c — flipped questions | `tools/compare_lm_eval_samples.py`: accuracy summary + 3–5 ARC-Easy questions where RTN answers wrong and RTN+ReFlip answers right, with per-choice log-likelihood bar charts | seconds |
-| 6. Wrap-up | side-by-side panel: this run's numbers next to the thesis Table 4.7 numbers | seconds |
+| 1. Setup | clone repo, attach checkpoints, paths printed | ~3 min (cut from video) |
+| 2. Demo 1 | standalone pipeline output: per-head Q–K error table (RTN → Flip → Flip+ReFlip) + Kneedle figures, regenerated live from the saved npz | ~1 min |
+| 3. Download | full-precision Llama-3-8B from HF (token prompt) | ~10 min (cut) |
+| 4. Demo 2 — quick compare | `Demo/demo_quick_compare.py`: the SAME seeded ARC-Easy test questions scored on full precision → RTN → RTN+ReFlip (one model in memory at a time). Prints a running accuracy + s/question per model, then a **showcase**: questions RTN answers wrong and RTN+ReFlip answers right, with every choice's log-likelihood, each model's pick, and the gold answer | ~5–6 min × 3 |
+| 5. Summary table | accuracy · mean s/question · generation tokens/s · peak VRAM · checkpoint size for all three models, next to the thesis Table 4.7 reference | seconds |
+| 6. Wrap-up | takeaway markdown | seconds |
 
-Only one model is in memory at a time (`parallelize=True` shards each across both
-T4s; each `lm_eval` cell frees the model before the next). Record the screen while
-running segments 2→6; cut/fast-forward the eval waits in editing. Suggested video cut
-(7–10 min): 0–1′ repo + method recap over segment 1, 1–4′ Demo 1, 4–8′30″ Demo 2
-(questions first, then the accuracy/ppl tables), 8′30″–9′30″ wrap-up panel.
+**Reading the time/memory columns honestly:** all three checkpoints are dense FP16
+(research storage), so s/question, tokens/s, and VRAM are expected to be ~equal — the
+demo's claim is "Flip/ReFlip add **zero** inference overhead while accuracy improves",
+not "INT4 speedup" (a packed-INT4 build would be ~4.2 GB; kernels are out of scope).
+Record segments 2→6; cut the waits. Suggested video cut (7–10 min): 0–1′ repo +
+method recap, 1–4′ Demo 1, 4–8′30″ Demo 2 (showcase questions get the most airtime),
+8′30″–9′30″ summary table + wrap-up.
 
 ---
 
@@ -111,12 +113,18 @@ python rtn_xl.py     --model-path <LLAMA3> --output-dir ./quantized_models/llama
 python rtn_gqa_xl.py --model-path <LLAMA3> --output-dir ./quantized_models/llama3_rtn_reflip \
        --n-calib 128 --apply-gqa-reflip --gqa-critical-dim-pct 0.15 --gqa-max-flip-pct 0.05
 
-# Demo 2 — evaluation per model (repeat for each of the three model paths)
+# Demo 2 — quick 3-way compare (accuracy vs gold, per-question time, tokens/s, VRAM, disk)
+python Demo/demo_quick_compare.py \
+       --fp-path <LLAMA3> \
+       --rtn-path ./quantized_models/llama3_rtn \
+       --reflip-path ./quantized_models/llama3_rtn_reflip \
+       --n-questions 100 --showcase 5 --gen-tokens 64 \
+       --out-json quick_compare.json
+
+# (optional, full-benchmark route) lm-eval per model + diff of two --log_samples runs
 lm_eval --model hf --model_args pretrained=<PATH>,dtype=float16,parallelize=True \
         --tasks wikitext,arc_easy --limit 250 --batch_size 4 \
         --log_samples --output_path results/lm_eval/<variant>
-
-# Demo 2 — the questions ReFlip fixed
 python tools/compare_lm_eval_samples.py \
        --baseline-dir results/lm_eval/llama3_rtn \
        --variant-dir  results/lm_eval/llama3_rtn_reflip \
