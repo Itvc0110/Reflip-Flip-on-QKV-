@@ -41,7 +41,7 @@ the notebook is **parameterized and run twice**, one variant per version:
 | Run | Set `VARIANT =` | Produces | Approx. time |
 |-----|-----------------|----------|--------------|
 | 1 | `"rtn"` | `llama3_rtn/` checkpoint (plain RTN via `rtn_xl.py`) **+ Demo-1 artifacts** (`xspot` export, `quantization_results.npz`, figures) | ~1–1.5 h |
-| 2 | `"rtn_reflip"` | `llama3_rtn_reflip/` checkpoint (`rtn_gqa_xl.py --apply-gqa-reflip`: RTN base → Flip → GQA ReFlip) | ~2.5–4 h |
+| 2 | `"rtn_reflip"` | `llama3_rtn_reflip/` checkpoint (`rtn_gqa_xl.py --apply-gqa-reflip`: RTN base → Flip → GQA ReFlip). Runs with `--n-calib 64 --max-tokens-per-sample 256` — Kaggle's ~32 GB RAM cannot hold the full 128×512 float32 activation batches (~17 GB/batch → SIGKILL); the reduced setting is ~4.3 GB/batch. | ~1.5–2.5 h |
 
 For each run: set `VARIANT`, **Save Version → Save & Run All (Commit)**, wait for it to
 finish, then from the notebook's *Output* tab click **New Dataset** and name them
