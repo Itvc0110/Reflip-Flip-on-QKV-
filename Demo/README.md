@@ -15,6 +15,15 @@ The heavy work (quantizing the 8B model) is done **once** in notebook `00` and s
 as private Kaggle Datasets; the recorded notebook `01` only loads checkpoints and runs
 evaluations, so the video stays within 7–10 minutes.
 
+> **Shortcut (recommended when defense time is limited):**
+> `kaggle/02_demo_qkv_only.ipynb` is a fully **self-contained** version of Demo 1 only —
+> no datasets, no notebook 00, no pre-quantized checkpoints. It downloads the model,
+> then runs one repo script per cell (`xspot.py` → `fast_quantize_qkv.py` →
+> summary/figures) and ends with a single cell that visualizes all results.
+> Total ≈ 25 minutes on T4 x2; needs only the `HF_TOKEN` secret (or paste the token at
+> the prompt in Cell 2). Present it as: "due to time constraints we demo the standalone
+> QKV case study live; the full-model results are reported in the thesis."
+
 ---
 
 ## Prerequisites
